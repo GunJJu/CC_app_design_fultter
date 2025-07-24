@@ -1,504 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Today's Recommendation</title>
+    <title>시작 화면</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Custom Tailwind Configuration */
         :root {
-            --primary-color: #5E81FF;
             --accent-color: #00ffff;
-            /* User requested color for pulsing effect */
-            --like-color: #FF4F6C;
             --bg-color: #0A0A0A;
-            /* User requested background color */
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             margin: 0;
             overflow: hidden;
-            /* Prevent body scroll when overlay is active */
         }
 
-        /* Radar Animation */
-        @keyframes pulse-radar {
-            0% {
-                transform: scale(0.5);
-                opacity: 0.8;
-            }
-
-            100% {
-                transform: scale(2.0);
-                opacity: 0;
-            }
-        }
-
-        .pulsing-circle {
-            animation: pulse-radar 3s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            background-color: var(--accent-color);
-            border-radius: 50%;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-        }
-
-        .pulsing-circle:nth-child(1) {
-            animation-delay: 0s;
-        }
-
-        .pulsing-circle:nth-child(2) {
-            animation-delay: -1s;
-        }
-
-        .pulsing-circle:nth-child(3) {
-            animation-delay: -2s;
-        }
-
-        /* Card Animation */
-        .card-enter-active,
-        .card-exit-active {
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-
-        .card-enter-from {
-            transform: scale(0);
-        }
-
-        .card-enter-to {
-            transform: scale(1);
-        }
-
-        .card-exit-to {
-            transform: scale(0);
-        }
-
-        /* Match Overlay Animation */
-        .match-overlay-enter-active,
-        .match-overlay-exit-active {
-            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-
-        .match-overlay-enter-from {
-            transform: scale(0);
-        }
-
-        .match-overlay-enter-to {
-            transform: scale(1);
-        }
-
-        .match-overlay-exit-to {
-            transform: scale(0);
-        }
-
-        /* Custom scrollbar for card content */
-        .card-content-scroll::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .card-content-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .card-content-scroll::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-
-        .card-content-scroll::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        /* SnackBar styling */
-        .snackbar {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
+        .line {
+            white-space: nowrap;
+            overflow: hidden;
+            width: 0;
             opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            z-index: 1000;
-            font-size: 14px;
         }
 
-        .snackbar.show {
+        .line.typing {
             opacity: 1;
+            border-right: 2px solid var(--accent-color);
+            animation: typing 1.5s steps(30, end) forwards, blink-caret .75s step-end infinite;
+        }
+
+        /* MODIFIED: Added width: 100% to ensure the line stays visible after animation */
+        .line.finished {
+            opacity: 1;
+            width: 100%;
+            border-right: none;
+        }
+
+        .line.cursor-blink {
+            border-right: 2px solid var(--accent-color);
+            animation: blink-caret .75s step-end infinite;
+        }
+
+        /* The typing effect */
+        @keyframes typing {
+            from {
+                width: 0
+            }
+
+            to {
+                width: 100%
+            }
+        }
+
+        /* The typewriter cursor effect */
+        @keyframes blink-caret {
+
+            from,
+            to {
+                border-color: transparent
+            }
+
+            50% {
+                border-color: var(--accent-color);
+            }
         }
     </style>
 </head>
 
-<body class="bg-[#0A0A0A] flex flex-col items-center justify-start min-h-screen">
+<body class="bg-black flex flex-col items-center justify-center min-h-screen">
+
     <!-- Main App Container -->
     <div id="app-container"
-        class="relative w-full max-w-md h-screen bg-[var(--bg-color)] flex flex-col rounded-b-3xl overflow-hidden shadow-lg">
-        <!-- App Bar -->
-        <header class="w-full py-4 px-4 flex items-center justify-between absolute top-0 left-0 z-20">
-            <button id="back-button" class="text-white/70 text-2xl focus:outline-none">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <button id="menu-button" class="text-white/70 text-2xl focus:outline-none">
-                <i class="fas fa-bars"></i>
-            </button>
-        </header>
-        <!-- ADDED: Menu Dropdown -->
-        <div id="menu-dropdown"
-            class="hidden absolute top-16 right-4 z-20 bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-xl w-48 shadow-lg">
-            <div class="p-2">
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
-                    <i class="fas fa-home w-5 text-center"></i>
-                    <span>홈으로</span>
-                </a>
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
-                    <i class="fas fa-comments w-5 text-center"></i>
-                    <span>내 채팅</span>
-                </a>
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
-                    <i class="fas fa-eye w-5 text-center"></i>
-                    <span>나를 본 사람</span>
-                </a>
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
-                    <i class="fas fa-heart w-5 text-center"></i>
-                    <span>내가 본 사람</span>
-                </a>
-            </div>
+        class="relative w-full max-w-md h-screen bg-black flex flex-col justify-center items-center p-8">
+        <div class="w-full max-w-xs">
+            <p id="line1" class="line text-xl font-bold"
+                style="color: var(--accent-color); text-shadow: 0 0 8px var(--accent-color);"></p>
+            <p id="line2" class="line text-xl font-bold"
+                style="color: var(--accent-color); text-shadow: 0 0 8px var(--accent-color);"></p>
+            <p id="line3" class="line text-xl font-bold"
+                style="color: var(--accent-color); text-shadow: 0 0 8px var(--accent-color);"></p>
         </div>
-        <!-- Searching View (Initial) -->
-        <div id="searching-view" class="flex flex-col items-center justify-center flex-grow text-center p-6">
-            <div class="relative w-[250px] h-[250px] flex items-center justify-center">
-                <div class="pulsing-circle"></div>
-                <div class="pulsing-circle"></div>
-                <div class="pulsing-circle"></div>
-                <div
-                    class="relative w-[150px] h-[150px] bg-gray-300 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-                    <img src="https://picsum.photos/seed/myprofile/200/200" alt="My Profile"
-                        class="w-full h-full object-cover" />
-                </div>
-            </div>
-            <div class="mt-12 text-white/80 text-lg font-medium">
-                나와 꼭 맞는 친구를 찾고 있어요...
-            </div>
-            <div class="mt-3 text-gray-400 text-sm leading-relaxed">
-                최적의 상대를 추천해 드릴게요!
-            </div>
-            <div class="mt-8">
-                <button id="start-matching-button"
-                    class="bg-transparent border-2 border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-3 px-10 rounded-full transition-all duration-300 hover:bg-[var(--accent-color)] hover:text-[var(--bg-color)] shadow-[0_0_15px_var(--accent-color)]">
-                    매칭하기
-                </button>
-            </div>
-        </div>
-        <!-- Card View (Hidden initially) -->
-        <div id="card-view"
-            class="hidden flex-grow p-5 flex flex-col transition-transform duration-500 ease-in-out transform scale-0">
-            <div class="h-16"></div> <!-- Spacer for absolute header -->
-            <div class="flex-grow flex flex-col bg-white rounded-[28px] shadow-xl overflow-hidden">
-                <!-- Profile Image -->
-                <div class="aspect-square w-full">
-                    <img id="profile-image" src="" alt="Profile Image"
-                        class="w-full h-full object-cover rounded-t-[28px]" />
-                </div>
-                <!-- Card Content (Scrollable) -->
-                <div class="flex-grow overflow-y-auto p-6 card-content-scroll">
-                    <div class="flex items-center justify-between mb-2">
-                        <h2 id="user-name-age" class="text-black/80 text-2xl font-bold"></h2>
-                        <span id="smoking-chip" class="px-3 py-1 rounded-full text-sm font-bold"></span>
-                    </div>
-                    <p id="user-major" class="text-gray-600 text-base font-medium mb-4"></p>
-                    <hr class="border-gray-200 my-4">
-                    <div class="mb-4">
-                        <h3 class="text-gray-800 font-bold text-base mb-2">함께 비는 시간</h3>
-                        <div id="free-time-chips" class="flex flex-wrap gap-2"></div>
-                    </div>
-                    <div>
-                        <h3 class="text-gray-800 font-bold text-base mb-2">공통 관심사</h3>
-                        <div id="hobbies-chips" class="flex flex-wrap gap-2"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Action Buttons -->
-            <div class="flex justify-center items-center mt-5 mb-3">
-                <button id="dislike-button"
-                    class="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105">
-                    <i class="fas fa-times text-gray-400 text-3xl"></i>
-                </button>
-                <div class="w-6"></div>
-                <button id="like-button"
-                    class="w-20 h-20 rounded-full bg-[var(--like-color)] flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105">
-                    <i class="fas fa-heart text-white text-4xl"></i>
-                </button>
-            </div>
-        </div>
-        <!-- Matched Overlay (Hidden initially) -->
-        <div id="matched-overlay"
-            class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md z-50 transition-transform duration-600 ease-in-out transform scale-0">
-            <div class="text-white text-4xl font-bold tracking-wider mb-3 text-shadow-[0_0_10px_var(--like-color)]">
-                MATCHED!
-            </div>
-            <div id="matched-message" class="text-white/70 text-base mb-10"></div>
-            <div class="relative flex items-center justify-center">
-                <i class="fas fa-heart text-[var(--like-color)] text-4xl absolute z-10"></i>
-                <div class="flex items-center justify-center">
-                    <div
-                        class="w-[120px] h-[120px] rounded-full bg-white flex items-center justify-center shadow-lg mr-10">
-                        <img src="https://picsum.photos/seed/myprofile/400/400" alt="My Profile"
-                            class="w-[112px] h-[112px] rounded-full object-cover" />
-                    </div>
-                    <div
-                        class="w-[120px] h-[120px] rounded-full bg-white flex items-center justify-center shadow-lg ml-10">
-                        <img id="matched-user-profile-image" src="" alt="Matched User Profile"
-                            class="w-[112px] h-[112px] rounded-full object-cover" />
-                    </div>
-                </div>
-            </div>
-            <div class="mt-12 w-full px-10">
-                <button id="start-chat-button"
-                    class="w-full py-4 bg-[var(--primary-color)] text-white font-bold text-base rounded-full shadow-lg transition-all duration-200 hover:opacity-90">
-                    채팅 시작하기
-                </button>
-            </div>
-        </div>
-        <!-- Custom SnackBar for messages -->
-        <div id="snackbar" class="snackbar"></div>
     </div>
-    <script>
-        // Define custom colors for Tailwind JIT mode
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: 'var(--primary-color)',
-                        accent: 'var(--accent-color)',
-                        like: 'var(--like-color)',
-                    },
-                    textShadow: {
-                        'like': '0 0 10px var(--like-color)',
-                    },
-                    boxShadow: {
-                        'like': '0 0 15px var(--like-color)',
-                        'accent': '0 0 15px var(--accent-color)',
-                    }
-                }
-            }
-        }
-        // State variables
-        let isSearching = true;
-        let isMatched = false;
-        let currentUserIndex = 0;
-        let lastMatchedUser = null;
-        // DOM Elements
-        const appContainer = document.getElementById('app-container');
-        const searchingView = document.getElementById('searching-view');
-        const cardView = document.getElementById('card-view');
-        const matchedOverlay = document.getElementById('matched-overlay');
-        const profileImage = document.getElementById('profile-image');
-        const userNameAge = document.getElementById('user-name-age');
-        const smokingChip = document.getElementById('smoking-chip');
-        const userMajor = document.getElementById('user-major');
-        const freeTimeChips = document.getElementById('free-time-chips');
-        const hobbiesChips = document.getElementById('hobbies-chips');
-        const dislikeButton = document.getElementById('dislike-button');
-        const likeButton = document.getElementById('like-button');
-        const matchedMessage = document.getElementById('matched-message');
-        const matchedUserProfileImage = document.getElementById('matched-user-profile-image');
-        const startChatButton = document.getElementById('start-chat-button');
-        const snackbar = document.getElementById('snackbar');
-        const backButton = document.getElementById('back-button');
-        const menuButton = document.getElementById('menu-button');
-        const startMatchingButton = document.getElementById('start-matching-button');
-        const menuDropdown = document.getElementById('menu-dropdown'); // ADDED
-        // Dummy Data Generation
-        function generateDummyUsers() {
-            const random = new Random();
-            const users = [];
-            for (let i = 0; i < 10; i++) {
-                users.push({
-                    name: `유저 ${i + 1}`,
-                    age: random.nextInt(5) + 20,
-                    major: ['컴퓨터공학과', '경영학과', '디자인학과', '심리학과'][random.nextInt(4)],
-                    profile_image: `https://picsum.photos/seed/user${i + 1}/600/600`,
-                    is_smoker: random.nextBool(),
-                    free_time: shuffleArray(['월 1,2교시', '수 5,6교시', '금요일 오후', '화 3교시', '목 7,8교시']).slice(0, random.nextInt(2) + 1),
-                    hobbies: shuffleArray(['카페', '영화', '코딩', '산책', '맛집', '게임', '독서', '음악감상', '여행']).slice(0, random.nextInt(3) + 2),
-                });
-            }
-            return users;
-        }
-        class Random {
-            nextInt(max) { return Math.floor(Math.random() * max); }
-            nextBool() { return Math.random() < 0.5; }
-        }
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-        const matchedUsers = generateDummyUsers();
-        // UI Update Functions
-        function renderScreen() {
-            const headerButtons = [backButton, menuButton];
-            if (isSearching) {
-                searchingView.classList.remove('hidden');
-                cardView.classList.add('hidden');
-                matchedOverlay.classList.add('hidden');
-                appContainer.classList.remove('bg-gray-100');
-                appContainer.classList.add('bg-[var(--bg-color)]');
-                headerButtons.forEach(btn => {
-                    btn.classList.remove('text-black/70');
-                    btn.classList.add('text-white/70');
-                });
-            } else {
-                searchingView.classList.add('hidden');
-                cardView.classList.remove('hidden');
-                appContainer.classList.remove('bg-[var(--bg-color)]');
-                appContainer.classList.add('bg-gray-100');
-                headerButtons.forEach(btn => {
-                    btn.classList.add('text-black/70');
-                    btn.classList.remove('text-white/70');
-                });
-                if (isMatched) {
-                    matchedOverlay.classList.remove('hidden');
-                    requestAnimationFrame(() => {
-                        matchedOverlay.classList.add('match-overlay-enter-to');
-                        matchedOverlay.classList.remove('match-overlay-enter-from');
-                    });
-                } else {
-                    matchedOverlay.classList.add('hidden');
-                    matchedOverlay.classList.remove('match-overlay-enter-to');
-                    matchedOverlay.classList.add('match-overlay-enter-from');
-                    updateCardContent();
-                    requestAnimationFrame(() => {
-                        cardView.classList.add('card-enter-to');
-                        cardView.classList.remove('card-enter-from');
-                    });
-                }
-            }
-        }
-        function updateCardContent() {
-            const userData = matchedUsers[currentUserIndex];
-            if (!userData) return;
-            profileImage.src = userData.profile_image;
-            profileImage.onerror = () => profileImage.src = `https://placehold.co/600x600/cccccc/333333?text=Image+Error`;
-            userNameAge.textContent = `${userData.name}, ${userData.age}`;
-            userMajor.textContent = userData.major;
-            smokingChip.textContent = userData.is_smoker ? '흡연' : '비흡연';
-            smokingChip.className = `px-3 py-1 rounded-full text-sm font-bold ${userData.is_smoker ? 'bg-gray-200 text-gray-700' : 'bg-primary/10 text-primary'}`;
-            freeTimeChips.innerHTML = '';
-            userData.free_time.forEach(item => {
-                const chip = document.createElement('span');
-                chip.className = 'px-3 py-1 bg-gray-200 rounded-lg text-gray-800 text-sm font-medium';
-                chip.textContent = item;
-                freeTimeChips.appendChild(chip);
-            });
-            hobbiesChips.innerHTML = '';
-            userData.hobbies.forEach(item => {
-                const chip = document.createElement('span');
-                chip.className = 'px-3 py-1 bg-gray-200 rounded-lg text-gray-800 text-sm font-medium';
-                chip.textContent = item;
-                hobbiesChips.appendChild(chip);
-            });
-        }
-        function showSnackBar(message) {
-            snackbar.textContent = message;
-            snackbar.classList.add('show');
-            setTimeout(() => { snackbar.classList.remove('show'); }, 3000);
-        }
-        // Event Handlers
-        function nextMatch() {
-            if (currentUserIndex < matchedUsers.length - 1) {
-                cardView.classList.remove('card-enter-to');
-                cardView.classList.add('card-exit-to');
-                setTimeout(() => {
-                    currentUserIndex++;
-                    updateCardContent();
-                    cardView.classList.remove('card-exit-to');
-                    cardView.classList.add('card-enter-from');
-                    requestAnimationFrame(() => { cardView.classList.add('card-enter-to'); });
-                }, 500);
-            } else {
-                showSnackBar('마지막 추천 친구입니다!');
-            }
-        }
-        function onLikePressed() {
-            lastMatchedUser = matchedUsers[currentUserIndex];
-            isMatched = true;
-            matchedMessage.textContent = `${lastMatchedUser.name}님과 새로운 인연이 시작되었어요.`;
-            matchedUserProfileImage.src = lastMatchedUser.profile_image;
-            matchedUserProfileImage.onerror = () => matchedUserProfileImage.src = `https://placehold.co/400x400/cccccc/333333?text=Image+Error`;
-            renderScreen();
-        }
-        function onStartChatPressed() {
-            isMatched = false;
-            matchedOverlay.classList.remove('match-overlay-enter-to');
-            matchedOverlay.classList.add('match-overlay-exit-to');
-            setTimeout(() => {
-                matchedOverlay.classList.add('hidden');
-                matchedOverlay.classList.remove('match-overlay-exit-to');
-                nextMatch();
-            }, 600);
-        }
-        function startMatching() {
-            isSearching = false;
-            renderScreen();
-            cardView.classList.add('card-enter-from');
-            requestAnimationFrame(() => {
-                cardView.classList.add('card-enter-to');
-                cardView.classList.remove('card-enter-from');
-            });
-        }
-        // Initial setup on DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', () => {
-            renderScreen();
-            // Attach event listeners
-            dislikeButton.addEventListener('click', nextMatch);
-            likeButton.addEventListener('click', onLikePressed);
-            startChatButton.addEventListener('click', onStartChatPressed);
-            backButton.addEventListener('click', () => {
-                // Go back to searching view if in card view
-                if (!isSearching) {
-                    isSearching = true;
-                    renderScreen();
-                    // also hide menu if it's open
-                    menuDropdown.classList.add('hidden');
-                } else {
-                    showSnackBar('뒤로가기 버튼 클릭됨');
-                }
-            });
-            startMatchingButton.addEventListener('click', startMatching);
 
-            // MODIFIED: Event listener for the menu button to toggle the dropdown
-            menuButton.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent this click from immediately closing the menu
-                menuDropdown.classList.toggle('hidden');
-            });
-            // ADDED: Event listener to close the menu when clicking outside
-            document.addEventListener('click', (e) => {
-                // If the menu is open and the click is outside the menu button and the menu itself
-                if (!menuDropdown.classList.contains('hidden') && !menuButton.contains(e.target) && !menuDropdown.contains(e.target)) {
-                    menuDropdown.classList.add('hidden');
+    <script>
+        const lines = [
+            { el: document.getElementById('line1'), text: 'SYNCUP_OS Booting...' },
+            { el: document.getElementById('line2'), text: 'Campus Linked.' },
+            { el: document.getElementById('line3'), text: 'Ready to Connect.' },
+        ];
+
+        function typeLine(lineIndex) {
+            if (lineIndex >= lines.length) {
+                // Finalize the last line to have a blinking cursor
+                const lastLine = lines[lines.length - 1];
+                if (lastLine) {
+                    lastLine.el.classList.remove('typing');
+                    lastLine.el.classList.add('finished');
+                    lastLine.el.classList.add('cursor-blink');
                 }
-            });
+                return;
+            }
+
+            const currentLine = lines[lineIndex];
+            const previousLine = lines[lineIndex - 1];
+
+            if (previousLine) {
+                // Remove typing animation and border from previous line
+                previousLine.el.classList.remove('typing');
+                previousLine.el.classList.add('finished');
+            }
+
+            currentLine.el.textContent = currentLine.text;
+            // Calculate animation duration based on text length
+            const duration = currentLine.text.length * 0.08; // 80ms per character
+            currentLine.el.style.animationDuration = `${duration}s, 0.75s`;
+            currentLine.el.style.animationIterationCount = '1, infinite';
+            currentLine.el.style.animationTimingFunction = `steps(${currentLine.text.length}, end), step-end`;
+            currentLine.el.style.animationName = 'typing, blink-caret';
+            currentLine.el.classList.add('typing');
+
+            setTimeout(() => {
+                typeLine(lineIndex + 1);
+            }, duration * 1000 + 500); // Wait for typing to finish + 500ms pause
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            typeLine(0);
         });
     </script>
 </body>
