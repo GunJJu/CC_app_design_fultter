@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>시간표 등록</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #00ffff;
+            /* User requested accent color */
+            --accent-color-shadow: rgba(0, 255, 255, 0.3);
+            /* Shadow for the accent color */
+            --primary-text: #111827;
+            --secondary-text: #6b7280;
+            --border-color: #e5e7eb;
+            --bg-color: #f9fafb;
+            --error-color: #ef4444;
+            --success-color: #22c55e;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.2s ease-in-out;
+            font-size: 1rem;
+            background-color: #F9FAFB;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px var(--accent-color);
+            /* Simplified to a single line shadow */
+        }
+
+        #modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #modal-panel {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #modal-backdrop.hidden {
+            opacity: 0;
+        }
+
+        #modal-panel.hidden {
+            transform: translateY(100%);
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 시간표 뷰 스타일 */
+        #table-view {
+            display: grid;
+            grid-template-columns: 30px repeat(6, 1fr);
+            /* 시간 + 월~토 */
+            grid-template-rows: 30px;
+            /* 요일 헤더 */
+            flex-grow: 1;
+        }
+
+        .time-label {
+            font-size: 10px;
+            text-align: center;
+            color: var(--secondary-text);
+        }
+
+        .day-label {
+            font-size: 12px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-text);
+        }
+
+        .time-slots {
+            position: relative;
+            grid-column: 2 / -1;
+            grid-row: 2 / -1;
+            background-image: linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+            background-size: 100% 60px;
+            /* 1시간 간격 줄 */
+        }
+
+        .class-block {
+            position: absolute;
+            width: calc(100% - 4px);
+            left: 2px;
+            padding: 6px;
+            border-radius: 8px;
+            font-size: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .class-block:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .class-block .class-name {
+            font-weight: 700;
+        }
+
+        .class-block .class-room {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.05));
+        }
+    </style>
+</head>
+
+<body class="bg-gray-800 flex justify-center items-center">
+
+    <div id="app-container" class="relative">
+        <!-- Header -->
+        <header class="flex-shrink-0 flex items-center justify-between p-4">
+            <div>
+                <div class="text-3xl font-black" style="color: var(--accent-color);">CC,</div>
+                <div class="text-[10px] font-bold tracking-[0.2em] text-gray-500">CAMPUS CONNECT</div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex-shrink-0 flex justify-center py-2 border-b border-gray-200">
+            <div class="bg-gray-200 p-1 rounded-lg flex text-sm">
+                <button id="view-toggle-list"
+                    class="px-4 py-1 rounded-md bg-white text-gray-900 font-bold shadow">목록</button>
+                <button id="view-toggle-table" class="px-4 py-1 rounded-md text-gray-500 font-normal">시간표</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto custom-scroll bg-white">
+            <!-- 목록 뷰 -->
+            <div id="list-view" class="p-6">
+                <div id="class-list" class="space-y-3"></div>
+            </div>
+
+            <!-- 표(시간표) 뷰 -->
+            <div id="table-view-container" class="hidden p-3 h-full flex flex-col">
+                <div id="table-view">
+                    <!-- 요일 헤더 -->
+                    <div class="day-label"></div>
+                    <div class="day-label flex items-center justify-center">월</div>
+                    <div class="day-label flex items-center justify-center">화</div>
+                    <div class="day-label flex items-center justify-center">수</div>
+                    <div class="day-label flex items-center justify-center">목</div>
+                    <div class="day-label flex items-center justify-center">금</div>
+                    <div class="day-label flex items-center justify-center">토</div>
+                </div>
+            </div>
+
+            <!-- 비어있을 때 메시지 -->
+            <div id="empty-state" class="text-center py-16 px-6">
+                <i class="fas fa-book-open text-4xl text-gray-400 mb-4"></i>
+                <h3 class="font-bold text-gray-700">아직 등록된 과목이 없어요</h3>
+                <p class="text-sm text-gray-500 mt-1">아래 + 버튼을 눌러 새 과목을 추가해 보세요!</p>
+            </div>
+        </main>
+
+        <!-- Floating Action Button -->
+        <button id="add-class-fab"
+            class="absolute z-30 bottom-20 right-6 w-14 h-14 rounded-full bg-white flex items-center justify-center text-2xl text-black shadow-lg hover:bg-gray-100 active:scale-95 transition-all border border-gray-200">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- Bottom Navigation Bar -->
+        <footer class="relative flex-shrink-0 h-14">
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z" />
+                </svg>
+            </div>
+
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <button class="flex items-center justify-center text-black rounded-full w-16 h-16 shadow-lg"
+                    style="background-color: var(--accent-color); box-shadow: 0 5px 20px var(--accent-color-shadow);">
+                    <i class="fa-solid fa-tower-broadcast text-2xl"></i>
+                </button>
+            </div>
+
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <i class="fas fa-home text-2xl"></i>
+                </a>
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1436/1436701.png" class="w-7 h-7" alt="모임 아이콘">
+                </a>
+                <div class="h-full"></div>
+                <a href="#" class="flex items-center justify-center h-full text-gray-800">
+                    <i class="fa-regular fa-calendar-days text-2xl"></i>
+                </a>
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <i class="fas fa-user text-2xl"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <!-- 모달 -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+    <div id="modal-panel" class="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl hidden"
+        style="max-height: 90vh; max-width: 430px; margin: 0 auto;">
+        <div class="flex flex-col h-full">
+            <header class="flex-shrink-0 p-4 flex items-center justify-between border-b border-gray-200">
+                <h2 id="modal-title" class="text-lg font-bold text-gray-800">과목 정보 입력</h2>
+                <button id="close-modal-btn"
+                    class="text-gray-500 text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">&times;</button>
+            </header>
+            <div id="modal-content" class="flex-grow p-6 overflow-y-auto custom-scroll space-y-5">
+                <input type="hidden" id="editing-class-id">
+                <div>
+                    <label for="subject-name" class="font-semibold text-gray-700 mb-2 block">과목명</label>
+                    <input type="text" id="subject-name" class="form-input" placeholder="예: 객체지향프로그래밍">
+                </div>
+                <div>
+                    <label for="professor-name" class="font-semibold text-gray-700 mb-2 block">교수명</label>
+                    <input type="text" id="professor-name" class="form-input" placeholder="예: 홍길동">
+                </div>
+                <div>
+                    <label for="classroom" class="font-semibold text-gray-700 mb-2 block">강의실</label>
+                    <input type="text" id="classroom" class="form-input" placeholder="예: 우당관 401호">
+                </div>
+                <div>
+                    <label class="font-semibold text-gray-700 mb-2 block">요일</label>
+                    <select id="day-of-week" class="form-input">
+                        <option>월요일</option>
+                        <option>화요일</option>
+                        <option>수요일</option>
+                        <option>목요일</option>
+                        <option>금요일</option>
+                        <option>토요일</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="start-time" class="font-semibold text-gray-700 mb-2 block">시작 시간</label>
+                        <select id="start-time" class="form-input"></select>
+                    </div>
+                    <div>
+                        <label for="end-time" class="font-semibold text-gray-700 mb-2 block">종료 시간</label>
+                        <select id="end-time" class="form-input"></select>
+                    </div>
+                </div>
+            </div>
+            <footer class="flex-shrink-0 p-4 bg-white border-t border-gray-200 flex gap-3">
+                <button id="delete-class-btn"
+                    class="w-1/3 py-3 rounded-xl bg-red-500 text-white font-bold transition-opacity hover:opacity-90 hidden">삭제</button>
+                <button id="save-class-btn"
+                    class="flex-grow py-3 rounded-xl text-black font-bold transition-opacity hover:opacity-90"
+                    style="background-color: var(--accent-color);">저장</button>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 상태 관리 (State) ---
+            let timetable = {
+                year: 2025, semester: 2,
+                classes: [
+                    { id: Date.now() + 1, name: '컴퓨터 구조', professor: '이몽룡', classroom: '세종관 101호', day: '월요일', startTime: '10:00', endTime: '11:50' },
+                    { id: Date.now() + 2, name: '자료구조', professor: '성춘향', classroom: '집현관 302호', day: '수요일', startTime: '13:00', endTime: '14:50' },
+                    { id: Date.now() + 3, name: '운영체제', professor: '변학도', classroom: '충무관 202호', day: '금요일', startTime: '09:00', endTime: '11:50' },
+                ]
+            };
+            let currentView = 'list'; // 'list' or 'table'
+            let editingClassId = null;
+
+            // --- DOM 요소 ---
+            const classListEl = document.getElementById('class-list');
+            const emptyStateEl = document.getElementById('empty-state');
+            const addClassFab = document.getElementById('add-class-fab');
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalPanel = document.getElementById('modal-panel');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const saveClassBtn = document.getElementById('save-class-btn');
+            const deleteClassBtn = document.getElementById('delete-class-btn');
+            const modalTitle = document.getElementById('modal-title');
+            const viewToggleListBtn = document.getElementById('view-toggle-list');
+            const viewToggleTableBtn = document.getElementById('view-toggle-table');
+            const listView = document.getElementById('list-view');
+            const tableViewContainer = document.getElementById('table-view-container');
+            const tableView = document.getElementById('table-view');
+
+            const subjectNameInput = document.getElementById('subject-name'), professorNameInput = document.getElementById('professor-name'),
+                classroomInput = document.getElementById('classroom'), dayOfWeekInput = document.getElementById('day-of-week'),
+                startTimeInput = document.getElementById('start-time'), endTimeInput = document.getElementById('end-time');
+
+            // --- 헬퍼 함수 ---
+            const timeToMinutes = (time) => { const [h, m] = time.split(':').map(Number); return h * 60 + m; };
+
+            const populateTimeSelects = () => {
+                const times = [];
+                let currentMinutes = 9 * 60; // 9:00 AM
+                const endMinutes = 18 * 60; // 6:00 PM
+
+                while (currentMinutes <= endMinutes) {
+                    const hour = Math.floor(currentMinutes / 60);
+                    const minute = currentMinutes % 60;
+                    times.push(`${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
+                    currentMinutes += 50;
+                }
+
+                [startTimeInput, endTimeInput].forEach(selectEl => {
+                    selectEl.innerHTML = ''; // Clear existing options
+                    times.forEach(time => {
+                        const option = document.createElement('option');
+                        option.value = time;
+                        option.textContent = time;
+                        selectEl.appendChild(option);
+                    });
+                });
+            };
+
+            // --- 렌더링 함수 ---
+            const render = () => {
+                const hasClasses = timetable.classes.length > 0;
+                emptyStateEl.classList.toggle('hidden', hasClasses);
+
+                if (currentView === 'list') {
+                    listView.classList.remove('hidden');
+                    tableViewContainer.classList.add('hidden');
+                } else {
+                    listView.classList.add('hidden');
+                    tableViewContainer.classList.remove('hidden');
+                }
+
+                if (hasClasses) {
+                    if (currentView === 'list') renderListView();
+                    else renderTableView();
+                }
+            };
+
+            const renderListView = () => {
+                classListEl.innerHTML = '';
+                const dayOrder = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+                const sortedClasses = [...timetable.classes].sort((a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day) || a.startTime.localeCompare(b.startTime));
+
+                sortedClasses.forEach(cls => {
+                    const classEl = document.createElement('div');
+                    classEl.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-cyan-400 transition-all duration-200 fade-in';
+                    classEl.dataset.id = cls.id;
+                    const dayColors = { '월요일': 'bg-yellow-100 text-yellow-800', '화요일': 'bg-pink-100 text-pink-800', '수요일': 'bg-green-100 text-green-800', '목요일': 'bg-orange-100 text-orange-800', '금요일': 'bg-blue-100 text-blue-800', '토요일': 'bg-purple-100 text-purple-800' };
+                    classEl.innerHTML = `<div class="flex-shrink-0 w-12 h-12 ${dayColors[cls.day] || 'bg-gray-100'} rounded-lg flex flex-col items-center justify-center font-bold"><span class="text-xs">${cls.day.substring(0, 1)}</span><span>${cls.startTime.substring(0, 2)}</span></div><div class="flex-grow"><p class="font-bold text-gray-800">${cls.name}</p><p class="text-sm text-gray-500">${cls.professor} · ${cls.classroom}</p><p class="text-sm text-gray-500">${cls.startTime} ~ ${cls.endTime}</p></div><i class="fas fa-chevron-right text-gray-400"></i>`;
+                    classEl.addEventListener('click', () => openModal(cls.id));
+                    classListEl.appendChild(classEl);
+                });
+            };
+
+            const renderTableView = () => {
+                // Clear previous content except headers
+                const oldContent = tableView.querySelectorAll('.time-label-col, .time-slots');
+                oldContent.forEach(el => el.remove());
+
+                const START_HOUR = 9, END_HOUR = 18;
+                const timeLabelCol = document.createElement('div');
+                timeLabelCol.className = 'time-label-col';
+                timeLabelCol.style.gridRow = `2 / span ${END_HOUR - START_HOUR + 1}`;
+
+                for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
+                    const label = document.createElement('div');
+                    label.className = 'time-label h-[60px] flex items-center justify-center';
+                    label.textContent = hour;
+                    timeLabelCol.appendChild(label);
+                }
+                tableView.appendChild(timeLabelCol);
+
+                const timeSlotsContainer = document.createElement('div');
+                timeSlotsContainer.className = 'time-slots';
+                timeSlotsContainer.style.gridRow = `2 / span ${END_HOUR - START_HOUR + 1}`;
+                timeSlotsContainer.style.height = `${(END_HOUR - START_HOUR) * 60}px`;
+
+                const dayMap = { '월요일': 1, '화요일': 2, '수요일': 3, '목요일': 4, '금요일': 5, '토요일': 6 };
+                const dayColorClasses = {
+                    '월요일': ['bg-yellow-100', 'text-yellow-800'],
+                    '화요일': ['bg-pink-100', 'text-pink-800'],
+                    '수요일': ['bg-green-100', 'text-green-800'],
+                    '목요일': ['bg-orange-100', 'text-orange-800'],
+                    '금요일': ['bg-blue-100', 'text-blue-800'],
+                    '토요일': ['bg-purple-100', 'text-purple-800']
+                };
+
+                timetable.classes.forEach(cls => {
+                    const startMinutes = timeToMinutes(cls.startTime);
+                    const endMinutes = timeToMinutes(cls.endTime);
+
+                    if (endMinutes < START_HOUR * 60 || startMinutes > END_HOUR * 60) return;
+
+                    const top = (startMinutes - START_HOUR * 60);
+                    const height = endMinutes - startMinutes;
+
+                    const dayIndex = dayMap[cls.day];
+                    if (!dayIndex) return;
+
+                    const block = document.createElement('div');
+                    block.className = 'class-block';
+                    block.dataset.id = cls.id;
+
+                    // 요일별 색상 클래스 적용
+                    const colorPair = dayColorClasses[cls.day] || ['bg-gray-100', 'text-gray-800'];
+                    block.classList.add(colorPair[0], colorPair[1]);
+
+                    block.style.top = `${top}px`;
+                    block.style.height = `${height}px`;
+                    block.style.left = `calc(${(dayIndex - 1) * 100 / 6}% + 2px)`;
+                    block.style.width = `calc(${100 / 6}% - 4px)`;
+
+                    block.innerHTML = `<strong class="class-name">${cls.name}</strong><div class="class-room">${cls.classroom}</div>`;
+                    block.addEventListener('click', () => openModal(cls.id));
+                    timeSlotsContainer.appendChild(block);
+                });
+                tableView.appendChild(timeSlotsContainer);
+            };
+
+            // --- 모달 관리 ---
+            const openModal = (classId = null) => {
+                modalBackdrop.classList.remove('hidden');
+                modalPanel.classList.remove('hidden');
+                if (classId) {
+                    editingClassId = classId;
+                    const cls = timetable.classes.find(c => c.id === classId);
+                    modalTitle.textContent = '과목 정보 수정';
+                    subjectNameInput.value = cls.name; professorNameInput.value = cls.professor; classroomInput.value = cls.classroom;
+                    dayOfWeekInput.value = cls.day; startTimeInput.value = cls.startTime; endTimeInput.value = cls.endTime;
+                    deleteClassBtn.classList.remove('hidden'); saveClassBtn.classList.add('w-2/3'); saveClassBtn.classList.remove('w-full');
+                } else {
+                    editingClassId = null;
+                    modalTitle.textContent = '과목 정보 입력';
+                    [subjectNameInput, professorNameInput, classroomInput].forEach(i => i.value = '');
+                    dayOfWeekInput.value = '월요일'; startTimeInput.value = '09:00'; endTimeInput.value = '09:50';
+                    deleteClassBtn.classList.add('hidden'); saveClassBtn.classList.remove('w-2/3'); saveClassBtn.classList.add('w-full');
+                }
+            };
+            const closeModal = () => { modalBackdrop.classList.add('hidden'); modalPanel.classList.add('hidden'); };
+
+            // --- 데이터 처리 ---
+            const handleSaveClass = () => {
+                if (!subjectNameInput.value.trim()) { alert('과목명을 입력해주세요.'); return; }
+                const classData = { id: editingClassId || Date.now(), name: subjectNameInput.value.trim(), professor: professorNameInput.value.trim(), classroom: classroomInput.value.trim(), day: dayOfWeekInput.value, startTime: startTimeInput.value, endTime: endTimeInput.value };
+                if (editingClassId) {
+                    const index = timetable.classes.findIndex(c => c.id === editingClassId);
+                    timetable.classes[index] = classData;
+                } else {
+                    timetable.classes.push(classData);
+                }
+                render(); closeModal();
+            };
+            const handleDeleteClass = () => {
+                if (!editingClassId || !confirm('정말로 이 과목을 삭제하시겠습니까?')) return;
+                timetable.classes = timetable.classes.filter(c => c.id !== editingClassId);
+                render(); closeModal();
+            };
+
+            // --- 뷰 전환 ---
+            const switchView = (view) => {
+                currentView = view;
+                if (view === 'list') {
+                    // Activate List View Button
+                    viewToggleListBtn.classList.add('bg-white', 'text-gray-900', 'font-bold', 'shadow');
+                    viewToggleListBtn.classList.remove('text-gray-500', 'font-normal');
+                    // Deactivate Table View Button
+                    viewToggleTableBtn.classList.remove('bg-white', 'text-gray-900', 'font-bold', 'shadow');
+                    viewToggleTableBtn.classList.add('text-gray-500', 'font-normal');
+                } else {
+                    // Activate Table View Button
+                    viewToggleTableBtn.classList.add('bg-white', 'text-gray-900', 'font-bold', 'shadow');
+                    viewToggleTableBtn.classList.remove('text-gray-500', 'font-normal');
+                    // Deactivate List View Button
+                    viewToggleListBtn.classList.remove('bg-white', 'text-gray-900', 'font-bold', 'shadow');
+                    viewToggleListBtn.classList.add('text-gray-500', 'font-normal');
+                }
+                render();
+            };
+
+            // --- 이벤트 리스너 ---
+            addClassFab.addEventListener('click', () => openModal());
+            closeModalBtn.addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('click', closeModal);
+            saveClassBtn.addEventListener('click', handleSaveClass);
+            deleteClassBtn.addEventListener('click', handleDeleteClass);
+            viewToggleListBtn.addEventListener('click', () => switchView('list'));
+            viewToggleTableBtn.addEventListener('click', () => switchView('table'));
+
+            // --- 초기화 ---
+            populateTimeSelects();
+            render();
+        });
+    </script>
+</body>
+
+</html>
