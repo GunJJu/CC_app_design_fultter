@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알림</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #00FFFF;
+            /* Main neon color */
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: #E5E7EB;
+            /* bg-gray-200 */
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="flex justify-center items-center">
+    <!-- Main App Container -->
+    <div id="app-container" class="relative w-full max-w-md h-screen bg-white flex flex-col overflow-hidden shadow-2xl">
+
+        <!-- Header -->
+        <header class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
+            <button class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h1 class="text-lg font-bold text-gray-800">알림</h1>
+            <div class="w-10 h-10"></div> <!-- Placeholder for alignment -->
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto custom-scroll">
+            <div class="p-4 space-y-4">
+                <!-- Notification List -->
+                <div id="notification-list" class="space-y-3">
+                    <!-- Notification items will be dynamically inserted here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const notificationList = document.getElementById('notification-list');
+
+            let notifications = [
+                { id: 1, type: 'group', title: "'함께 성장하는 독서 모임' 가입이 승인되었어요.", time: "방금 전", read: false, icon: 'fa-users' },
+                { id: 2, type: 'news', title: "새로운 '맛집탐방' 모임이 만들어졌어요. 확인해보세요!", time: "10분 전", read: false, icon: 'fa-bullhorn' },
+                { id: 3, type: 'activity', title: "'주말엔 브런치!' 모임 지원이 완료되었어요.", time: "1시간 전", read: true, icon: 'fa-check-circle' },
+                { id: 4, type: 'group', title: "'별 보러 가는 언덕' 모임에 새로운 댓글이 달렸어요.", time: "3시간 전", read: true, icon: 'fa-comment-dots' },
+                { id: 5, type: 'news', title: "새로운 공지사항이 등록되었습니다.", time: "어제", read: true, icon: 'fa-info-circle' },
+            ];
+
+            function renderNotifications() {
+                notificationList.innerHTML = '';
+                notifications.forEach(notif => {
+                    const notifElement = document.createElement('div');
+                    notifElement.className = `relative flex items-start p-4 rounded-xl gap-4 transition-colors ${notif.read ? 'bg-gray-50' : 'bg-white'}`;
+
+                    const deleteButtonHtml = notif.read
+                        ? `<button data-id="${notif.id}" class="delete-btn absolute top-2 right-2 w-6 h-6 text-gray-300 hover:text-gray-600 transition-colors rounded-full flex items-center justify-center">
+                               <i class="fas fa-times text-sm"></i>
+                           </button>`
+                        : '';
+
+                    notifElement.innerHTML = `
+                        <div class="flex-grow">
+                            <p class="text-gray-800 text-sm pr-6">${notif.title}</p>
+                            <div class="flex items-center text-xs text-gray-400 mt-1.5">
+                                <i class="fas ${notif.icon} w-4 text-center mr-1 text-gray-400"></i>
+                                <span>${notif.time}</span>
+                            </div>
+                        </div>
+                        ${!notif.read ? '<div class="flex-shrink-0 w-2 h-2 mt-1.5 rounded-full bg-cyan-400 self-center"></div>' : ''}
+                        ${deleteButtonHtml}
+                    `;
+                    notificationList.appendChild(notifElement);
+                });
+
+                // Add event listeners to the new delete buttons
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idToDelete = parseInt(e.currentTarget.dataset.id);
+                        notifications = notifications.filter(n => n.id !== idToDelete);
+                        renderNotifications(); // Re-render the list
+                    });
+                });
+            }
+
+            renderNotifications();
+        });
+    </script>
+</body>
+
+</html>

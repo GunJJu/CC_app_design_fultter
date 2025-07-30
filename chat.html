@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +17,8 @@
             --like-color: #FF4F6C;
             --bg-color: #0A0A0A;
             --chat-bg-color: #0A0A0A;
-            --my-chat-color: #008080; /* A darker cyan for better readability */
+            --my-chat-color: #008080;
+            /* A darker cyan for better readability */
         }
 
         body {
@@ -33,13 +35,16 @@
         .chat-scroll::-webkit-scrollbar {
             width: 6px;
         }
+
         .chat-scroll::-webkit-scrollbar-track {
             background: transparent;
         }
+
         .chat-scroll::-webkit-scrollbar-thumb {
             background: var(--accent-color);
             border-radius: 10px;
         }
+
         .chat-scroll::-webkit-scrollbar-thumb:hover {
             background: #00dddd;
         }
@@ -59,48 +64,53 @@
             z-index: 1000;
             font-size: 14px;
         }
+
         .snackbar.show {
             opacity: 1;
         }
 
-                .main-bg {
+        .main-bg {
             background: #000;
             text-align: center;
         }
 
-        #main-title{
-            color:white;
+        #main-title {
+            color: white;
         }
+
         #main-menu {
             display: flex;
             justify-content: center;
             gap: 30px;
             list-style: none;
-        
+
         }
 
         #main-menu a {
             text-decoration: none;
-                color:#00ffff;
+            color: #00ffff;
         }
     </style>
 </head>
+
 <body class="bg-[#0A0A0A] flex flex-col items-center justify-start min-h-screen">
     <div class="main-bg">
-            <h1 id="main-title">CC앱을위한 디자인 시안 모음입니다</h1>
-    <ul id="main-menu">
-        <li><a href= "index.html">홈으로</a></li>
-        <li><a href= "chat_list.html" >채팅 리스트</a></li>
-        <li><a href= "chat.html" >채팅 화면</a></li>
-        <li><a href= "scan.html" >레이더</a></li>
-        <li><a href= "intro.html" >인트로화면</a></li>
-    </ul>
+        <h1 id="main-title">CC앱을위한 디자인 시안 모음입니다</h1>
+        <ul id="main-menu">
+            <li><a href="index.html">홈으로</a></li>
+            <li><a href="chat_list.html">채팅 리스트</a></li>
+            <li><a href="chat.html">채팅 화면</a></li>
+            <li><a href="scan.html">레이더</a></li>
+            <li><a href="intro.html">인트로화면</a></li>
+        </ul>
     </div>
     <!-- Main App Container -->
-    <div id="app-container" class="relative w-full max-w-md h-screen bg-[var(--chat-bg-color)] flex flex-col overflow-hidden">
+    <div id="app-container"
+        class="relative w-full max-w-md h-screen bg-[var(--chat-bg-color)] flex flex-col overflow-hidden">
 
         <!-- App Bar -->
-        <header class="w-full py-4 px-4 flex items-center justify-between absolute top-0 left-0 z-20 bg-[var(--bg-color)] border-b border-gray-700/50">
+        <header
+            class="w-full py-4 px-4 flex items-center justify-between absolute top-0 left-0 z-20 bg-[var(--bg-color)] border-b border-gray-700/50">
             <button id="back-button" class="text-white/70 text-2xl focus:outline-none w-10 h-10">
                 <i class="fas fa-arrow-left"></i>
             </button>
@@ -113,24 +123,28 @@
         </header>
 
         <!-- Menu Dropdown -->
-        <div id="menu-dropdown" class="hidden absolute top-16 right-4 z-20 bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-xl w-48 shadow-lg">
+        <div id="menu-dropdown"
+            class="hidden absolute top-16 right-4 z-20 bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-xl w-48 shadow-lg">
             <div class="p-2">
-                <a id="menu-gallery" href="#" class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
+                <a id="menu-gallery" href="#"
+                    class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
                     <i class="fas fa-images w-5 text-center"></i>
                     <span>갤러리</span>
                 </a>
-                <a id="menu-block" href="#" class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
+                <a id="menu-block" href="#"
+                    class="flex items-center gap-3 px-4 py-2 text-white/90 rounded-lg hover:bg-gray-700/70 transition-colors">
                     <i class="fas fa-user-slash w-5 text-center"></i>
                     <span>차단하기</span>
                 </a>
                 <hr class="border-gray-700 my-1">
-                <a id="menu-leave" href="#" class="flex items-center gap-3 px-4 py-2 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors">
+                <a id="menu-leave" href="#"
+                    class="flex items-center gap-3 px-4 py-2 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors">
                     <i class="fas fa-arrow-right-from-bracket w-5 text-center"></i>
                     <span>채팅방 나가기</span>
                 </a>
             </div>
         </div>
-        
+
         <!-- Main Content: Chat Messages -->
         <main id="chat-messages" class="flex-grow pt-24 pb-24 px-4 flex flex-col overflow-y-auto chat-scroll">
             <!-- Chat bubbles will be dynamically inserted here -->
@@ -138,14 +152,18 @@
 
         <!-- Footer: Chat Input -->
         <footer class="absolute bottom-0 left-0 w-full p-3 bg-transparent">
-            <div class="bg-gray-800/70 backdrop-blur-lg border border-gray-700 rounded-2xl flex items-center p-2 gap-2 shadow-lg">
-                 <button id="photo-button" class="w-10 h-10 flex-shrink-0 text-gray-400 hover:text-white transition-colors flex items-center justify-center">
+            <div
+                class="bg-gray-800/70 backdrop-blur-lg border border-gray-700 rounded-2xl flex items-center p-2 gap-2 shadow-lg">
+                <button id="photo-button"
+                    class="w-10 h-10 flex-shrink-0 text-gray-400 hover:text-white transition-colors flex items-center justify-center">
                     <i class="fas fa-image text-xl"></i>
-                 </button>
-                 <input type="text" id="chat-input" placeholder="메시지 보내기..." class="flex-grow bg-transparent text-white px-3 focus:outline-none placeholder-gray-500">
-                 <button id="send-button" class="w-10 h-10 flex-shrink-0 bg-[var(--accent-color)] text-black rounded-xl flex items-center justify-center text-lg transition-transform hover:scale-110">
+                </button>
+                <input type="text" id="chat-input" placeholder="메시지 보내기..."
+                    class="flex-grow bg-transparent text-white px-3 focus:outline-none placeholder-gray-500">
+                <button id="send-button"
+                    class="w-10 h-10 flex-shrink-0 bg-[var(--accent-color)] text-black rounded-xl flex items-center justify-center text-lg transition-transform hover:scale-110">
                     <i class="fas fa-arrow-up"></i>
-                 </button>
+                </button>
             </div>
         </footer>
 
@@ -153,25 +171,31 @@
         <div id="snackbar" class="snackbar"></div>
 
         <!-- Leave Chat Confirmation Modal -->
-        <div id="leave-modal" class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div id="leave-modal"
+            class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
             <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
                 <h3 class="text-lg font-bold text-white mb-2">채팅방 나가기</h3>
                 <p class="text-gray-400 mb-6">채팅방을 정말 나가시겠습니까?<br>대화 내용이 모두 삭제됩니다.</p>
                 <div class="flex gap-3">
-                    <button id="cancel-leave-button" class="w-full py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">아니요</button>
-                    <button id="confirm-leave-button" class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors">예</button>
+                    <button id="cancel-leave-button"
+                        class="w-full py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">아니요</button>
+                    <button id="confirm-leave-button"
+                        class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors">예</button>
                 </div>
             </div>
         </div>
 
         <!-- ADDED: Block User Confirmation Modal -->
-        <div id="block-modal" class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div id="block-modal"
+            class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
             <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
                 <h3 class="text-lg font-bold text-white mb-2">사용자 차단하기</h3>
                 <p class="text-gray-400 mb-6">이 사용자를 정말 차단하시겠습니까?<br>더 이상 메시지를 주고받을 수 없습니다.</p>
                 <div class="flex gap-3">
-                    <button id="cancel-block-button" class="w-full py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">아니요</button>
-                    <button id="confirm-block-button" class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors">차단</button>
+                    <button id="cancel-block-button"
+                        class="w-full py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">아니요</button>
+                    <button id="confirm-block-button"
+                        class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors">차단</button>
                 </div>
             </div>
         </div>
@@ -188,7 +212,7 @@
         const chatInput = document.getElementById('chat-input');
         const sendButton = document.getElementById('send-button');
         const photoButton = document.getElementById('photo-button');
-        
+
         const menuGallery = document.getElementById('menu-gallery');
         const menuBlock = document.getElementById('menu-block');
         const menuLeave = document.getElementById('menu-leave');
@@ -196,7 +220,7 @@
         const leaveModal = document.getElementById('leave-modal');
         const confirmLeaveButton = document.getElementById('confirm-leave-button');
         const cancelLeaveButton = document.getElementById('cancel-leave-button');
-        
+
         // ADDED: Block Modal elements
         const blockModal = document.getElementById('block-modal');
         const confirmBlockButton = document.getElementById('confirm-block-button');
@@ -216,15 +240,15 @@
             snackbar.classList.add('show');
             setTimeout(() => { snackbar.classList.remove('show'); }, 3000);
         }
-        
+
         function renderMessages() {
             chatMessagesContainer.innerHTML = '';
             dummyMessages.forEach(msg => {
                 const messageBubble = document.createElement('div');
                 const isMine = msg.sender === 'me';
-                
+
                 messageBubble.className = 'flex gap-3 max-w-[80%] mb-4';
-                
+
                 if (isMine) {
                     messageBubble.classList.add('self-end');
                     messageBubble.innerHTML = `
@@ -275,7 +299,7 @@
 
         // --- Initial setup on DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', () => {
-            
+
             renderMessages();
 
             // Event listener for the menu button
@@ -295,7 +319,7 @@
             backButton.addEventListener('click', () => {
                 showSnackBar('채팅 목록으로 돌아갑니다.');
             });
-            
+
             // Event listeners for sending a message
             sendButton.addEventListener('click', sendMessage);
             chatInput.addEventListener('keypress', (e) => {
@@ -303,7 +327,7 @@
                     sendMessage();
                 }
             });
-            
+
             // Event listener for the new photo button
             photoButton.addEventListener('click', () => {
                 showSnackBar('사진 전송 기능이 추가될 예정입니다.');
@@ -315,7 +339,7 @@
                 showSnackBar('갤러리 열기');
                 menuDropdown.classList.add('hidden');
             });
-            
+
             // MODIFIED: Show block confirmation modal
             menuBlock.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -351,5 +375,5 @@
         });
     </script>
 </body>
-</html>
 
+</html>
