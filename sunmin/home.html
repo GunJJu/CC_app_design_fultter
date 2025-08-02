@@ -1,0 +1,252 @@
+<!-- 메인페이지 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #00FFFF; /* Main neon color */
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+        /* Custom scrollbar for horizontal lists */
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 0;
+            background: transparent; /* make scrollbar transparent */
+        }
+        /* Adjust height to account for fixed header and footer */
+        .main-content {
+             height: calc(100vh - 128px); /* Full screen height minus header(65px) and footer(63px) approx. */
+        }
+        /* Added for the new footer's shadow effect */
+        .footer-shadow {
+             filter: drop-shadow(0 -4px 6px rgba(0,0,0,0.05));
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header: padding-4 (p-4) 유지 -->
+        <header class="flex-shrink-0 flex items-center justify-between p-4">
+            <div>
+                <div class="text-3xl font-black" style="color: var(--accent-color);">CC,</div>
+                <div class="text-[10px] font-bold tracking-[0.2em] text-gray-500">CAMPUS CONNECT</div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+            </div>
+        </header>
+        
+        <!-- Tab Navigation: 좌우 여백 (px-4) 유지, 상하 여백 (py-2)로 조정 -->
+        <nav class="flex-shrink-0 flex space-x-8 px-4 border-b border-gray-200">
+            <a href="#" class="py-2 text-base font-bold border-b-2 text-gray-800" style="border-color: var(--accent-color);">추천</a>
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">모임</a>
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">구해요</a>
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">장소</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto main-content">
+            <div class="p-4 space-y-8">
+                
+                <!-- Section 1: Recommended Meetings -->
+                <section>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-bold text-gray-800">✨ 이런 모임은 어때요?</h2>
+                        <a href="#" class="text-sm font-medium text-gray-500">더보기 ></a>
+                    </div>
+                    <div class="flex space-x-4 overflow-x-auto horizontal-scroll pb-2">
+                        <!-- Card 1 -->
+                        <div class="flex-shrink-0 w-2/3 rounded-xl overflow-hidden shadow-md relative group">
+                            <img src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=2070&auto=format&fit=crop" class="w-full h-48 object-cover" alt="독서 모임">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            
+                            <!-- 인원수 및 하트수 위치 -->
+                            <div class="absolute top-4 left-4 flex items-center space-x-3 text-xs text-white">
+                                <span class="flex items-center bg-black/30 px-2 py-1 rounded-full">
+                                    <i class="fas fa-users mr-1"></i> 5/10명
+                                </span>
+                                <span class="flex items-center bg-black/30 px-2 py-1 rounded-full">
+                                    <i class="fas fa-heart text-red-400 mr-1"></i> 120
+                                </span>
+                            </div>
+
+                            <div class="absolute bottom-0 left-0 p-4 text-white">
+                                <h3 class="font-bold text-lg">함께 성장하는 독서 모임</h3>
+                                <div class="flex items-center text-xs space-x-2 mt-2">
+                                    <span class="bg-white/20 px-2 py-1 rounded-full">#독서</span>
+                                    <span class="bg-white/20 px-2 py-1 rounded-full">#자기계발</span>
+                                </div>
+                            </div>
+                            <div class="absolute bottom-4 right-4 bg-white/30 p-2 rounded-full transform transition-transform group-hover:scale-110">
+                                <i class="fas fa-chevron-right text-white"></i>
+                            </div>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="flex-shrink-0 w-2/3 rounded-xl overflow-hidden shadow-md relative group">
+                           <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=1974&auto=format&fit=crop" class="w-full h-48 object-cover" alt="브런치 모임">
+                           <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                           
+                           <!-- 인원수 및 하트수 위치 -->
+                           <div class="absolute top-4 left-4 flex items-center space-x-3 text-xs text-white">
+                                <span class="flex items-center bg-black/30 px-2 py-1 rounded-full">
+                                    <i class="fas fa-users mr-1"></i> 3/8명
+                                </span>
+                                <span class="flex items-center bg-black/30 px-2 py-1 rounded-full">
+                                    <i class="fas fa-heart text-red-400 mr-1"></i> 85
+                                </span>
+                           </div>
+
+                           <div class="absolute bottom-0 left-0 p-4 text-white">
+                               <h3 class="font-bold text-lg">주말엔 브런치!</h3>
+                               <div class="flex items-center text-xs space-x-2 mt-2">
+                                   <span class="bg-white/20 px-2 py-1 rounded-full">#맛집</span>
+                                   <span class="bg-white/20 px-2 py-1 rounded-full">#브런치</span>
+                               </div>
+                           </div>
+                           <div class="absolute bottom-4 right-4 bg-white/30 p-2 rounded-full transform transition-transform group-hover:scale-110">
+                               <i class="fas fa-chevron-right text-white"></i>
+                           </div>
+                       </div>
+                    </div>
+                </section>
+                
+                <!-- Section 2: Recommended Places -->
+                <section>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-bold text-gray-800">🎯 취향저격! 추천 장소</h2>
+                        <a href="#" class="text-sm font-medium text-gray-500">더보기 ></a>
+                    </div>
+                    <div class="flex space-x-4 overflow-x-auto horizontal-scroll pb-2">
+                         <!-- Card 1 -->
+                        <div class="flex-shrink-0 w-1/2 rounded-xl overflow-hidden shadow-md relative">
+                            <img src="https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=2093&auto=format&fit=crop" class="w-full h-32 object-cover" alt="밤하늘">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                            <h3 class="absolute bottom-2 left-3 font-semibold text-white">별 보러 가는 언덕</h3>
+                            <!-- ADDED: 추천 장소에 하트수 추가 -->
+                            <div class="absolute top-2 right-2 flex items-center bg-black/30 px-2 py-1 rounded-full text-xs text-white">
+                                <i class="fas fa-heart text-red-400 mr-1"></i> 95
+                            </div>
+                        </div>
+                         <!-- Card 2 -->
+                        <div class="flex-shrink-0 w-1/2 rounded-xl overflow-hidden shadow-md relative">
+                           <img src="https://images.unsplash.com/photo-1524171925479-50122c4f7467?q=80&w=1974&auto=format&fit=crop" class="w-full h-32 object-cover" alt="조용한 카페">
+                           <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                           <h3 class="absolute bottom-2 left-3 font-semibold text-white">공부하기 좋은 카페</h3>
+                           <!-- ADDED: 추천 장소에 하트수 추가 -->
+                           <div class="absolute top-2 right-2 flex items-center bg-black/30 px-2 py-1 rounded-full text-xs text-white">
+                                <i class="fas fa-heart text-red-400 mr-1"></i> 78
+                           </div>
+                       </div>
+                        <!-- Card 3 -->
+                        <div class="flex-shrink-0 w-1/2 rounded-xl overflow-hidden shadow-md relative">
+                           <img src="https://images.unsplash.com/photo-1589998059171-988d887df646?q=80&w=2070&auto=format&fit=crop" class="w-full h-32 object-cover" alt="오래된 책방">
+                           <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                           <h3 class="absolute bottom-2 left-3 font-semibold text-white">책방 골목길</h3>
+                           <!-- ADDED: 추천 장소에 하트수 추가 -->
+                           <div class="absolute top-2 right-2 flex items-center bg-black/30 px-2 py-1 rounded-full text-xs text-white">
+                                <i class="fas fa-heart text-red-400 mr-1"></i> 110
+                           </div>
+                       </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Hot Users -->
+                 <section>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-bold text-gray-800">🔥 지금 가장 핫한 유저</h2>
+                        <a href="#" class="text-sm font-medium text-gray-500">더보기 ></a>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="text-center group">
+                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-white shadow-lg transition-transform group-hover:scale-105" alt="사용자 프로필 사진">
+                            <p class="mt-2 font-semibold text-gray-800">제니</p>
+                            <!-- ADDED: 핫한 유저 하트수 표시 -->
+                            <div class="flex items-center justify-center text-xs text-gray-600 mt-1">
+                                <i class="fas fa-heart text-red-500 mr-1"></i> 250
+                            </div>
+                        </div>
+                        <div class="text-center group">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-white shadow-lg transition-transform group-hover:scale-105" alt="사용자 프로필 사진">
+                            <p class="mt-2 font-semibold text-gray-800">라이언</p>
+                            <!-- ADDED: 핫한 유저 하트수 표시 -->
+                            <div class="flex items-center justify-center text-xs text-gray-600 mt-1">
+                                <i class="fas fa-heart text-red-500 mr-1"></i> 210
+                            </div>
+                        </div>
+                        <div class="text-center group">
+                             <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-white shadow-lg transition-transform group-hover:scale-105" alt="사용자 프로필 사진">
+                            <p class="mt-2 font-semibold text-gray-800">클로이</p>
+                            <!-- ADDED: 핫한 유저 하트수 표시 -->
+                            <div class="flex items-center justify-center text-xs text-gray-600 mt-1">
+                                <i class="fas fa-heart text-red-500 mr-1"></i> 180
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+        
+        <!-- Bottom Navigation Bar (Updated from user's provided code) -->
+        <footer class="relative flex-shrink-0 h-14">
+            <!-- Background SVG -->
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <!-- MODIFIED: SVG path adjusted for more rounded corners on the notch -->
+                    <path d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z"/>
+                </svg>
+            </div>
+            
+            <!-- Center Floating Button -->
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <button class="flex items-center justify-center text-black rounded-full w-16 h-16 shadow-lg shadow-cyan-500/50" style="background-color: var(--accent-color);">
+                    <i class="fa-solid fa-tower-broadcast text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- 5-column navigation grid -->
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <!-- 1. Home -->
+                <!-- MODIFIED: 활성화 상태일 때 검정색으로 변경 -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-800">
+                    <i class="fas fa-home text-2xl"></i>
+                </a>
+                <!-- 2. Meetings -->
+                <!-- MODIFIED: 비활성화 상태일 때 연한 회색, 호버 시 검정색으로 변경 -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1436/1436701.png" class="w-7 h-7" alt="모임 아이콘">
+                </a>
+                <!-- 3. Placeholder for center button -->
+                <div class="h-full"></div>
+                <!-- 4. Timetable -->
+                <!-- MODIFIED: 비활성화 상태일 때 연한 회색, 호버 시 검정색으로 변경 -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <i class="fa-regular fa-calendar-days text-2xl"></i>
+                </a>
+                <!-- 5. My Page -->
+                <!-- MODIFIED: 비활성화 상태일 때 연한 회색, 호버 시 검정색으로 변경 -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <i class="fas fa-user text-2xl"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+</body>
+</html>
+

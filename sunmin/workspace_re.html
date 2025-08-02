@@ -1,0 +1,1357 @@
+<!-- 소모임 소개페이지, 게시판 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소모임 워크스페이스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        :root {
+            --accent-color: #00FFFF; /* Main neon color */
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0,0,0,0.05));
+        }
+        .tab-button.active {
+            border-bottom: 2px solid var(--accent-color);
+            font-weight: bold;
+            color: #111827; /* text-gray-900 */
+        }
+        .tab-button:not(.active) {
+            color: #6B7280; /* text-gray-500 */
+        }
+        /* Custom scrollbar for content areas */
+        .custom-scrollbar::-webkit-scrollbar,
+        .horizontal-scroll::-webkit-scrollbar {
+            width: 4px;
+            height: 0;
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: transparent;
+        }
+        /* Timetable grid styling */
+        .timetable-grid {
+            display: grid;
+            grid-template-columns: 40px repeat(5, 1fr); /* Time column + 5 days */
+            grid-auto-rows: 40px;
+        }
+        .timetable-header {
+            text-align: center;
+            font-size: 0.75rem; /* text-xs */
+            color: #6B7280; /* text-gray-500 */
+        }
+        .timetable-time-cell {
+            font-size: 0.75rem;
+            color: #6B7280;
+            text-align: right;
+            padding-right: 8px;
+        }
+        .timetable-cell {
+            border-left: 1px solid #f3f4f6; /* bg-gray-100 */
+            border-top: 1px solid #f3f4f6;
+        }
+        .common-free-slot {
+            background-color: rgba(0, 255, 255, 0.2);
+            cursor: pointer;
+        }
+        .common-free-slot.selected {
+            border: 2px solid var(--accent-color);
+            background-color: rgba(0, 255, 255, 0.4);
+        }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        /* Floating button style */
+        .join-button-floating {
+            position: fixed;
+            bottom: 90px; /* Increased from 70px to avoid overlap with nav bar */
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 2rem); /* p-4 equivalent */
+            max-width: calc(448px - 2rem); /* max-w-md - p-4 */
+            z-index: 30;
+        }
+        #category-filter-highlight {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            background-color: white;
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            transition: left 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), width 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 0;
+        }
+        .category-filter-button {
+            z-index: 1;
+        }
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header - Modified for Workspace -->
+        <header class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
+            <!-- Back arrow button -->
+            <button class="text-gray-500 text-xl" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <!-- Small Group Name - Centered -->
+            <h1 class="text-lg font-bold text-gray-800 absolute left-1/2 transform -translate-x-1/2">파이썬 스터디 모임</h1>
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+                <!-- Role Selector for Demo -->
+                <select id="role-selector" class="text-sm p-1 rounded-md border border-gray-300">
+                    <option value="creator">개설자</option>
+                    <option value="sub_manager">부방장</option>
+                    <option value="member" selected>사용자</option>
+                </select>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="relative flex-grow flex flex-col overflow-hidden">
+            <!-- Sub-Tab Navigation for Small Group Workspace -->
+            <nav class="flex-shrink-0 flex justify-around border-b border-gray-200 bg-white mb-2">
+                <button class="tab-button py-2 px-4 text-sm active" data-tab="intro">소모임 소개</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="board">게시판</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="free-time">정기모임</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="gallery">갤러리</button>
+                <!-- New tabs for Creator -->
+                <button class="tab-button py-2 px-4 text-sm hidden" data-tab="statistics" id="statistics-tab-button">통계</button>
+                <button class="tab-button py-2 px-4 text-sm hidden" data-tab="management" id="management-tab-button">관리</button>
+            </nav>
+
+            <!-- Tab Content Areas -->
+            <div id="tab-content" class="flex-grow overflow-y-auto custom-scrollbar bg-gray-100">
+                <!-- 소모임 소개 (Group Intro) Tab - Merged with new design -->
+                <div id="intro-tab" class="tab-pane active bg-white">
+                    <!-- Meeting Image -->
+                    <div class="w-full h-64 bg-gray-200 overflow-hidden relative">
+                        <img id="intro-image-display" src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop&h=256"
+                             class="w-full h-full object-cover"
+                             alt="모임 이미지"
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x400/e5e7eb/6b7280?text=이미지%20없음';">
+                        
+                        <!-- Edit Intro Button (Creator Only) -->
+                        <button id="edit-intro-btn" class="absolute top-4 right-4 bg-white text-gray-700 p-2 rounded-full shadow-md hidden">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <!-- Like Button -->
+                        <button id="like-button" class="absolute bottom-4 right-4 bg-white/80 text-gray-700 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-300">
+                            <i class="far fa-heart text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Meeting Information -->
+                    <div class="p-4">
+                        <h1 id="intro-title" class="text-2xl font-bold text-gray-800 mb-2">파이썬 스터디 모임</h1>
+                        
+                        <div class="flex items-center space-x-3 text-sm text-gray-600 mb-3">
+                            <span id="intro-category" class="bg-gray-100 px-3 py-1 rounded-full">스터디</span>
+                             <span class="flex items-center">
+                                <i class="fas fa-users mr-1"></i>
+                                <span id="intro-member-count">12/15</span>
+                            </span>
+                            <span class="flex items-center">
+                                <i class="fas fa-eye mr-1"></i>
+                                <span id="intro-views">120</span> <!-- Dummy views count -->
+                            </span>
+                            <span class="flex items-center">
+                                <i class="fas fa-heart text-red-500 mr-1"></i>
+                                <span id="intro-likes">245</span> <!-- Dummy likes count -->
+                            </span>
+                        </div>
+
+                        <p id="intro-description" class="text-gray-700 leading-relaxed mb-6">
+                            파이썬 기초부터 심화까지 함께 공부하는 스터디 모임입니다. 코딩 테스트 준비, 프로젝트 진행 등 다양한 활동을 함께해요! 파이썬을 처음 접하는 분부터 숙련된 개발자까지 모두 환영합니다. 함께 성장하며 즐거운 코딩 라이프를 만들어가요!
+                        </p>
+
+                        <h2 class="text-lg font-semibold text-gray-800 mb-2">모임 정보</h2>
+                        <!-- Removed list-disc from ul -->
+                        <ul class="list-inside text-gray-700 mb-6">
+                            <li><i class="far fa-calendar-alt mr-2"></i>날짜: <span id="intro-meeting-time">매주 화요일 저녁 7시 (온라인/오프라인 병행)</span></li>
+                            <li><i class="fas fa-map-marker-alt mr-2"></i>장소: <span id="intro-location">교내 스터디룸, 온라인 화상 회의</span></li>
+                        </ul>
+
+                        <h2 class="text-lg font-semibold text-gray-800 mb-2">모임 규칙</h2>
+                        <ul class="list-disc list-inside text-gray-600 text-sm space-y-1" id="intro-rules">
+                            <li>매주 스터디 내용 예습 필수 (미리 공지된 범위)</li>
+                            <li>정기 모임 불참 시 최소 24시간 전 사전 통보</li>
+                            <li>서로 존중하고 적극적으로 질문하며 참여하기</li>
+                            <li>스터디 자료 및 코드 공유 시 출처 명시</li>
+                            <li>개인적인 문제 해결 지원 (코드 리뷰 등)</li>
+                        </ul>
+
+                        <hr class="my-4 border-gray-200"> <!-- Divider -->
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">활동 계획</h3>
+                            <p class="text-gray-600 text-sm mb-2" id="intro-activity-plan-1">
+                                저희 모임은 파이썬 기초 문법부터 시작하여, 데이터 분석, 웹 크롤링, 간단한 웹 서비스 개발 등 다양한 주제를 다룰 예정입니다. 
+                                멤버들의 의견을 수렴하여 유연하게 커리큘럼을 조정하며, 최종적으로는 팀 프로젝트를 통해 실제 서비스를 만들어보는 것을 목표로 합니다.
+                            </p>
+                            <p class="text-gray-600 text-sm" id="intro-activity-plan-2">
+                                매월 1회는 비정기적인 친목 모임 (식사, 보드게임 등)을 통해 멤버 간의 유대감을 강화할 계획입니다.
+                            </p>
+                        </div>
+
+                        <h2 class="text-lg font-semibold text-gray-800 mb-2 mt-6">참여 멤버</h2>
+                        <div class="space-y-2" id="intro-participants-list">
+                            <!-- Participants will be dynamically inserted here by JavaScript -->
+                        </div>
+
+                        <!-- 가입하기 버튼 Wrapper/Placeholder -->
+                        <div id="join-button-wrapper" class="mt-8">
+                             <button id="join-button" class="w-full py-3 rounded-lg text-black font-bold text-lg transition-all duration-300 hover:opacity-90" style="background-color: var(--accent-color); box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);">
+                                소모임 가입하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 게시판 (Bulletin Board) Tab -->
+                <div id="board-tab" class="tab-pane hidden bg-white p-4"> 
+                    <!-- Search Bar -->
+                    <div class="mb-4">
+                        <input type="text" id="post-search-input" placeholder="작성자, 제목, 내용으로 검색..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                    </div>
+                    <!-- Category Filters -->
+                    <div id="category-filter-wrapper" class="relative flex items-center bg-gray-100 rounded-lg p-1 mb-4">
+                        <div id="category-filter-highlight"></div>
+                        <div class="flex-grow flex items-center overflow-x-auto horizontal-scroll">
+                            <button data-category="all" class="category-filter-button px-3 py-1.5 text-sm rounded-md flex-1 text-center whitespace-nowrap">전체</button>
+                            <button data-category="공지" class="category-filter-button px-3 py-1.5 text-sm rounded-md flex-1 text-center whitespace-nowrap">공지</button>
+                            <button data-category="모임 후기" class="category-filter-button px-3 py-1.5 text-sm rounded-md flex-1 text-center whitespace-nowrap">모임 후기</button>
+                            <button data-category="가입 인사" class="category-filter-button px-3 py-1.5 text-sm rounded-md flex-1 text-center whitespace-nowrap">가입 인사</button>
+                            <button data-category="자유" class="category-filter-button px-3 py-1.5 text-sm rounded-md flex-1 text-center whitespace-nowrap">자유</button>
+                        </div>
+                    </div>
+                    <div id="posts-list">
+                        <!-- Posts will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- 정기모임 (Regular Meeting) Tab -->
+                <div id="free-time-tab" class="tab-pane hidden p-4 bg-gray-100">
+                    <!-- Admin View -->
+                    <div id="admin-view" class="hidden">
+                        <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 id="creation-mode-title" class="text-xl font-bold text-gray-800"></h2>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="creation-mode-toggle" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <!-- Date Picker View -->
+                            <div id="date-picker-view" class="hidden">
+                                <p class="text-gray-600 text-sm mb-4">모임에 가입한 멤버들의 시간표와 상관없이, 원하는 날짜에 자유롭게 모임을 만듭니다.</p>
+                                <input type="text" id="meeting-datepicker" class="w-full p-2 border border-gray-300 rounded-md mb-2" placeholder="모임 날짜와 시간을 선택하세요">
+                                <input type="text" id="meeting-title-date" class="w-full p-2 border border-gray-300 rounded-md mb-2" placeholder="모임 제목">
+                                <button id="create-meeting-by-date-btn" class="w-full bg-cyan-500 text-white py-2 rounded-lg font-semibold hover:bg-cyan-600 transition-colors" style="background-color: var(--accent-color);">모임 생성</button>
+                            </div>
+
+                            <!-- Free Time Finder View -->
+                            <div id="free-time-view">
+                                <p class="text-gray-600 text-sm mb-4">모든 멤버의 시간표를 종합하여 모두가 가능한 시간을 찾아 모임을 만듭니다.</p>
+                                <div id="timetable-display-area" class="bg-white p-4 rounded-lg shadow-sm">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h3 class="text-lg font-semibold text-gray-800">공통 공강 시간표</h3>
+                                        <button id="refresh-timetable-btn" class="text-gray-500 hover:text-black">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                    <div id="common-timetable-grid" class="timetable-grid"></div>
+                                    <div class="mt-4 text-sm text-gray-600">
+                                        <p><span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: var(--accent-color);"></span>공통 공강 시간</p>
+                                    </div>
+                                    <input type="text" id="meeting-title-free-time" class="w-full p-2 border border-gray-300 rounded-md my-2" placeholder="모임 제목">
+                                    <button id="create-meeting-by-free-time-btn" class="w-full text-black py-2 rounded-lg font-semibold hover:opacity-90 transition-colors" style="background-color: var(--accent-color);">선택한 시간으로 모임 생성</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User and Admin Combined View for Scheduled Meetings -->
+                    <div id="scheduled-meetings-view">
+                         <!-- Content will be generated by JS -->
+                    </div>
+                </div>
+
+
+                <!-- 갤러리 (Gallery) Tab -->
+                <div id="gallery-tab" class="tab-pane hidden p-4 bg-gray-100"> 
+                    <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+                        <h2 class="text-xl font-bold text-gray-800 mb-3">갤러리</h2>
+                        <!-- Gallery Upload Button (Creator/Sub-Manager Only) -->
+                        <div class="mb-4 text-right">
+                            <button id="upload-image-btn" class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-600 transition-colors hidden">
+                                <i class="fas fa-upload mr-2"></i>이미지 업로드
+                            </button>
+                        </div>
+                        <div id="gallery-grid" class="grid grid-cols-2 gap-4">
+                            <!-- Gallery images will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 통계 (Statistics) Tab (Creator Only) -->
+                <div id="statistics-tab" class="tab-pane hidden p-4 bg-gray-100">
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold text-gray-800 mb-3">소모임 통계</h2>
+                        <p class="text-gray-600 mb-4">이곳은 소모임 활동에 대한 다양한 통계를 확인할 수 있는 페이지입니다.</p>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>총 게시글 수: <span>150개</span></li>
+                            <li>총 댓글 수: <span>500개</span></li>
+                            <li>가장 활동적인 멤버: <span>김지수</span></li>
+                            <li>최근 7일간 방문자 수: <span>80명</span></li>
+                            <li>가장 인기 있는 게시글: <span>"파이썬 프로젝트 아이디어 공유"</span></li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">
+                            <p>더 많은 통계 기능이 추가될 예정입니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 관리 (Management) Tab (Creator Only) -->
+                <div id="management-tab" class="tab-pane hidden p-4 bg-gray-100">
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold text-gray-800 mb-3">소모임 관리</h2>
+                        <p class="text-gray-600 mb-4">소모임의 멤버 및 설정을 관리할 수 있습니다.</p>
+                        
+                        <div id="creation-date-info" class="mb-6 hidden">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">소모임 정보</h3>
+                            <p class="text-gray-700 bg-gray-50 p-2 rounded-md">개설일: <span id="management-creation-date"></span></p>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">소모임 소개 편집</h3>
+                            <button id="open-intro-edit-modal-btn" class="w-full bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">소개 편집 모달 열기</button>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">가입자 관리</h3>
+                            <ul class="space-y-2 mb-4">
+                                <li class="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <span>새로운 가입 요청 (홍길동)</span>
+                                    <div>
+                                        <button class="bg-green-500 text-white px-3 py-1 rounded-full text-xs mr-2">수락</button>
+                                        <button class="bg-red-500 text-white px-3 py-1 rounded-full text-xs">거절</button>
+                                    </div>
+                                </li>
+                                <li class="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <span>기존 멤버 (이순신)</span>
+                                    <div>
+                                        <button class="bg-blue-500 text-white px-3 py-1 rounded-full text-xs mr-2">부방장 지정</button>
+                                        <button class="bg-red-500 text-white px-3 py-1 rounded-full text-xs">내보내기</button>
+                                    </div>
+                                </li>
+                            </ul>
+                            <button class="w-full bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">모든 가입자 보기</button>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">소모임 삭제</h3>
+                            <button class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors">소모임 삭제하기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Action Button (FAB) for creating content -->
+            <button id="fab-create" class="absolute z-20 bottom-6 right-6 w-14 h-14 rounded-full bg-white flex items-center justify-center text-2xl text-black shadow-lg hover:bg-gray-100 active:scale-95 transition-all border border-gray-200">
+                <i class="fas fa-plus"></i>
+            </button>
+        </main>
+        
+        <!-- FINAL Bottom Navigation Bar -->
+        <footer class="relative flex-shrink-0 h-14">
+            <!-- Background SVG -->
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z"/>
+                </svg>
+            </div>
+            
+            <!-- Center Floating Button -->
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <button class="flex items-center justify-center text-black rounded-full w-16 h-16 shadow-lg shadow-cyan-500/50" style="background-color: var(--accent-color);">
+                    <i class="fa-solid fa-tower-broadcast text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- 5-column navigation grid -->
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <!-- 1. Home -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fas fa-home text-2xl"></i>
+                </a>
+                <!-- 2. Meetings -->
+                <a href="#" class="flex items-center justify-center h-full text-black"> <!-- This tab is active for this workspace -->
+                    <span class="material-symbols-outlined text-3xl">diversity_3</span>
+                </a>
+                <!-- 3. Placeholder for center button -->
+                <div class="h-full"></div>
+                <!-- 4. Timetable -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fa-regular fa-calendar-days text-2xl"></i>
+                </a>
+                <!-- 5. My Page -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fa-solid fa-circle-user text-2xl"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <!-- Modal for New Post/Upload -->
+    <div id="create-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-modal-btn">&times;</span>
+            <h2 class="text-xl font-bold mb-4" id="modal-title">새 게시물 작성</h2>
+            <div class="space-y-4">
+                <input type="text" id="post-title" placeholder="제목" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <textarea id="post-content" placeholder="내용" class="w-full p-2 border border-gray-300 rounded-md h-24 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+                <input type="file" id="post-image" accept="image/*" class="w-full p-2 border border-gray-300 rounded-md">
+                <button id="submit-post-btn" class="w-full bg-cyan-500 text-white py-2 rounded-lg font-semibold hover:bg-cyan-600 transition-colors" style="background-color: var(--accent-color);">작성 완료</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Intro Edit (Creator Only) -->
+    <div id="intro-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-intro-edit-modal-btn">&times;</span>
+            <h2 class="text-xl font-bold mb-4">소모임 소개 편집</h2>
+            <div class="space-y-4">
+                <label for="edit-intro-description" class="block text-sm font-medium text-gray-700">소모임 소개</label>
+                <textarea id="edit-intro-description" class="w-full p-2 border border-gray-300 rounded-md h-24 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+                
+                <label for="edit-intro-meeting-time" class="block text-sm font-medium text-gray-700">정기 모임</label>
+                <input type="text" id="edit-intro-meeting-time" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
+
+                <label for="edit-intro-location" class="block text-sm font-medium text-gray-700">주요 활동 장소</label>
+                <input type="text" id="edit-intro-location" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
+
+                <label for="edit-intro-rules" class="block text-sm font-medium text-gray-700">모임 규칙 (각 항목을 ;로 구분)</label>
+                <textarea id="edit-intro-rules" class="w-full p-2 border border-gray-300 rounded-md h-24 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+
+                <label for="edit-intro-activity-plan-1" class="block text-sm font-medium text-gray-700">활동 계획 1</label>
+                <textarea id="edit-intro-activity-plan-1" class="w-full p-2 border border-gray-300 rounded-md h-24 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+
+                <label for="edit-intro-activity-plan-2" class="block text-sm font-medium text-gray-700">활동 계획 2</label>
+                <textarea id="edit-intro-activity-plan-2" class="w-full p-2 border border-gray-300 rounded-md h-24 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+
+                <label for="edit-intro-image" class="block text-sm font-medium text-gray-700">대표 이미지 변경</label>
+                <input type="file" id="edit-intro-image" accept="image/*" class="w-full p-2 border border-gray-300 rounded-md">
+
+                <button id="save-intro-btn" class="w-full bg-cyan-500 text-white py-2 rounded-lg font-semibold hover:bg-cyan-600 transition-colors" style="background-color: var(--accent-color);">저장</button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elements ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        const fabCreate = document.getElementById('fab-create');
+        const createModal = document.getElementById('create-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const submitPostBtn = document.getElementById('submit-post-btn');
+        const postsList = document.getElementById('posts-list');
+        const galleryGrid = document.getElementById('gallery-grid');
+        const roleSelector = document.getElementById('role-selector');
+        const statisticsTabButton = document.getElementById('statistics-tab-button');
+        const managementTabButton = document.getElementById('management-tab-button');
+        const editIntroBtn = document.getElementById('edit-intro-btn');
+        const uploadImageBtn = document.getElementById('upload-image-btn');
+        const postSearchInput = document.getElementById('post-search-input');
+        
+        // --- Regular Meeting Tab Elements ---
+        const adminView = document.getElementById('admin-view');
+        const scheduledMeetingsView = document.getElementById('scheduled-meetings-view');
+        const creationModeToggle = document.getElementById('creation-mode-toggle');
+        const datePickerView = document.getElementById('date-picker-view');
+        const freeTimeView = document.getElementById('free-time-view');
+        const createMeetingByDateBtn = document.getElementById('create-meeting-by-date-btn');
+        const creationModeTitle = document.getElementById('creation-mode-title');
+
+        // Intro Edit Modal Elements
+        const introEditModal = document.getElementById('intro-edit-modal');
+        const closeIntroEditModalBtn = document.getElementById('close-intro-edit-modal-btn');
+        const saveIntroBtn = document.getElementById('save-intro-btn');
+        const editIntroDescription = document.getElementById('edit-intro-description');
+        const editIntroMeetingTime = document.getElementById('edit-intro-meeting-time');
+        const editIntroLocation = document.getElementById('edit-intro-location');
+        const editIntroRules = document.getElementById('edit-intro-rules');
+        const editIntroActivityPlan1 = document.getElementById('edit-intro-activity-plan-1');
+        const editIntroActivityPlan2 = document.getElementById('edit-intro-activity-plan-2');
+        const editIntroImage = document.getElementById('edit-intro-image');
+        const introImageDisplay = document.getElementById('intro-image-display');
+
+        // Free Time Finder elements
+        const timetableDisplayArea = document.getElementById('timetable-display-area');
+        const commonTimetableGrid = document.getElementById('common-timetable-grid');
+        const openIntroEditModalBtn = document.getElementById('open-intro-edit-modal-btn');
+        const refreshTimetableBtn = document.getElementById('refresh-timetable-btn');
+
+        // Intro Tab Specific Elements
+        const introTitle = document.getElementById('intro-title');
+        const introCategory = document.getElementById('intro-category');
+        const introLikes = document.getElementById('intro-likes');
+        const introViews = document.getElementById('intro-views');
+        const introParticipantsList = document.getElementById('intro-participants-list');
+        const likeButton = document.getElementById('like-button');
+        
+        // Join button elements
+        const joinButton = document.getElementById('join-button');
+        const joinButtonWrapper = document.getElementById('join-button-wrapper');
+        const tabContent = document.getElementById('tab-content');
+        const introTab = document.getElementById('intro-tab');
+        
+        // Category Filter elements
+        const categoryFilterButtons = document.querySelectorAll('.category-filter-button');
+        const categoryFilterHighlight = document.getElementById('category-filter-highlight');
+
+
+        // --- Data Storage (Dummy Data) ---
+        let currentUserRole = roleSelector.value; // Initialize with default selected role
+        let posts = [];
+        let galleryImages = [];
+        let memberTimetables = []; // Stores timetable data for added members
+        let scheduledMeetings = []; // Stores scheduled meetings
+        let isLiked = false; // To track the like state
+        let currentCategory = 'all';
+
+        // Dummy Intro Content (editable by creator)
+        let introContent = {
+            title: "파이썬 스터디 모임",
+            category: "스터디",
+            likes: 245,
+            views: 120,
+            memberCount: "12/15",
+            creationDate: "2024.03.15",
+            description: "파이썬 기초부터 심화까지 함께 공부하는 스터디 모임입니다. 코딩 테스트 준비, 프로젝트 진행 등 다양한 활동을 함께해요! 파이썬을 처음 접하는 분부터 숙련된 개발자까지 모두 환영합니다. 함께 성장하며 즐거운 코딩 라이프를 만들어가요!",
+            meetingTime: "매주 화요일 저녁 7시 (온라인/오프라인 병행)",
+            location: "교내 스터디룸, 온라인 화상 회의",
+            rules: ["매주 스터디 내용 예습 필수 (미리 공지된 범위)", "정기 모임 불참 시 최소 24시간 전 사전 통보", "서로 존중하고 적극적으로 질문하며 참여하기", "스터디 자료 및 코드 공유 시 출처 명시", "개인적인 문제 해결 지원 (코드 리뷰 등)"],
+            activityPlan1: "저희 모임은 파이썬 기초 문법부터 시작하여, 데이터 분석, 웹 크롤링, 간단한 웹 서비스 개발 등 다양한 주제를 다룰 예정입니다. 멤버들의 의견을 수렴하여 유연하게 커리큘럼을 조정하며, 최종적으로는 팀 프로젝트를 통해 실제 서비스를 만들어보는 것을 목표로 합니다.",
+            activityPlan2: "매월 1회는 비정기적인 친목 모임 (식사, 보드게임 등)을 통해 멤버 간의 유대감을 강화할 계획입니다.",
+            image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop&h=256",
+            // Added roles for participants
+            participants: [
+                { name: '김지수', avatar: 'https://placehold.co/40x40/00FFFF/FFFFFF?text=JP', role: 'creator' },
+                { name: '활동적인 다람쥐', avatar: 'https://placehold.co/40x40/cccccc/666666?text=User1', role: 'sub_manager' }, // Role changed to sub_manager
+                { name: '지혜로운 부엉이', avatar: 'https://placehold.co/40x40/cccccc/666666?text=User2', role: 'sub_manager' },
+                { name: '탐구하는 고양이', avatar: 'https://placehold.co/40x40/cccccc/666666?text=User3', role: 'member' },
+                { name: '성실한 강아지', avatar: 'https://placehold.co/40x40/cccccc/666666?text=User4', role: 'member' },
+                { name: '호기심 많은 토끼', avatar: 'https://placehold.co/40x40/cccccc/666666?text=User5', role: 'member' }
+            ]
+        };
+
+
+        // --- Constants for Timetable ---
+        const DAYS = ['월', '화', '수', '목', '금'];
+        const HOURS = Array.from({ length: 10 }, (_, i) => `${9 + i}`); // 9:00 to 18:00 (6 PM)
+
+        // --- Helper Functions ---
+
+        // Update UI based on current user role
+        const updateUIForRole = () => {
+            // Tab visibility
+            const creationDateInfo = document.getElementById('creation-date-info');
+            if (currentUserRole === 'creator' || currentUserRole === 'sub_manager') {
+                adminView.classList.remove('hidden');
+                statisticsTabButton.classList.remove('hidden');
+                managementTabButton.classList.remove('hidden');
+                editIntroBtn.classList.remove('hidden');
+                uploadImageBtn.classList.remove('hidden');
+                openIntroEditModalBtn.classList.remove('hidden');
+                if (currentUserRole === 'creator') {
+                    creationDateInfo.classList.remove('hidden');
+                    document.getElementById('management-creation-date').textContent = introContent.creationDate;
+                } else {
+                    creationDateInfo.classList.add('hidden');
+                }
+            } else { // member
+                adminView.classList.add('hidden');
+                statisticsTabButton.classList.add('hidden');
+                managementTabButton.classList.add('hidden');
+                editIntroBtn.classList.add('hidden');
+                uploadImageBtn.classList.add('hidden');
+                openIntroEditModalBtn.classList.add('hidden');
+                creationDateInfo.classList.add('hidden');
+            }
+
+            renderPosts();
+            renderGallery();
+            renderIntroTabContent();
+            renderScheduledMeetings(); // Re-render meetings to show correct buttons
+        };
+
+        // Generate dummy posts
+        const generateDummyPosts = (count) => {
+            const dummyTitles = [
+                "이번주 스터디 내용 공지", "다음 모임 시간 투표", "파이썬 프로젝트 아이디어 공유",
+                "새로운 멤버 환영 게시글", "코딩 테스트 문제 풀이", "스터디 자료 공유합니다"
+            ];
+            const dummyAuthors = ["김코딩", "이파이", "박스터디", "최개발", "현재 사용자"];
+            const dummyCategories = ["공지", "자유", "모임 후기", "가입 인사", "자유", "공지"];
+            for (let i = 0; i < count; i++) {
+                posts.push({
+                    id: Date.now() + i,
+                    title: dummyTitles[i % dummyTitles.length],
+                    content: `안녕하세요! 이번 주 스터디는 ${dummyTitles[i % dummyTitles.length]} 주제로 진행됩니다. 자세한 내용은 본문을 참고해주세요.`,
+                    author: dummyAuthors[i % dummyAuthors.length],
+                    date: new Date(Date.now() - Math.random() * 86400000 * 30).toLocaleDateString('ko-KR'), // Within last 30 days
+                    comments: Math.floor(Math.random() * 10),
+                    likes: Math.floor(Math.random() * 50),
+                    views: Math.floor(Math.random() * 100) + 10,
+                    category: dummyCategories[i % dummyCategories.length],
+                    image: Math.random() > 0.5 ? `https://picsum.photos/seed/${i}/400/300` : null, // Optional image
+                    isCurrentUserPost: (dummyAuthors[i % dummyAuthors.length] === "현재 사용자")
+                });
+            }
+        };
+
+        // Render bulletin board posts
+        const renderPosts = () => {
+            postsList.innerHTML = '';
+            const searchTerm = postSearchInput.value.toLowerCase();
+            
+            let filteredPosts = posts;
+
+            // Category filter
+            if (currentCategory !== 'all') {
+                filteredPosts = filteredPosts.filter(post => post.category === currentCategory);
+            }
+
+            // Search filter
+            if (searchTerm) {
+                filteredPosts = filteredPosts.filter(post => 
+                    post.title.toLowerCase().includes(searchTerm) ||
+                    post.content.toLowerCase().includes(searchTerm) ||
+                    post.author.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            filteredPosts.sort((a, b) => b.id - a.id); // Sort by latest
+            filteredPosts.forEach(post => {
+                const postEl = document.createElement('div');
+                postEl.className = "py-4 border-b border-gray-200";
+
+                postEl.innerHTML = `
+                    <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/24x24/cccccc/666666?text=${post.author.charAt(0)}" class="w-6 h-6 rounded-full mr-2" alt="author profile">
+                            <span>${post.author}</span>
+                        </div>
+                        <span>${post.date}</span>
+                    </div>
+                    <div class="flex justify-between items-start mt-2">
+                        <div class="flex-grow pr-4">
+                            <h3 class="text-md font-semibold text-gray-800 mb-1">${post.title}</h3>
+                            <p class="text-sm text-gray-600 mb-2">${post.content.substring(0, 80)}...</p>
+                        </div>
+                        ${post.image ? `<img src="${post.image}" class="w-20 h-20 object-cover rounded-md flex-shrink-0" alt="게시물 썸네일">` : ''}
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mt-3">
+                        <div class="flex space-x-3">
+                            <span><i class="far fa-heart mr-1 text-red-500"></i>${post.likes}</span>
+                            <span><i class="far fa-comment-dots mr-1 text-blue-500"></i>${post.comments}</span>
+                        </div>
+                        <span class="bg-gray-100 px-2 py-1 rounded-full text-xs">${post.category}</span>
+                    </div>
+                `;
+                postsList.appendChild(postEl);
+            });
+        };
+
+        // Generate dummy gallery images
+        const generateDummyGalleryImages = (count) => {
+            for (let i = 0; i < count; i++) {
+                galleryImages.push({
+                    id: `gallery-${i}`,
+                    src: `https://picsum.photos/seed/${i + 100}/600/400`, // Slightly larger images for gallery
+                    alt: `갤러리 이미지 ${i + 1}`
+                });
+            }
+        };
+
+        // Render gallery images
+        const renderGallery = () => {
+            galleryGrid.innerHTML = '';
+            galleryImages.forEach(image => {
+                const imgEl = document.createElement('div');
+                imgEl.className = "relative group w-full overflow-hidden rounded-lg shadow-sm"; // Added rounded-lg and shadow-sm back for gallery
+                imgEl.innerHTML = `
+                    <img src="${image.src}" alt="${image.alt}" class="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-black bg-opacity-25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fas fa-search-plus text-white text-2xl"></i>
+                    </div>
+                    ${(currentUserRole === 'creator' || currentUserRole === 'sub_manager') ? `<button class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full text-xs delete-gallery-btn" data-image-id="${image.id}"><i class="fas fa-times"></i></button>` : ''}
+                `;
+                galleryGrid.appendChild(imgEl);
+            });
+
+            // Add event listeners for delete gallery image buttons
+            galleryGrid.querySelectorAll('.delete-gallery-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const imageId = e.target.dataset.imageId;
+                    if (confirm('정말로 이 이미지를 삭제하시겠습니까?')) {
+                        galleryImages = galleryImages.filter(img => img.id !== imageId);
+                        renderGallery();
+                    }
+                });
+            });
+        };
+
+        // --- Free Time Finder Logic ---
+
+        // Generates a random timetable for a dummy member
+        const generateRandomTimetable = () => {
+            // Timetable: 5 days (Mon-Fri), 10 hours (9 AM - 6 PM)
+            // true = free, false = busy
+            const timetable = Array(DAYS.length).fill(null).map(() =>
+                Array(HOURS.length).fill(false).map(() => Math.random() > 0.6) // ~40% chance of being free
+            );
+            return timetable;
+        };
+
+        // Finds common free time slots among all added members
+        const findCommonFreeTime = () => {
+            memberTimetables = []; // Clear previous dummy data
+            // Simulate fetching timetables for all members
+            introContent.participants.forEach(() => {
+                memberTimetables.push(generateRandomTimetable());
+            });
+
+            if (memberTimetables.length === 0) {
+                alert('모임에 멤버가 없습니다.');
+                return;
+            }
+
+            const commonTimetable = Array(DAYS.length).fill(null).map(() =>
+                Array(HOURS.length).fill(true) // Start assuming all slots are free
+            );
+
+            memberTimetables.forEach(memberTt => {
+                memberTt.forEach((daySlots, dayIndex) => {
+                    daySlots.forEach((isFree, hourIndex) => {
+                        if (!isFree) { // If any member is busy, that slot is not common free
+                            commonTimetable[dayIndex][hourIndex] = false;
+                        }
+                    });
+                });
+            });
+
+            renderCommonTimetable(commonTimetable);
+            timetableDisplayArea.classList.remove('hidden');
+        };
+
+        // Renders the common free time timetable
+        const renderCommonTimetable = (timetable) => {
+            commonTimetableGrid.innerHTML = ''; // Clear previous grid
+
+            // Headers
+            commonTimetableGrid.innerHTML += `<div class="col-span-1"></div>`; // Empty corner
+            DAYS.forEach(day => {
+                commonTimetableGrid.innerHTML += `<div class="timetable-header">${day}</div>`;
+            });
+
+            // Cells
+            HOURS.forEach((hour) => {
+                commonTimetableGrid.innerHTML += `<div class="timetable-time-cell">${hour}</div>`;
+                DAYS.forEach((_, dayIndex) => {
+                    const isCommonFree = timetable[dayIndex][parseInt(hour) - 9];
+                    const cell = document.createElement('div');
+                    cell.className = "timetable-cell";
+                    if(isCommonFree) {
+                        cell.classList.add('common-free-slot');
+                        cell.addEventListener('click', () => {
+                            cell.classList.toggle('selected');
+                        });
+                    }
+                    commonTimetableGrid.appendChild(cell);
+                });
+            });
+        };
+        
+        // Render scheduled meetings
+        const renderScheduledMeetings = () => {
+            const container = document.getElementById('scheduled-meetings-view');
+            
+            if (scheduledMeetings.length === 0) {
+                if(currentUserRole === 'member') {
+                    container.innerHTML = `<p class="text-center text-gray-500 py-10">예정된 모임이 없습니다.</p>`;
+                    container.className = ''; // Remove card styles
+                } else {
+                    container.innerHTML = `<div class="bg-white p-4 rounded-lg shadow-sm"><h2 class="text-xl font-bold text-gray-800 mb-3">예정된 정기모임</h2><p class="text-center text-gray-500">예정된 모임이 없습니다.</p></div>`;
+                }
+                return;
+            }
+            
+            container.innerHTML = `<div class="bg-white p-4 rounded-lg shadow-sm"><h2 class="text-xl font-bold text-gray-800 mb-3">예정된 정기모임</h2><div id="scheduled-meetings-list" class="space-y-3"></div></div>`;
+            const listElement = document.getElementById('scheduled-meetings-list');
+
+
+            scheduledMeetings.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+
+            scheduledMeetings.forEach(meeting => {
+                const meetingEl = document.createElement('div');
+                meetingEl.className = "bg-white p-4 rounded-lg shadow-sm border";
+                
+                const meetingDate = new Date(meeting.date);
+                const today = new Date();
+                today.setHours(0,0,0,0); // Normalize today's date
+                const meetingDay = new Date(meeting.date);
+                meetingDay.setHours(0,0,0,0);
+
+                const dDay = Math.ceil((meetingDay - today) / (1000 * 60 * 60 * 24));
+                const dDayText = dDay > 0 ? `D-${dDay}` : (dDay === 0 ? 'D-Day' : `D+${Math.abs(dDay)}`);
+                const dateString = `${meetingDate.getMonth() + 1}/${meetingDate.getDate()}(${['일','월','화','수','목','금','토'][meetingDate.getDay()]})`;
+                const timeString = meetingDate.toTimeString().slice(0, 5);
+
+                let actionButtons = '';
+                if (currentUserRole === 'creator' || currentUserRole === 'sub_manager') {
+                    actionButtons = `
+                        <div class="flex space-x-2">
+                            <button class="text-blue-500 text-xs hover:underline edit-meeting-btn" data-id="${meeting.id}">수정</button>
+                            <button class="text-red-500 text-xs hover:underline delete-meeting-btn" data-id="${meeting.id}">삭제</button>
+                        </div>
+                    `;
+                } else {
+                     actionButtons = `
+                        <div class="flex space-x-2">
+                            <button class="bg-green-500 text-white px-3 py-1 rounded-full text-xs attend-btn" data-id="${meeting.id}">참여</button>
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded-full text-xs decline-btn" data-id="${meeting.id}">불참</button>
+                        </div>
+                    `;
+                }
+
+                meetingEl.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-bold">${dateString} <span class="text-red-500">${dDayText}</span></h3>
+                        ${(currentUserRole === 'creator' || currentUserRole === 'sub_manager') ? actionButtons : ''}
+                    </div>
+                    <div class="border-t pt-2">
+                        <p class="font-semibold">${meeting.title}</p>
+                        <p class="text-sm text-gray-600">시간: ${timeString}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="text-sm text-gray-600">참석: ${meeting.attendees}/${introContent.participants.length}</p>
+                            ${(currentUserRole !== 'creator' && currentUserRole !== 'sub_manager') ? actionButtons : ''}
+                        </div>
+                    </div>
+                `;
+                listElement.appendChild(meetingEl);
+            });
+
+            // Add event listeners for meeting actions
+            document.querySelectorAll('.attend-btn, .decline-btn, .edit-meeting-btn, .delete-meeting-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const meetingId = e.currentTarget.dataset.id;
+                    if (e.currentTarget.classList.contains('attend-btn')) {
+                        alert(`'${meetingId}' 모임에 참여합니다.`);
+                    } else if (e.currentTarget.classList.contains('decline-btn')) {
+                        alert(`'${meetingId}' 모임에 불참합니다.`);
+                    } else if (e.currentTarget.classList.contains('edit-meeting-btn')) {
+                        alert(`'${meetingId}' 모임을 수정합니다.`);
+                    } else if (e.currentTarget.classList.contains('delete-meeting-btn')) {
+                        if (confirm(`'${meetingId}' 모임을 삭제하시겠습니까?`)) {
+                            scheduledMeetings = scheduledMeetings.filter(m => m.id !== meetingId);
+                            renderScheduledMeetings();
+                        }
+                    }
+                });
+            });
+        };
+
+        // Populate Intro Edit Modal with current data
+        const populateIntroEditModal = () => {
+            editIntroDescription.value = introContent.description;
+            editIntroMeetingTime.value = introContent.meetingTime;
+            editIntroLocation.value = introContent.location;
+            editIntroRules.value = introContent.rules.join(';'); // Join rules with semicolon
+            editIntroActivityPlan1.value = introContent.activityPlan1;
+            editIntroActivityPlan2.value = introContent.activityPlan2;
+        };
+
+        // Save Intro Changes
+        const saveIntroChanges = () => {
+            introContent.description = editIntroDescription.value;
+            introContent.meetingTime = editIntroMeetingTime.value;
+            introContent.location = editIntroLocation.value;
+            introContent.rules = editIntroRules.value.split(';').map(rule => rule.trim()).filter(rule => rule.length > 0);
+            introContent.activityPlan1 = editIntroActivityPlan1.value;
+            introContent.activityPlan2 = editIntroActivityPlan2.value;
+
+            const newImageFile = editIntroImage.files[0];
+            if (newImageFile) {
+                introContent.image = URL.createObjectURL(newImageFile);
+            }
+
+            // Update displayed content
+            renderIntroTabContent(); // Re-render the entire intro tab
+            introEditModal.style.display = 'none';
+        };
+
+        // Render Intro Tab Content
+        const renderIntroTabContent = () => {
+            introImageDisplay.src = introContent.image;
+            introTitle.textContent = introContent.title;
+            introCategory.textContent = introContent.category;
+            introLikes.textContent = introContent.likes;
+            introViews.textContent = introContent.views;
+            document.getElementById('intro-member-count').textContent = introContent.memberCount;
+            document.getElementById('intro-description').textContent = introContent.description;
+            document.getElementById('intro-meeting-time').textContent = introContent.meetingTime;
+            document.getElementById('intro-location').textContent = introContent.location;
+            
+            const rulesList = document.getElementById('intro-rules');
+            rulesList.innerHTML = '';
+            introContent.rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.textContent = rule;
+                rulesList.appendChild(li);
+            });
+
+            document.getElementById('intro-activity-plan-1').textContent = introContent.activityPlan1;
+            document.getElementById('intro-activity-plan-2').textContent = introContent.activityPlan2;
+
+            // Render participants list
+            introParticipantsList.innerHTML = '';
+            // Render creator first
+            const creator = introContent.participants.find(p => p.role === 'creator');
+            if (creator) {
+                const creatorEl = document.createElement('div');
+                creatorEl.className = "flex items-center p-2";
+                creatorEl.innerHTML = `
+                    <div class="relative w-10 h-10 flex-shrink-0">
+                        <img src="${creator.avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-white" alt="${creator.name} 프로필">
+                        <i class="fas fa-crown text-yellow-500 absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg"></i>
+                    </div>
+                    <span class="font-medium text-gray-800 ml-2">${creator.name} (소모임 개설자)</span>
+                    <button class="ml-auto bg-blue-500 text-white px-3 py-1 rounded-full text-xs hover:bg-blue-600 transition-colors flex-shrink-0">1:1 문의</button>
+                `;
+                introParticipantsList.appendChild(creatorEl);
+            }
+
+            // Render other participants
+            introContent.participants.filter(p => p.role !== 'creator').forEach(participant => {
+                const participantEl = document.createElement('div');
+                participantEl.className = "flex items-center p-2";
+                let iconHtml = '';
+                if (participant.role === 'sub_manager') {
+                    iconHtml = `<i class="fas fa-graduation-cap text-yellow-500 absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg"></i>`;
+                }
+                participantEl.innerHTML = `
+                    <div class="relative w-10 h-10 flex-shrink-0">
+                        <img src="${participant.avatar}" class="w-10 h-10 rounded-full object-cover" alt="${participant.name} 프로필">
+                        ${iconHtml}
+                    </div>
+                    <span class="font-medium text-gray-800 ml-2">${participant.name}</span>
+                `;
+                introParticipantsList.appendChild(participantEl);
+            });
+        };
+
+
+        // --- Event Listeners ---
+
+        // Role Selector Change
+        roleSelector.addEventListener('change', (e) => {
+            currentUserRole = e.target.value;
+            updateUIForRole();
+            // Reset to intro tab when role changes for clarity
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-button[data-tab="intro"]').classList.add('active');
+            tabPanes.forEach(pane => pane.classList.add('hidden'));
+            document.getElementById('intro-tab').classList.remove('hidden');
+            fabCreate.classList.add('hidden'); // Hide FAB by default
+        });
+
+        // Tab switching
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tabPanes.forEach(pane => pane.classList.add('hidden'));
+                const currentTabPane = document.getElementById(`${button.dataset.tab}-tab`);
+                currentTabPane.classList.remove('hidden');
+
+                // Control FAB visibility based on the active tab
+                if (button.dataset.tab === 'board') {
+                    fabCreate.classList.remove('hidden');
+                } else {
+                    fabCreate.classList.add('hidden');
+                }
+                
+                // Manually check floating button state on tab switch
+                const isIntroActive = introTab.classList.contains('active');
+                if (isIntroActive) {
+                    const wrapperRect = joinButtonWrapper.getBoundingClientRect();
+                    const tabContentRect = tabContent.getBoundingClientRect();
+                    if (wrapperRect.bottom > tabContentRect.bottom) {
+                        joinButton.classList.add('join-button-floating');
+                        joinButtonWrapper.style.height = joinButton.offsetHeight + 'px';
+                    } else {
+                        joinButton.classList.remove('join-button-floating');
+                        joinButtonWrapper.style.height = 'auto';
+                    }
+                } else {
+                    joinButton.classList.remove('join-button-floating');
+                    joinButtonWrapper.style.height = 'auto';
+                }
+
+                // Re-render content when tab is switched
+                if (button.dataset.tab === 'board') {
+                    renderPosts();
+                } else if (button.dataset.tab === 'gallery') {
+                    renderGallery();
+                } else if (button.dataset.tab === 'intro') {
+                    renderIntroTabContent(); // Ensure intro content is re-rendered
+                }
+            });
+        });
+
+        // FAB click to open modal
+        fabCreate.addEventListener('click', () => {
+            document.getElementById('modal-title').textContent = '새 게시물 작성';
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-content').value = '';
+            document.getElementById('post-image').value = '';
+            createModal.style.display = 'flex'; // Show modal
+            submitPostBtn.onclick = () => { // Re-assign onclick for new post
+                const title = document.getElementById('post-title').value;
+                const content = document.getElementById('post-content').value;
+                const imageFile = document.getElementById('post-image').files[0];
+
+                if (title && content) {
+                    const newPost = {
+                        id: Date.now(),
+                        title: title,
+                        content: content,
+                        author: "현재 사용자", // Placeholder for current user
+                        date: new Date().toLocaleDateString('ko-KR'),
+                        comments: 0,
+                        likes: 0,
+                        views: 0,
+                        category: "자유",
+                        image: imageFile ? URL.createObjectURL(imageFile) : null,
+                        isCurrentUserPost: true // New posts are always owned by current user
+                    };
+                    posts.unshift(newPost); // Add to the beginning
+                    if (imageFile) {
+                        galleryImages.unshift({ id: `gallery-${Date.now()}`, src: URL.createObjectURL(imageFile), alt: title }); // Add to gallery
+                    }
+                    renderPosts();
+                    renderGallery(); // Re-render gallery to show new image
+                    createModal.style.display = 'none';
+                    // Clear form fields
+                    document.getElementById('post-title').value = '';
+                    document.getElementById('post-content').value = '';
+                    document.getElementById('post-image').value = '';
+                } else {
+                    alert('제목과 내용을 입력해주세요.');
+                }
+            };
+        });
+
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            createModal.style.display = 'none'; // Hide modal
+            // Clear form fields
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-content').value = '';
+            document.getElementById('post-image').value = '';
+        });
+
+        // Refresh timetable button
+        refreshTimetableBtn.addEventListener('click', findCommonFreeTime);
+
+        // Open Intro Edit Modal
+        editIntroBtn.addEventListener('click', () => {
+            populateIntroEditModal();
+            introEditModal.style.display = 'flex';
+        });
+
+        // Open Intro Edit Modal from Management Tab
+        openIntroEditModalBtn.addEventListener('click', () => {
+            populateIntroEditModal();
+            introEditModal.style.display = 'flex';
+        });
+
+
+        // Close Intro Edit Modal
+        closeIntroEditModalBtn.addEventListener('click', () => {
+            introEditModal.style.display = 'none';
+        });
+
+        // Save Intro Changes
+        saveIntroBtn.addEventListener('click', saveIntroChanges);
+
+        // Image Upload Button (in Gallery tab)
+        uploadImageBtn.addEventListener('click', () => {
+            // Simulate image upload
+            const imageUrl = `https://picsum.photos/seed/${Date.now()}/600/400`;
+            galleryImages.unshift({ id: `gallery-${Date.now()}`, src: imageUrl, alt: '새로운 업로드 이미지' });
+            renderGallery();
+            alert('이미지 업로드 시뮬레이션: 새로운 이미지가 갤러리에 추가되었습니다.');
+        });
+        
+        // Post Search Input Event Listener
+        postSearchInput.addEventListener('input', renderPosts);
+
+        // Handle join group button click
+        joinButton.addEventListener('click', () => {
+            alert('소모임 가입 요청이 전송되었습니다!');
+        });
+
+        // Handle like button click
+        likeButton.addEventListener('click', () => {
+            const icon = likeButton.querySelector('i');
+            if (isLiked) {
+                introContent.likes--;
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                likeButton.classList.remove('text-red-500');
+                likeButton.classList.add('text-gray-700');
+            } else {
+                introContent.likes++;
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                likeButton.classList.remove('text-gray-700');
+                likeButton.classList.add('text-red-500');
+            }
+            isLiked = !isLiked;
+            introLikes.textContent = introContent.likes;
+        });
+        
+        // --- Floating Button Logic ---
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                const isIntroActive = introTab.classList.contains('active');
+                if (!isIntroActive) return;
+
+                // When the wrapper is no longer visible in the scroll container
+                if (!entry.isIntersecting) {
+                    joinButton.classList.add('join-button-floating');
+                    // Set a fixed height on the wrapper to prevent layout jump
+                    joinButtonWrapper.style.height = joinButton.offsetHeight + 'px';
+                } else {
+                    joinButton.classList.remove('join-button-floating');
+                    // Reset the height
+                    joinButtonWrapper.style.height = 'auto';
+                }
+            },
+            {
+                root: tabContent, // The scrollable element
+                threshold: 0, // Trigger as soon as the element starts to exit
+            }
+        );
+
+        if (joinButtonWrapper) {
+            observer.observe(joinButtonWrapper);
+        }
+
+        // --- Category Filter Logic ---
+        function moveCategoryHighlight(target) {
+            if (target) {
+                categoryFilterHighlight.style.width = `${target.offsetWidth}px`;
+                categoryFilterHighlight.style.left = `${target.offsetLeft}px`;
+            }
+        }
+
+        categoryFilterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                moveCategoryHighlight(button);
+                categoryFilterButtons.forEach(btn => {
+                    btn.classList.remove('font-semibold', 'text-black');
+                    btn.classList.add('font-medium', 'text-gray-600');
+                });
+                button.classList.add('font-semibold', 'text-black');
+                button.classList.remove('font-medium', 'text-gray-600');
+                
+                currentCategory = button.dataset.category;
+                renderPosts();
+            });
+        });
+        
+        // --- Regular Meeting Tab Logic ---
+        flatpickr("#meeting-datepicker", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+        });
+
+        creationModeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                creationModeTitle.textContent = '공강 시간으로 모임 만들기';
+                datePickerView.classList.add('hidden');
+                freeTimeView.classList.remove('hidden');
+            } else {
+                creationModeTitle.textContent = '날짜로 모임 만들기';
+                datePickerView.classList.remove('hidden');
+                freeTimeView.classList.add('hidden');
+            }
+        });
+        
+        createMeetingByDateBtn.addEventListener('click', () => {
+            const date = document.getElementById('meeting-datepicker').value;
+            const title = document.getElementById('meeting-title-date').value;
+            if (date && title) {
+                scheduledMeetings.push({
+                    id: `meeting-${Date.now()}`,
+                    date: date,
+                    title: title,
+                    attendees: 0,
+                });
+                renderScheduledMeetings();
+                document.getElementById('meeting-datepicker').value = '';
+                document.getElementById('meeting-title-date').value = '';
+            } else {
+                alert('날짜와 제목을 모두 입력해주세요.');
+            }
+        });
+
+        const generateDummyScheduledMeetings = () => {
+            const today = new Date();
+            scheduledMeetings = [
+                {
+                    id: `meeting-${Date.now() + 1}`,
+                    date: new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' '), // D-2
+                    title: '알고리즘 스터디 1회차',
+                    attendees: 3,
+                    userStatus: 'none' // 'attending', 'declined', 'none'
+                },
+                {
+                    id: `meeting-${Date.now() + 2}`,
+                    date: new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' '), // D-10
+                    title: '팀 프로젝트 아이디어 회의',
+                    attendees: 5,
+                    userStatus: 'attending'
+                }
+            ];
+        };
+
+
+        // --- Initial Setup ---
+        generateDummyPosts(6); // Generate some initial posts
+        generateDummyGalleryImages(8); // Generate some initial gallery images
+        generateDummyScheduledMeetings();
+        renderIntroTabContent(); // Render intro content on initial load
+
+        // Initial FAB visibility (hidden by default, only shown on 'board' tab)
+        fabCreate.classList.add('hidden');
+        updateUIForRole(); // Apply initial role-based UI
+
+        // Set initial category highlight position
+        const initialActiveCategory = document.querySelector('.category-filter-button[data-category="all"]');
+        if(initialActiveCategory) {
+            initialActiveCategory.classList.add('font-semibold', 'text-black');
+            initialActiveCategory.classList.remove('font-medium', 'text-gray-600');
+            // Use timeout to ensure layout is calculated before moving highlight
+            setTimeout(() => moveCategoryHighlight(initialActiveCategory), 50);
+        }
+        
+        // Initial state for meeting creation
+        creationModeTitle.textContent = '공강 시간으로 모임 만들기';
+        findCommonFreeTime(); // Initially find and display common free times
+    });
+</script>
+
+</body>
+</html>

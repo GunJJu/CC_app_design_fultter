@@ -1,0 +1,544 @@
+<!-- 소모임 리스트 페이지 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모임</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for other icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Material Symbols CDN for the new icon -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        :root {
+            --accent-color: #00FFFF; /* Main neon color */
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+        /* Custom scrollbar for horizontal lists */
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 0;
+            background: transparent;
+        }
+        
+        #meetings-list-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        #meetings-list-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #meetings-list-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: transparent;
+        }
+
+        .filter-dropdown, #day-filter-container {
+            transition: all 0.3s ease-in-out;
+        }
+        #day-filter-highlight {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            background-color: white; 
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            transition: left 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), width 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 0;
+        }
+        .day-filter-btn {
+            z-index: 1; 
+        }
+        
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0,0,0,0.05));
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header -->
+        <header class="flex-shrink-0 flex items-center justify-between p-4">
+            <div>
+                <div class="text-3xl font-black" style="color: var(--accent-color);">CC,</div>
+                <div class="text-[10px] font-bold tracking-[0.2em] text-gray-500">CAMPUS CONNECT</div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+            </div>
+        </header>
+        
+        <!-- Tab Navigation -->
+        <nav class="flex-shrink-0 flex space-x-8 px-4 border-b border-gray-200">
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">추천</a>
+            <a href="#" class="py-2 text-base font-bold text-gray-800 border-b-2" style="border-color: var(--accent-color);">모임</a>
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">구해요</a>
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">장소</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="relative flex-grow flex flex-col overflow-hidden">
+            <!-- Filter & Sub-Tab Section -->
+            <div class="px-4 pt-2 pb-3 border-b border-gray-200">
+                <!-- Sub-tab navigation for meeting types -->
+                <nav id="sub-tab-nav" class="flex-shrink-0 flex justify-around border-b border-gray-200 bg-white mb-2">
+                    <a href="#" data-tab="recommend" class="sub-tab-btn flex-1 text-center py-2 font-semibold text-gray-800 border-b-2" style="border-color: var(--accent-color);">추천모임</a>
+                    <a href="#" data-tab="new" class="sub-tab-btn flex-1 text-center py-2 font-medium text-gray-500">신규모임</a>
+                    <a href="#" data-tab="regular" class="sub-tab-btn flex-1 text-center py-2 font-medium text-gray-500">정규모임</a>
+                </nav>
+
+                <!-- Day filter design -->
+                <div id="day-filter-container" class="hidden opacity-0 h-0 overflow-hidden">
+                    <div id="day-filter-wrapper" class="relative flex items-center bg-gray-100 rounded-lg p-1 mb-3">
+                        <div id="day-filter-highlight"></div>
+                        <div class="flex-grow flex items-center overflow-x-auto horizontal-scroll">
+                            <button data-day="all" class="day-filter-btn px-3 py-1.5 text-sm font-semibold rounded-md flex-1 text-center whitespace-nowrap text-black">전체</button>
+                            <button data-day="mon" class="day-filter-btn px-3 py-1.5 text-sm font-medium text-gray-600 rounded-md flex-1 text-center whitespace-nowrap">월</button>
+                            <button data-day="tue" class="day-filter-btn px-3 py-1.5 text-sm font-medium text-gray-600 rounded-md flex-1 text-center whitespace-nowrap">화</button>
+                            <button data-day="wed" class="day-filter-btn px-3 py-1.5 text-sm font-medium text-gray-600 rounded-md flex-1 text-center whitespace-nowrap">수</button>
+                            <button data-day="thu" class="day-filter-btn px-3 py-1.5 text-sm font-medium text-gray-600 rounded-md flex-1 text-center whitespace-nowrap">목</button>
+                            <button data-day="fri" class="day-filter-btn px-3 py-1.5 text-sm font-medium text-gray-600 rounded-md flex-1 text-center whitespace-nowrap">금</button>
+                            <button data-day="sat" class="day-filter-btn px-3 py-1.5 text-sm font-medium text-gray-600 rounded-md flex-1 text-center whitespace-nowrap">토</button>
+                            <button data-day="sun" class="day-filter-btn px-3 py-1.5 text-sm font-medium text-gray-600 rounded-md flex-1 text-center whitespace-nowrap">일</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other Filters Wrapper -->
+                <div class="relative flex items-center justify-between">
+                    <!-- Default Filters -->
+                    <div id="default-filters" class="flex items-center space-x-2">
+                        <button class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700" data-sort="default">기본순</button>
+                        <button class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700" data-sort="popular">인기순</button>
+                        <button class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700" data-sort="members">가입자순</button>
+                    </div>
+                    <!-- New Meeting Filters (Hidden by default) -->
+                    <div id="new-meeting-filters" class="hidden flex items-center space-x-2">
+                        <!-- Added "기본순" button to new meeting filters -->
+                        <button class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700" data-sort="default">기본순</button>
+                        <button class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700" data-sort="latest">개설순</button>
+                    </div>
+
+                    <div class="relative">
+                        <button id="category-filter-btn" class="px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700 flex items-center">
+                            카테고리 <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                        </button>
+                        <div id="category-dropdown" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl z-10 filter-dropdown origin-top-right">
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-category="all">전체</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-category="운동">운동</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-category="스터디">스터디</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-category="맛집탐방">맛집탐방</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-category="게임">게임</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-category="친목">친목</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-category="문화">문화</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Meetings List Container -->
+            <div id="meetings-list-container" class="flex-grow overflow-y-auto bg-gray-100 p-4">
+                <div id="meetings-list" class="space-y-3">
+                    <!-- Meeting items will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Create Meeting Floating Action Button -->
+            <button class="absolute z-20 bottom-6 right-6 w-14 h-14 rounded-full bg-white flex items-center justify-center text-2xl text-black shadow-lg hover:bg-gray-100 active:scale-95 transition-all border border-gray-200">
+                <i class="fas fa-plus"></i>
+            </button>
+        </main>
+        
+        <!-- FINAL Bottom Navigation Bar - REPLACED -->
+        <footer class="relative flex-shrink-0 h-14">
+            <!-- Background SVG -->
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z"/>
+                </svg>
+            </div>
+            
+            <!-- Center Floating Button -->
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <button class="flex items-center justify-center text-black rounded-full w-16 h-16 shadow-lg shadow-cyan-500/50" style="background-color: var(--accent-color);">
+                    <i class="fa-solid fa-tower-broadcast text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- 5-column navigation grid -->
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <!-- 1. Home -->
+                <a href="#" class="flex items-center justify-center h-full text-black"> <!-- Changed to text-black -->
+                    <i class="fas fa-home text-2xl"></i>
+                </a>
+                <!-- 2. Meetings -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black"> <!-- Changed hover:text-cyan-500 to hover:text-black -->
+                    <!-- Changed to Material Symbols icon and added text-2xl for size consistency -->
+                    <span class="material-symbols-outlined text-3xl">diversity_3</span>
+                </a>
+                <!-- 3. Placeholder for center button -->
+                <div class="h-full"></div>
+                <!-- 4. Timetable -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black"> <!-- Changed hover:text-cyan-500 to hover:text-black -->
+                    <i class="fa-regular fa-calendar-days text-2xl"></i>
+                </a>
+                <!-- 5. My Page -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black"> <!-- Changed hover:text-cyan-500 to hover:text-black -->
+                    <i class="fa-solid fa-circle-user text-2xl"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Category Dropdown Logic ---
+        const categoryBtn = document.getElementById('category-filter-btn');
+        const categoryDropdown = document.getElementById('category-dropdown');
+        const categoryItems = document.querySelectorAll('.category-item'); // Select all category items
+
+        categoryBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = categoryDropdown.classList.contains('hidden');
+            if (isHidden) {
+                categoryDropdown.classList.remove('hidden');
+                setTimeout(() => {
+                    categoryDropdown.classList.add('opacity-100', 'transform', 'scale-100');
+                    categoryDropdown.classList.remove('opacity-0', 'scale-95');
+                }, 10);
+            } else {
+                categoryDropdown.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    categoryDropdown.classList.add('hidden');
+                    categoryDropdown.classList.remove('opacity-100', 'scale-100');
+                }, 200);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!categoryBtn.contains(e.target) && !categoryDropdown.contains(e.target)) {
+                categoryDropdown.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    categoryDropdown.classList.add('hidden');
+                    categoryDropdown.classList.remove('opacity-100', 'scale-100');
+                }, 200);
+            }
+        });
+        
+        // --- Sub-tab and Filter Logic ---
+        const subTabButtons = document.querySelectorAll('.sub-tab-btn');
+        const dayFilterContainer = document.getElementById('day-filter-container');
+        const defaultFilters = document.getElementById('default-filters');
+        const newMeetingFilters = document.getElementById('new-meeting-filters');
+        
+        const dayFilterButtons = document.querySelectorAll('.day-filter-btn');
+        const dayFilterHighlight = document.getElementById('day-filter-highlight');
+
+        function moveHighlight(target) {
+            if (target) {
+                dayFilterHighlight.style.width = `${target.offsetWidth}px`;
+                dayFilterHighlight.style.left = `${target.offsetLeft}px`;
+            }
+        }
+        
+        dayFilterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                moveHighlight(button);
+                dayFilterButtons.forEach(btn => {
+                    btn.classList.remove('font-semibold', 'text-black');
+                    btn.classList.add('font-medium', 'text-gray-600');
+                });
+                button.classList.add('font-semibold', 'text-black');
+                button.classList.remove('font-medium', 'text-gray-600');
+            });
+        });
+
+        subTabButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                subTabButtons.forEach(btn => {
+                    btn.classList.remove('font-semibold', 'text-gray-800', 'border-b-2');
+                    btn.style.borderColor = 'transparent';
+                    btn.classList.add('font-medium', 'text-gray-500');
+                });
+                button.classList.add('font-semibold', 'text-gray-800', 'border-b-2');
+                button.style.borderColor = 'var(--accent-color)';
+                button.classList.remove('font-medium', 'text-gray-500');
+
+                const selectedTab = button.dataset.tab;
+
+                if (selectedTab === 'regular') {
+                    dayFilterContainer.classList.remove('hidden', 'h-0', 'opacity-0');
+                    requestAnimationFrame(() => {
+                        const currentActive = document.querySelector('.day-filter-btn[data-day="all"]');
+                        moveHighlight(currentActive);
+                    });
+                } else {
+                    dayFilterContainer.classList.add('h-0', 'opacity-0');
+                    setTimeout(() => {
+                        dayFilterContainer.classList.add('hidden');
+                    }, 300);
+                }
+
+                if (selectedTab === 'new') {
+                    defaultFilters.classList.add('hidden');
+                    newMeetingFilters.classList.remove('hidden');
+                    // When switching to 'new' tab, set currentSort to 'default' or 'latest'
+                    // For now, let's keep it 'default' if it's not already 'latest'
+                    if (currentSort !== 'latest') {
+                        currentSort = 'default';
+                    }
+                } else {
+                    defaultFilters.classList.remove('hidden');
+                    newMeetingFilters.classList.add('hidden');
+                    // When switching away from 'new' tab, set currentSort to 'default' or 'popular'/'members'
+                    if (currentSort === 'latest') { // If it was 'latest' on 'new' tab, revert to 'default' for other tabs
+                        currentSort = 'default';
+                    }
+                }
+                updateSortButtonStyles(); // Update button styles after tab switch
+                applyFiltersAndSort(); // Re-apply filters and sort based on new tab
+            });
+        });
+        
+        const initialActiveDay = document.querySelector('.day-filter-btn[data-day="all"]');
+        if(initialActiveDay) {
+            dayFilterButtons.forEach(btn => {
+                btn.classList.remove('font-semibold', 'text-black');
+                btn.classList.add('font-medium', 'text-gray-600');
+            });
+            initialActiveDay.classList.add('font-semibold', 'text-black');
+            initialActiveDay.classList.remove('font-medium', 'text-gray-600');
+        }
+
+        // --- Infinite Scroll Logic ---
+        const meetingsListContainer = document.getElementById('meetings-list-container');
+        const meetingsList = document.getElementById('meetings-list');
+
+        let allMeetings = []; // Store all original meetings
+        let filteredAndSortedMeetings = []; // Stores currently filtered and sorted meetings
+        let currentPage = 0;
+        const ITEMS_PER_PAGE = 10;
+        let isLoading = false;
+        let currentSort = 'default'; // Default sort changed to 'default'
+        let currentCategory = 'all'; // Default category filter
+
+        const generateDummyMeetings = (count) => {
+            const meetings = [];
+            const titles = ['공강 맛집 뿌시기', '발표 스터디', '보드게임 할 사람', '한강에서 치맥', '코딩 챌린지', '주말 등산 모임', '영화 감상회', '카페 투어'];
+            const tags = [['#맛집', '#점심'], ['#스터디', '#발표'], ['#보드게임', '#친목'], ['#치맥', '#한강'], ['#코딩', ' #개발'], ['#등산', '#주말'], ['#영화', '#토론'], ['#카페', '#디저트']];
+            const categories = ['맛집탐방', '스터디', '게임', '친목', '스터디', '운동', '문화', '친목']; // Added categories
+            const images = [
+                'https://images.unsplash.com/photo-1543353071-873f17a7a088?q=80&w=2070&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963e?q=80&w=2070&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=1980&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=2069&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070&auto=format&fit=crop',
+                'https://unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=1974&auto=format&fit=crop',
+                'https://unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1974&auto=format&fit=crop'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const typeIndex = i % titles.length;
+                meetings.push({
+                    id: `meeting-${i}`, // Added ID for linking
+                    title: `${titles[typeIndex]} #${i + 1}`,
+                    image: `${images[typeIndex]}&random=${i}`, // Add random param to get different images
+                    tags: tags[typeIndex].join(' '),
+                    members: `${Math.floor(Math.random() * 5) + 2}/${Math.floor(Math.random() * 5) + 8}`,
+                    likes: Math.floor(Math.random() * 150) + 20,
+                    category: categories[typeIndex], // Add category to dummy data
+                    views: Math.floor(Math.random() * 300) + 50, // Add views to dummy data
+                    isLiked: Math.random() > 0.5 // Add isLiked for initial state
+                });
+            }
+            return meetings;
+        };
+
+        function renderMeetings(meetingsToRender) {
+            meetingsToRender.forEach(meeting => {
+                const meetingEl = document.createElement('div');
+                meetingEl.className = "relative flex items-start space-x-4 p-3 rounded-lg bg-white shadow-sm"; // Added relative for absolute positioning of category
+
+                meetingEl.innerHTML = `
+                    <img src="${meeting.image}" class="w-24 h-24 rounded-lg object-cover" alt="${meeting.title}">
+                    <div class="flex-grow flex flex-col justify-between h-24 py-1">
+                        <div>
+                            <h3 class="font-bold text-base text-gray-800 mb-1">${meeting.title}</h3>
+                            <p class="text-sm text-gray-500">${meeting.tags}</p>
+                        </div>
+                        <div class="flex items-center space-x-3 mt-2 text-xs text-gray-500">
+                            <!-- Order changed: members, views, likes -->
+                            <span><i class="fas fa-users mr-1"></i>${meeting.members.replace('명', '')}</span>
+                            <span><i class="fas fa-eye mr-1"></i><span class="views-count">${meeting.views}</span></span>
+                            <span><i class="fas fa-heart text-red-500 mr-1"></i><span class="likes-count">${meeting.likes}</span></span>
+                        </div>
+                    </div>
+                    <!-- Category badge at bottom right of the card -->
+                    <span class="absolute bottom-4 right-3 bg-gray-100 px-2 py-0.5 rounded-full text-xs font-medium text-gray-600">
+                        ${meeting.category}
+                    </span>
+                    <!-- Like button at top right of the card -->
+                    <button class="card-like-button absolute top-3 right-3 text-xl ${meeting.isLiked ? 'text-red-500 fas' : 'text-gray-300 far'}" data-meeting-id="${meeting.id}">
+                        <i class="${meeting.isLiked ? 'fas fa-heart' : 'far fa-heart'}"></i>
+                    </button>
+                `;
+                meetingsList.appendChild(meetingEl);
+            });
+
+            // Add event listeners for the new like buttons
+            document.querySelectorAll('.card-like-button').forEach(likeBtn => {
+                likeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click event from firing
+                    const icon = likeBtn.querySelector('i');
+                    // Find the likes count span within the same card
+                    const likesCountSpan = likeBtn.closest('.relative').querySelector('.likes-count');
+                    let currentLikes = parseInt(likesCountSpan.textContent);
+
+                    if (icon.classList.contains('far')) { // Currently empty heart
+                        icon.classList.remove('far', 'text-gray-300');
+                        icon.classList.add('fas', 'text-red-500');
+                        currentLikes++;
+                        console.log(`Meeting ${likeBtn.dataset.meetingId} liked.`);
+                    } else { // Currently filled heart
+                        icon.classList.remove('fas', 'text-red-500');
+                        icon.classList.add('far', 'text-gray-300');
+                        currentLikes = Math.max(0, currentLikes - 1); // Prevent negative likes
+                        console.log(`Meeting ${likeBtn.dataset.meetingId} unliked.`);
+                    }
+                    likesCountSpan.textContent = currentLikes; // Update displayed likes count
+                });
+            });
+        }
+
+        function loadMoreMeetings() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            const start = currentPage * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const meetingsToRender = filteredAndSortedMeetings.slice(start, end); // Use filtered and sorted data
+
+            if (meetingsToRender.length === 0) {
+                isLoading = false;
+                return; // No more items to load
+            }
+            
+            // Optional: Add a loading spinner here
+            setTimeout(() => {
+                renderMeetings(meetingsToRender);
+                currentPage++;
+                isLoading = false;
+                // Optional: Remove loading spinner here
+            }, 500); // Simulate network delay
+        }
+
+        // Function to apply filters and sort
+        function applyFiltersAndSort() {
+            let tempMeetings = [...allMeetings]; // Start with all original data
+
+            // 1. Apply Category Filter
+            if (currentCategory !== 'all') {
+                tempMeetings = tempMeetings.filter(meeting => meeting.category === currentCategory);
+            }
+
+            // 2. Apply Sorting
+            if (currentSort === 'popular') {
+                tempMeetings.sort((a, b) => b.likes - a.likes);
+            } else if (currentSort === 'members') {
+                // Parse members string "current/total" to get current count for sorting
+                tempMeetings.sort((a, b) => {
+                    const aCurrent = parseInt(a.members.split('/')[0]);
+                    const bCurrent = parseInt(b.members.split('/')[0]);
+                    return bCurrent - aCurrent; // Sort by current members descending
+                });
+            } else if (currentSort === 'latest') { // For '신규모임' tab's '개설순'
+                // Assuming 'id' can represent creation order for dummy data
+                tempMeetings.sort((a, b) => {
+                    const aIdNum = parseInt(a.id.split('-')[1]);
+                    const bIdNum = parseInt(b.id.split('-')[1]);
+                    return bIdNum - aIdNum;
+                });
+            } else if (currentSort === 'default') {
+                // For '기본순', sort by the original ID to maintain initial order
+                tempMeetings.sort((a, b) => {
+                    const aIdNum = parseInt(a.id.split('-')[1]);
+                    const bIdNum = parseInt(b.id.split('-')[1]);
+                    return aIdNum - bIdNum;
+                });
+            }
+
+            filteredAndSortedMeetings = tempMeetings;
+            meetingsList.innerHTML = ''; // Clear current list
+            currentPage = 0; // Reset page for new data
+            loadMoreMeetings(); // Load first page of filtered/sorted data
+        }
+
+        // Function to update sort button styles
+        function updateSortButtonStyles() {
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                if (btn.dataset.sort === currentSort) {
+                    btn.classList.add('font-bold', 'bg-white');
+                    btn.classList.remove('font-normal');
+                } else {
+                    btn.classList.remove('font-bold', 'bg-white');
+                    btn.classList.add('font-normal');
+                }
+            });
+        }
+
+        // Event Listeners for Sort Buttons
+        document.querySelectorAll('.sort-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                currentSort = e.target.dataset.sort;
+                updateSortButtonStyles();
+                applyFiltersAndSort();
+            });
+        });
+
+        // Event Listeners for Category Items
+        categoryItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentCategory = e.target.dataset.category;
+                categoryBtn.innerHTML = `${e.target.textContent} <i class="fas fa-chevron-down ml-2 text-xs"></i>`; // Update button text
+                categoryDropdown.classList.add('opacity-0', 'scale-95'); // Close dropdown
+                setTimeout(() => {
+                    categoryDropdown.classList.add('hidden');
+                }, 200);
+                applyFiltersAndSort();
+            });
+        });
+
+        // Initial data generation and display
+        allMeetings = generateDummyMeetings(50); // Generate more dummy data for better testing
+        updateSortButtonStyles(); // Set initial button style for 'default'
+        applyFiltersAndSort(); // Initial render with default sort/filter
+
+        // Scroll Event Listener
+        meetingsListContainer.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = meetingsListContainer;
+            // Add a buffer of 5px to trigger loading a bit earlier
+            if (scrollTop + clientHeight >= scrollHeight - 5) {
+                loadMoreMeetings();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
+

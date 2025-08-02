@@ -1,0 +1,460 @@
+<!-- 회원가입 페이지 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #00ffff;
+            --text-color: #111827;
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --error-color: #e14040; /* User requested error color */
+            --success-color: #16A34A; /* Green for success */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #app-container {
+            background-color: white;
+        }
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.2s ease-in-out;
+            font-size: 1rem;
+        }
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .form-input.is-invalid {
+            border-color: var(--error-color);
+        }
+        .form-input.is-invalid:focus {
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--error-color);
+        }
+        .validation-message {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            min-height: 1.25rem; 
+        }
+        
+        .step-enter-active { animation: slide-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .completed-item-wrapper { animation: fade-in-down 0.5s ease-in-out; }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fade-in-down { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .edit-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out;
+            padding-top: 0; padding-bottom: 0;
+        }
+        .completed-item-wrapper.is-editing .edit-container { max-height: 400px; padding-top: 1rem; padding-bottom: 1rem; }
+        .completed-scroll::-webkit-scrollbar { width: 4px; }
+        .completed-scroll::-webkit-scrollbar-track { background: transparent; }
+        .completed-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div id="app-container" class="relative w-full max-w-md h-screen bg-white flex flex-col">
+        <header class="w-full py-4 px-4 flex items-center flex-shrink-0">
+            <button id="back-button" class="text-gray-600 text-xl focus:outline-none w-10"><i class="fas fa-arrow-left"></i></button>
+            <div class="flex-grow px-4">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-accent h-2 rounded-full transition-all duration-500" style="width: 0%; background-color: var(--accent-color);"></div>
+                </div>
+            </div>
+            <div class="w-10"></div>
+        </header>
+
+        <div class="flex-shrink-0">
+            <div id="current-step-container" class="w-full px-8 pt-8"></div>
+            <div id="button-container" class="p-8 pt-6">
+                <button id="next-button" class="w-full py-3 rounded-lg text-black font-bold text-lg transition-all duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" style="background-color: var(--accent-color); box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);">다음</button>
+            </div>
+        </div>
+        
+        <main class="flex-grow w-full px-8 pb-8 flex flex-col overflow-y-auto completed-scroll">
+            <div id="completed-steps-container" class="w-full space-y-3 text-left"></div>
+        </main>
+    </div>
+
+    <script>
+        // --- DATA and STATE ---
+        const steps = [
+            { id: 'email', label: '아이디 (이메일)', type: 'email', placeholder: 'email@kbu.ac.kr', validation: 'email' },
+            { id: 'password', label: '비밀번호', type: 'password', placeholder: '영문, 숫자, 특수문자 조합 8자 이상', validation: 'password' },
+            { id: 'password-confirm', label: '비밀번호 확인', type: 'password', placeholder: '비밀번호를 다시 입력해주세요', validation: 'password-confirm' },
+            { id: 'name', label: '이름', type: 'text', placeholder: '홍길동', validation: 'required' },
+            { id: 'dob', label: '생년월일', type: 'text', placeholder: 'YYYYMMDD 또는 YYYY-MM-DD', validation: 'dob' },
+            { id: 'gender', label: '성별', type: 'radio', options: ['남성', '여성'], validation: 'required' },
+            { id: 'nationality', label: '국적', type: 'select', options: ['대한민국', 'United States', 'Japan', 'China', '기타'], validation: 'required' },
+            { id: 'phone', label: '연락처', type: 'tel', placeholder: "'-' 없이 숫자만 입력", validation: 'phone' },
+            { id: 'terms', label: '서비스 이용약관', type: 'checkbox', text: '서비스 이용약관에 동의합니다.', validation: 'terms' },
+        ];
+        let currentStepIndex = 0;
+        const userResponses = {};
+        let activeTimers = {};
+
+        // --- DOM Elements ---
+        const progressBar = document.getElementById('progress-bar');
+        const completedContainer = document.getElementById('completed-steps-container');
+        const currentContainer = document.getElementById('current-step-container');
+        const buttonContainer = document.getElementById('button-container');
+
+        // --- Helper & Formatting Functions ---
+        function formatDob(value) {
+            const cleaned = (value || '').replace(/\D/g, '');
+            if (cleaned.length === 8) return `${cleaned.substring(0, 4)}-${cleaned.substring(4, 6)}-${cleaned.substring(6, 8)}`;
+            return value;
+        }
+        function formatPhone(value) {
+            const cleaned = (value || '').replace(/\D/g, '');
+            if (cleaned.length === 11) return `${cleaned.substring(0, 3)}-${cleaned.substring(3, 7)}-${cleaned.substring(7, 11)}`;
+            if (cleaned.length === 10) return `${cleaned.substring(0, 3)}-${cleaned.substring(3, 6)}-${cleaned.substring(6, 10)}`;
+            return value;
+        }
+        
+        // --- Validation Feedback UI ---
+        function showValidationError(stepId, message, isInlineEdit) {
+            const prefix = isInlineEdit ? 'inline-' : '';
+            const errorElement = document.getElementById(`${prefix}${stepId}-error-message`);
+            const inputElement = document.getElementById(`${prefix}${stepId}`);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.color = 'var(--error-color)';
+            }
+            if (inputElement) inputElement.classList.add('is-invalid');
+        }
+
+        function clearValidationError(stepId, isInlineEdit) {
+            const prefix = isInlineEdit ? 'inline-' : '';
+            const errorElement = document.getElementById(`${prefix}${stepId}-error-message`);
+            const inputElement = document.getElementById(`${prefix}${stepId}`);
+            if (errorElement) errorElement.textContent = '';
+            if (inputElement) inputElement.classList.remove('is-invalid');
+            
+            // MODIFIED: Restore UI when error is cleared for email step
+            if (stepId === 'email' && !isInlineEdit) {
+                const validationUI = document.getElementById(`${prefix}${stepId}-validation-ui`);
+                attachValidationUIListeners(stepId, isInlineEdit);
+                document.getElementById('next-button').style.display = 'block';
+            }
+        }
+
+        // --- Validation Logic ---
+        function validateInput(step, response) {
+            const { validation } = step;
+            if (!validation) return { isValid: true };
+            
+            const value = response?.value;
+            if (value === undefined || value === null || value === false || (typeof value === 'string' && value.trim() === '')) return { isValid: false, message: `${step.label} 항목을 입력해주세요.` };
+
+            switch (validation) {
+                case 'email':
+                    if (value.toLowerCase() === '2201904@kbu.ac.kr') return { isValid: false, message: '이미 가입된 이메일이에요!' };
+                    if (!/^[^\s@]+@kbu\.ac\.kr$/i.test(value)) return { isValid: false, message: '경복대학교 이메일(@kbu.ac.kr) 형식이 올바르지 않습니다.' };
+                    if (!response.verified) return { isValid: false, message: '이메일 인증을 완료해주세요.' };
+                    break;
+                case 'password':
+                    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+                    if (!passwordRegex.test(value)) return { isValid: false, message: '비밀번호는 영문, 숫자, 특수문자를 포함하여 8자 이상이어야 합니다.' };
+                    break;
+                case 'password-confirm':
+                    if (value !== userResponses['password']?.value) return { isValid: false, message: '비밀번호가 일치하지 않습니다.' };
+                    break;
+                case 'dob':
+                    const formattedDob = formatDob(value);
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(formattedDob)) return { isValid: false, message: '올바른 생년월일 형식이 아닙니다. (YYYYMMDD)' };
+                    break;
+                case 'phone':
+                     const cleanedPhone = (value || '').replace(/\D/g, '');
+                    if (cleanedPhone.length < 10 || cleanedPhone.length > 11) return { isValid: false, message: '올바른 연락처 형식이 아닙니다.' };
+                    break;
+                case 'terms':
+                    if (value !== true) return { isValid: false, message: '서비스 이용약관에 동의해주세요.' };
+                    break;
+                case 'required':
+                     if (!value) return { isValid: false, message: `${step.label} 항목을 선택해주세요.` };
+                    break;
+            }
+            return { isValid: true };
+        }
+
+        // --- UI Rendering ---
+        function generateInputHTML(step, response, isInlineEdit = false) {
+            let content = '';
+            const prefix = isInlineEdit ? 'inline-' : '';
+            const value = response?.value;
+
+            switch (step.type) {
+                case 'radio': content += `<div id="${prefix}${step.id}-container" class="flex gap-4 mt-2">${step.options.map(o => `<label class="flex items-center p-4 border rounded-xl flex-grow justify-center cursor-pointer hover:border-accent transition-colors duration-200"><input type="radio" name="${prefix}${step.id}" value="${o}" class="sr-only peer" ${value === o ? 'checked' : ''} onchange="updateResponse('${step.id}', '${o}', ${isInlineEdit})"><span class="text-gray-700 peer-checked:text-black peer-checked:font-bold">${o}</span></label>`).join('')}</div>`; break;
+                case 'select': content += `<select id="${prefix}${step.id}" class="form-input" onchange="updateResponse('${step.id}', this.value, ${isInlineEdit})">${step.options.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`; break;
+                case 'checkbox': content += `<label id="${prefix}${step.id}-container" class="flex items-center p-4 border rounded-xl cursor-pointer hover:border-accent transition-colors duration-200"><input type="checkbox" id="${prefix}${step.id}" class="h-5 w-5 rounded" style="color:var(--accent-color)" ${value ? 'checked' : ''} onchange="updateResponse('${step.id}', this.checked, ${isInlineEdit})"><span class="ml-3 text-sm text-gray-600">${step.text}</span></label>`; break;
+                default: content += `<input type="${step.type}" id="${prefix}${step.id}" placeholder="${step.placeholder}" class="form-input" value="${value || ''}" oninput="updateResponse('${step.id}', this.value, ${isInlineEdit})">`;
+            }
+            content += `<div id="${prefix}${step.id}-error-message" class="validation-message"></div>`;
+            content += `<div id="${prefix}${step.id}-validation-ui" class="mt-4 space-y-2"></div>`;
+            return content;
+        }
+        
+        function updateResponse(stepId, value, isInlineEdit) {
+            const targetObject = userResponses[stepId];
+            if(targetObject) {
+                targetObject.value = value;
+                const step = steps.find(s => s.id === stepId);
+                if (step.validation === 'email') {
+                    targetObject.verified = false;
+                    const prefix = isInlineEdit ? 'inline-' : '';
+                    const validationUI = document.getElementById(`${prefix}${step.id}-validation-ui`);
+                    if (validationUI) attachValidationUIListeners(stepId, isInlineEdit);
+                }
+            }
+            clearValidationError(stepId, isInlineEdit);
+        }
+
+        function renderCurrentStep() {
+            if (currentStepIndex >= steps.length) return;
+            const step = steps[currentStepIndex];
+            if (!userResponses[step.id]) {
+                let initialValue = '';
+                if ((step.type === 'select' || step.type === 'radio') && step.options?.length > 0) initialValue = step.options[0];
+                else if (step.type === 'checkbox') initialValue = false;
+                userResponses[step.id] = { value: initialValue, verified: false };
+            }
+            currentContainer.innerHTML = `<div class="w-full step-enter-active">
+                                           <label for="${step.id}" class="block text-2xl font-bold text-gray-800 mb-6">${step.label}</label>
+                                           ${generateInputHTML(step, userResponses[step.id], false)}
+                                         </div>`;
+            attachValidationUIListeners(step.id);
+            document.getElementById(step.id)?.focus();
+            buttonContainer.innerHTML = `<button id="next-button" class="w-full py-3 rounded-lg text-black font-bold text-lg transition-all duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" style="background-color: var(--accent-color); box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);">${(currentStepIndex >= steps.length - 1) ? '가입하기' : '다음'}</button>`;
+            document.getElementById('next-button').addEventListener('click', completeStep);
+            updateProgressBar();
+        }
+        
+        function renderCompletedSteps() {
+            const sortedKeys = Object.keys(userResponses).sort((a, b) => steps.findIndex(s => s.id === a) - steps.findIndex(s => s.id === b));
+            completedContainer.innerHTML = sortedKeys.map((stepId, i) => {
+                const step = steps.find(s => s.id === stepId);
+                const response = userResponses[stepId];
+                if (!step || !response || i >= currentStepIndex) return '';
+
+                let displayValue = response.value;
+                if (step.id === 'password' || step.id === 'password-confirm') displayValue = '********';
+                if (step.id === 'terms') displayValue = response.value ? '동의함' : '동의안함';
+                if (step.id === 'dob') displayValue = formatDob(response.value);
+                if (step.id === 'phone') displayValue = formatPhone(response.value);
+
+                return `<div class="completed-item-wrapper bg-white rounded-xl border border-gray-200 shadow-sm transition-all duration-200" data-step-index="${i}">
+                          <div class="completed-item-header flex justify-between items-center p-3 cursor-pointer" onclick="toggleEdit(${i})">
+                            <span class="text-gray-500 text-sm">${step.label}</span>
+                            <span class="font-semibold text-gray-800">${displayValue}</span>
+                          </div>
+                          <div class="edit-container border-t border-gray-200"></div>
+                        </div>`;
+            }).join('');
+        }
+        
+        function updateProgressBar() {
+            progressBar.style.width = `${(currentStepIndex / steps.length) * 100}%`;
+        }
+        
+        function attachValidationUIListeners(stepId, isInlineEdit = false) {
+            const step = steps.find(s => s.id === stepId);
+            if (!step || !step.validation) return;
+            const prefix = isInlineEdit ? 'inline-' : '';
+            const validationUI = document.getElementById(`${prefix}${step.id}-validation-ui`);
+            if (!validationUI) return;
+            validationUI.innerHTML = '';
+            if (step.validation === 'email') {
+                validationUI.innerHTML = `<button id="${prefix}send-code-btn" class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">인증번호 발송</button>`;
+                document.getElementById(`${prefix}send-code-btn`).onclick = () => sendAuthCode(stepId, isInlineEdit);
+            }
+        }
+        
+        function startTimer(stepId, isInlineEdit) {
+            const prefix = isInlineEdit ? 'inline-' : '';
+            const timerKey = `${prefix}${stepId}`;
+            const timerElement = document.getElementById(`${prefix}timer`);
+            if (!timerElement) return;
+
+            let timeLeft = 180;
+            if (activeTimers[timerKey]) clearInterval(activeTimers[timerKey]);
+            
+            const timerId = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                timerElement.textContent = `${minutes}:${seconds}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    delete activeTimers[timerKey];
+                    timerElement.textContent = `0:00`;
+                }
+            }, 1000);
+            timerElement.textContent = '3:00';
+            activeTimers[timerKey] = timerId;
+        }
+
+        function sendAuthCode(stepId, isInlineEdit) {
+            const prefix = isInlineEdit ? 'inline-' : '';
+            const email = userResponses[stepId]?.value;
+            const validationUI = document.getElementById(`${prefix}${stepId}-validation-ui`);
+
+            // Check for already registered email
+            if (email.toLowerCase() === '2201904@kbu.ac.kr') {
+                showValidationError(stepId, '이미 가입된 이메일이에요!', isInlineEdit);
+                if (validationUI) {
+                    // MODIFIED: Hide next button and show horizontal action buttons
+                    if (!isInlineEdit) document.getElementById('next-button').style.display = 'none';
+                    validationUI.innerHTML = `
+                        <div class="mt-4 flex gap-3">
+                            <button onclick="alert('비밀번호 찾기 페이지로 이동합니다.')" class="w-full py-3 bg-gray-200 text-gray-700 rounded-lg">비밀번호 찾기</button>
+                            <button onclick="alert('로그인 페이지로 이동합니다.')" class="w-full py-3 rounded-lg text-black font-bold" style="background-color: var(--accent-color);">로그인</button>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            // Check for email format
+            if (!/^[^\s@]+@kbu\.ac\.kr$/i.test(email)) { 
+                showValidationError(stepId, '경복대학교 이메일(@kbu.ac.kr)을 입력해주세요.', isInlineEdit);
+                return;
+            }
+            clearValidationError(stepId, isInlineEdit);
+            
+            if (validationUI) {
+                validationUI.innerHTML = `
+                    <p class="text-sm text-green-600 mb-2">${email}으로 인증번호를 보냈습니다.</p>
+                    <div class="relative">
+                        <input type="text" id="${prefix}auth-code" placeholder="인증번호 6자리" class="form-input pr-20">
+                        <span id="${prefix}timer" class="absolute inset-y-0 right-4 flex items-center text-sm font-mono" style="color:var(--error-color);">3:00</span>
+                    </div>
+                    <div class="flex justify-end mt-2">
+                        <button id="${prefix}resend-btn" type="button" class="text-sm text-gray-500 hover:underline">인증번호 재전송</button>
+                    </div>
+                    <button id="${prefix}verify-code-btn" class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg mt-2">인증번호 확인</button>
+                    <div id="${prefix}auth-code-error" class="validation-message" style="color:var(--error-color);"></div>`;
+                document.getElementById(`${prefix}resend-btn`).onclick = () => sendAuthCode(stepId, isInlineEdit);
+                document.getElementById(`${prefix}verify-code-btn`).onclick = () => verifyAuthCode(stepId, isInlineEdit);
+                startTimer(stepId, isInlineEdit);
+            }
+        }
+
+        function verifyAuthCode(stepId, isInlineEdit) {
+            const prefix = isInlineEdit ? 'inline-' : '';
+            const code = document.getElementById(`${prefix}auth-code`).value;
+            const validationUI = document.getElementById(`${prefix}${stepId}-validation-ui`);
+            const errorDiv = document.getElementById(`${prefix}auth-code-error`);
+            if (errorDiv) errorDiv.textContent = ''; 
+            if (code === '123456') {
+                userResponses[stepId].verified = true;
+                const timerKey = `${prefix}${stepId}`;
+                if (activeTimers[timerKey]) clearInterval(activeTimers[timerKey]);
+                if(validationUI) validationUI.innerHTML = `<p class="validation-message font-bold" style="color:var(--success-color);">✅ 이메일 인증이 완료되었습니다.</p>`;
+            } else {
+                userResponses[stepId].verified = false;
+                if (errorDiv) errorDiv.textContent = '인증번호가 올바르지 않습니다.';
+            }
+        }
+
+        function toggleEdit(index) {
+            if (currentStepIndex >= steps.length) return; 
+
+            const wrapper = document.querySelector(`[data-step-index="${index}"]`);
+            if (!wrapper) return;
+            const isOpening = !wrapper.classList.contains('is-editing');
+
+            document.querySelectorAll('.completed-item-wrapper').forEach(w => {
+                w.classList.remove('is-editing');
+                w.querySelector('.edit-container').innerHTML = '';
+            });
+
+            if (isOpening) {
+                wrapper.classList.add('is-editing');
+                const editContainer = wrapper.querySelector('.edit-container');
+                const step = steps[index];
+                if (userResponses[step.id]) {
+                     if (step.validation === 'email') userResponses[step.id].verified = false;
+                }
+                editContainer.innerHTML = `<div class="p-4">${generateInputHTML(step, userResponses[step.id], true)}<div class="flex gap-3 mt-4"><button class="w-full py-2 bg-gray-200 rounded-lg" onclick="cancelEdit(event, ${index})">취소</button><button class="w-full py-2 text-black rounded-lg" style="background-color:var(--accent-color)" onclick="saveInlineEdit(event, ${index})">저장</button></div></div>`;
+                attachValidationUIListeners(step.id, true);
+            }
+        }
+
+        function cancelEdit(event, index) {
+            event.stopPropagation();
+            renderCompletedSteps();
+        }
+
+        function saveInlineEdit(event, index) {
+            event.stopPropagation();
+            const step = steps[index];
+            clearValidationError(step.id, true);
+            const { isValid, message } = validateInput(step, userResponses[step.id]);
+            if (!isValid) { 
+                showValidationError(step.id, message, true);
+                return;
+            }
+            const wasPasswordEdit = step.id === 'password';
+            if (wasPasswordEdit && userResponses['password-confirm']) userResponses['password-confirm'].value = '';
+            renderCompletedSteps();
+            if (wasPasswordEdit) {
+                const confirmPasswordIndex = steps.findIndex(s => s.id === 'password-confirm');
+                if (confirmPasswordIndex > -1 && confirmPasswordIndex < currentStepIndex) setTimeout(() => toggleEdit(confirmPasswordIndex), 50);
+            }
+        }
+
+        function completeStep() {
+            const step = steps[currentStepIndex];
+            clearValidationError(step.id, false);
+            const { isValid, message } = validateInput(step, userResponses[step.id]);
+            if (!isValid) { 
+                showValidationError(step.id, message, false);
+                return; 
+            }
+            const timerKey = `${step.id}`;
+            if (activeTimers[timerKey]) clearInterval(activeTimers[timerKey]);
+
+            currentStepIndex++;
+            renderCompletedSteps();
+            
+            if (currentStepIndex < steps.length) {
+                renderCurrentStep();
+            } else {
+                currentContainer.innerHTML = `<div class="text-center step-enter-active"><h2 class="text-2xl font-bold text-gray-800 mt-4">가입이 완료되었습니다!</h2><p class="text-gray-500 mt-2">이제 로그인 후 서비스를 이용할 수 있습니다.</p></div>`;
+                buttonContainer.innerHTML = `<button id="go-to-login-button" class="w-full py-3 rounded-lg text-black font-bold text-lg transition-all" style="background-color: var(--accent-color);">로그인하러 가기</button>`;
+                document.getElementById('go-to-login-button').addEventListener('click', () => alert('로그인 페이지로 이동합니다.'));
+                updateProgressBar();
+            }
+        }
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCurrentStep();
+            document.getElementById('back-button').addEventListener('click', () => alert('뒤로가기 버튼 클릭됨!'));
+        });
+    </script>
+</body>
+</html>
+

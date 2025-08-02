@@ -1,0 +1,339 @@
+<!-- 구해요 리스트 상세 페이지(+지원등록) -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구해요 상세</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Material Symbols CDN (if needed for future icons) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        :root {
+            --accent-color: #00FFFF; /* Main neon color */
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+        /* Custom scrollbar */
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 4px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: transparent;
+        }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+        /* Style for disabled button */
+        .modal-content button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none; /* Remove shadow when disabled */
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header -->
+        <header class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
+            <button class="text-gray-500 text-xl" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="text-xl font-bold text-gray-800" id="post-detail-header-title">구해요 상세</div>
+            <div class="flex items-center space-x-4">
+                <!-- Like button for the post -->
+                <button id="post-detail-like-button" class="text-xl">
+                    <i class="far fa-heart text-gray-500"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Content Area -->
+        <main class="flex-grow overflow-y-auto relative">
+            <!-- Post Image -->
+            <div class="w-full h-64 bg-gray-200 overflow-hidden relative">
+                <img id="post-detail-image" src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" 
+                     class="w-full h-full object-cover" 
+                     alt="게시물 이미지"
+                     onerror="this.onerror=null;this.src='https://placehold.co/600x400/e5e7eb/6b7280?text=이미지%20없음';">
+                
+                <!-- Deadline and Members info at bottom-left and bottom-right of image -->
+                <div class="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full flex items-center text-sm">
+                    <span id="post-detail-deadline">D-N</span>
+                </div>
+                <!-- Changed to only show total members and removed icon -->
+                <div class="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full flex items-center text-sm">
+                    <span id="post-detail-members">0명 모집</span>
+                </div>
+            </div>
+
+            <!-- Post Information -->
+            <div class="p-4">
+                <h1 id="post-detail-title" class="text-2xl font-bold text-gray-800 mb-2">게시물 제목</h1>
+                
+                <div class="flex items-center space-x-2 text-sm text-gray-600 mb-3">
+                    <span id="post-detail-tags" class="bg-gray-100 px-3 py-1 rounded-full">#태그 #예시</span>
+                    <span class="flex items-center">
+                        <i class="fas fa-eye mr-1"></i>
+                        <span id="post-detail-views">0</span>
+                    </span>
+                    <!-- Added likes count next to views -->
+                    <span class="flex items-center ml-2">
+                        <i class="fas fa-heart text-red-500 mr-1"></i>
+                        <span id="post-detail-likes">0</span>
+                    </span>
+                </div>
+
+                <p id="post-detail-description" class="text-gray-700 leading-relaxed mb-6">
+                    이곳은 게시물에 대한 자세한 설명이 들어가는 공간입니다. 구해요 게시물의 목적, 필요한 내용, 기간 등을 상세하게 작성하여 공유합니다.
+                </p>
+                
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-lg font-semibold text-gray-800">지원하기</h2>
+                    <!-- Apply button with plus icon removed -->
+                </div>
+                <div class="space-y-4" id="comments-list">
+                    <!-- Dummy Comments (now representing applications/responses) -->
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-medium text-gray-800">김지원</span>
+                            <span class="text-sm text-gray-500">2023.07.25</span>
+                        </div>
+                        <p class="text-sm text-gray-700">저도 참여하고 싶어요! 자세한 내용 문의드립니다.</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-medium text-gray-800">박참여</span>
+                            <span class="text-sm text-gray-500">2023.07.20</span>
+                        </div>
+                        <p class="text-sm text-gray-700">마감 기한이 언제까지인가요?</p>
+                    </div>
+                </div>
+            </div>
+            <!-- "지원하기" button at the very bottom (now opens the modal) -->
+            <div class="p-4 pt-0">
+                <button id="apply-button-bottom" class="w-full py-3 rounded-lg text-black font-bold text-lg transition-all duration-300 hover:opacity-90" style="background-color: var(--accent-color); box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);">
+                    지원하기
+                </button>
+            </div>
+        </main>
+
+        <!-- Apply Modal (formerly Inquire Modal) -->
+        <div id="apply-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">지원하기</h3> <!-- Changed modal title to "지원하기" -->
+                    <button id="close-apply-modal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <label for="apply-text" class="block text-sm font-medium text-gray-600 mb-1">지원 내용</label> <!-- Changed label to "지원 내용" -->
+                    <textarea id="apply-text" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-1" style="--tw-ring-color: var(--accent-color);" placeholder="지원 내용을 작성해주세요."></textarea> <!-- Changed placeholder -->
+                </div>
+                <button id="submit-apply" class="w-full py-2 rounded-lg text-black font-bold transition-all duration-300 hover:opacity-90" style="background-color: var(--accent-color); box-shadow: 0 2px 10px rgba(0, 255, 255, 0.2);" disabled> <!-- Added disabled attribute -->
+                    지원하기
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dummy data for a single "구해요" post
+        const dummyPostData = {
+            id: 'post-456',
+            title: '스터디원 구해요! (파이썬 기초)',
+            image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop',
+            tags: '#스터디 #파이썬 #초보환영',
+            views: 235,
+            likes: 42, // Added likes for the post itself
+            deadlineDate: new Date(new Date().setDate(new Date().getDate() + 7)), // 7 days from now
+            description: '파이썬 기초 스터디에 참여할 스터디원을 모집합니다. 매주 1회 온라인으로 진행되며, 파이썬 기본 문법부터 간단한 프로젝트까지 함께 학습할 예정입니다. 프로그래밍에 관심 있는 분이라면 누구나 환영합니다! 함께 성장하며 즐겁게 공부해요.',
+            totalMembers: 5 // Total number of members needed
+        };
+
+        // Populate the detail page with dummy data
+        document.getElementById('post-detail-header-title').textContent = dummyPostData.title; // Set header title to post title
+        document.getElementById('post-detail-image').src = dummyPostData.image;
+        document.getElementById('post-detail-title').textContent = dummyPostData.title;
+        document.getElementById('post-detail-tags').textContent = dummyPostData.tags;
+        document.getElementById('post-detail-views').textContent = dummyPostData.views;
+        document.getElementById('post-detail-likes').textContent = dummyPostData.likes; // Populate likes count
+
+        // Calculate and display deadline
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const postDeadlineDate = new Date(dummyPostData.deadlineDate);
+        postDeadlineDate.setHours(0, 0, 0, 0);
+        const diffTime = postDeadlineDate.getTime() - today.getTime();
+        let remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        let deadlineText = '';
+        if (remainingDays === 0) {
+            deadlineText = '오늘 마감';
+        } else if (remainingDays > 0) {
+            deadlineText = `D-${remainingDays}`;
+        } else {
+            deadlineText = '마감됨';
+        }
+        document.getElementById('post-detail-deadline').textContent = deadlineText;
+
+        // Display members info (simplified)
+        document.getElementById('post-detail-members').textContent = `${dummyPostData.totalMembers}명 모집`;
+
+        document.getElementById('post-detail-description').textContent = dummyPostData.description;
+
+        // Handle the like button in the header
+        const postDetailLikeButton = document.getElementById('post-detail-like-button');
+        const postDetailLikeIcon = postDetailLikeButton.querySelector('i');
+        let currentLikes = dummyPostData.likes;
+
+        // Set initial state of the like button
+        if (dummyPostData.isLiked) {
+            postDetailLikeIcon.classList.remove('far', 'text-gray-500');
+            postDetailLikeIcon.classList.add('fas', 'text-red-500');
+        } else {
+            postDetailLikeIcon.classList.remove('fas', 'text-red-500');
+            postDetailLikeIcon.classList.add('far', 'text-gray-500');
+        }
+
+        postDetailLikeButton.addEventListener('click', () => {
+            if (postDetailLikeIcon.classList.contains('far')) { // Currently empty heart
+                postDetailLikeIcon.classList.remove('far', 'text-gray-500');
+                postDetailLikeIcon.classList.add('fas', 'text-red-500');
+                currentLikes++;
+                console.log(`Post ${dummyPostData.id} liked from detail page.`);
+            } else { // Currently filled heart
+                postDetailLikeIcon.classList.remove('fas', 'text-red-500');
+                postDetailLikeIcon.classList.add('far', 'text-gray-500');
+                currentLikes = Math.max(0, currentLikes - 1); // Prevent negative likes
+                console.log(`Post ${dummyPostData.id} unliked from detail page.`);
+            }
+            document.getElementById('post-detail-likes').textContent = currentLikes; // Update displayed likes count
+        });
+
+        // --- Apply Modal Logic ---
+        const applyButtonBottom = document.getElementById('apply-button-bottom'); // The bottom button
+        const applyModal = document.getElementById('apply-modal');
+        const closeApplyModalButton = document.getElementById('close-apply-modal');
+        const submitApplyButton = document.getElementById('submit-apply');
+        const applyTextarea = document.getElementById('apply-text');
+        const commentsList = document.getElementById('comments-list');
+
+        // Function to update button state
+        function updateSubmitButtonState() {
+            if (applyTextarea.value.trim().length > 0) {
+                submitApplyButton.disabled = false;
+            } else {
+                submitApplyButton.disabled = true;
+            }
+        }
+
+        // Initially disable the button
+        updateSubmitButtonState();
+
+        applyButtonBottom.addEventListener('click', () => {
+            applyModal.classList.add('show');
+            // Reset textarea and update button state when modal opens
+            applyTextarea.value = '';
+            updateSubmitButtonState(); 
+        });
+
+        closeApplyModalButton.addEventListener('click', () => {
+            applyModal.classList.remove('show');
+            applyTextarea.value = ''; // Clear textarea on close
+            updateSubmitButtonState(); // Update button state
+        });
+
+        // Close modal when clicking outside the content
+        applyModal.addEventListener('click', (e) => {
+            if (e.target === applyModal) {
+                applyModal.classList.remove('show');
+                applyTextarea.value = ''; // Clear textarea on close
+                updateSubmitButtonState(); // Update button state
+            }
+        });
+
+        // Listen for input in the textarea to enable/disable the button
+        applyTextarea.addEventListener('input', updateSubmitButtonState);
+
+        submitApplyButton.addEventListener('click', () => {
+            const applyContent = applyTextarea.value.trim();
+            if (applyContent) {
+                console.log('지원 내용 제출됨:', applyContent);
+
+                const newApplyEl = document.createElement('div');
+                newApplyEl.className = "bg-gray-50 p-3 rounded-lg";
+                const now = new Date();
+                const dateString = `${now.getFullYear()}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}`;
+                newApplyEl.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-medium text-gray-800">새로운 지원</span>
+                        <span class="text-sm text-gray-500">${dateString}</span>
+                    </div>
+                    <p class="text-sm text-gray-700">${applyContent}</p>
+                `;
+                commentsList.prepend(newApplyEl);
+
+                applyModal.classList.remove('show');
+                applyTextarea.value = '';
+                updateSubmitButtonState(); // Update button state after submission
+            } else {
+                // This alert should ideally not be reached if button is disabled
+                alert('지원 내용을 입력해주세요.');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
+
