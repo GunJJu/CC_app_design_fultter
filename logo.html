@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Connect Logo</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts CDN (Regular & Bold weight) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Plus+Jakarta+Sans:wght@800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* 폰트 설정을 위한 사용자 정의 클래스 */
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .font-jakarta {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex justify-center items-center h-screen">
+
+    <!-- 로고 컨테이너 -->
+    <div class="bg-white p-12 rounded-2xl shadow-lg flex flex-col justify-center items-center">
+
+        <!-- CC 심볼 (bold 적용) -->
+        <div class="relative w-28 h-20 font-jakarta font-extrabold text-8xl">
+            <!-- 뒷배경 C (더 연한 회색) -->
+            <span class="absolute left-8 text-gray-200">C</span>
+            <!-- 앞쪽 C (파란색) -->
+            <span class="absolute left-0" style="color: #5DADE2;">C</span>
+        </div>
+
+        <!-- 앱 이름 텍스트 (bold 제거) -->
+        <p class="font-montserrat text-base text-gray-400 mt-4 tracking-wider">
+            CAMPUS CONNECT
+        </p>
+
+    </div>
+
+</body>
+
+</html>
