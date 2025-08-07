@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원서 보기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+        <!-- Header -->
+        <header class="p-4 border-b border-gray-200 sticky top-0 bg-white z-20 flex items-center">
+            <a href="#" class="text-gray-800"><i data-lucide="arrow-left" class="w-6 h-6"></i></a>
+            <h1 class="text-xl font-bold text-center text-gray-800 flex-grow">김지원님의 지원서</h1>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto p-6 space-y-6">
+            <!-- Applicant Info -->
+            <section class="flex items-center gap-4">
+                <img src="https://placehold.co/80x80/333333/FFFFFF?text=Me" class="w-20 h-20 rounded-full object-cover">
+                <div>
+                    <h2 class="font-bold text-2xl text-gray-800">김지원</h2>
+                    <p class="text-sm text-gray-500 mt-1">한국대학교 | 시각디자인학과</p>
+                </div>
+            </section>
+
+            <!-- Divider -->
+            <hr class="border-gray-100">
+
+            <!-- Application Details -->
+            <section class="space-y-4">
+                <h3 class="text-lg font-bold text-gray-800">답변 내용</h3>
+                <div class="space-y-6">
+                    <div>
+                        <p class="font-semibold text-gray-700">1. 간단한 자기소개를 부탁드려요.</p>
+                        <p class="mt-2 text-gray-600 bg-gray-100 p-3 rounded-md">안녕하세요! 디자인을 전공하고 있으며, 사람들과 협업하며 멋진 결과물을
+                            만들어내는 것에 큰 보람을 느낍니다. 긍정적이고 활발한 성격입니다.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700">2. 졸업작품 팀에 지원하게 된 동기가 무엇인가요?</p>
+                        <p class="mt-2 text-gray-600 bg-gray-100 p-3 rounded-md">공고에 제시된 프로젝트 주제가 제가 평소에 관심 있던 분야와 잘
+                            맞는다고 생각했습니다. 제 디자인 역량을 발휘하여 팀의 프로젝트 성공에 기여하고 싶습니다.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700">3. UI/UX 디자인 관련 경험이 있다면 알려주세요.</p>
+                        <p class="mt-2 text-gray-600 bg-gray-100 p-3 rounded-md">네, 2개의 교내 프로젝트와 1개의 공모전에서 UI/UX 디자인을
+                            담당한 경험이 있습니다. 피그마와 어도비 XD 사용에 능숙합니다. (포트폴리오: aaaa.com/myportfolio)</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700">4. 일주일에 활동 가능한 시간은 어느 정도인가요?</p>
+                        <p class="mt-2 text-gray-600 bg-gray-100 p-3 rounded-md">수요일과 금요일 오후, 그리고 주말은 항상 가능하여 주 15시간 이상은
+                            충분히 참여할 수 있습니다.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700">5. 마지막으로 하고 싶은 말이 있나요?</p>
+                        <p class="mt-2 text-gray-600 bg-gray-100 p-3 rounded-md">팀원들과 적극적으로 소통하며 최고의 결과물을 만들고 싶습니다. 함께하게
+                            될 날을 기대하겠습니다. 감사합니다!</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer (Buttons removed) -->
+        <footer class="p-4 bg-white border-t border-gray-200">
+            <!-- Footer content can be added here if needed in the future -->
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
