@@ -1,0 +1,502 @@
+<!-- 구해요 리스트 페이지 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구해요</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #00FFFF;
+            /* Main neon color */
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        /* Custom scrollbar for horizontal lists */
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 0;
+            background: transparent;
+        }
+
+        #posts-list-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #posts-list-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #posts-list-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: transparent;
+        }
+
+        .filter-dropdown {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.05));
+        }
+
+        /* ADDED: main-content class for proper height calculation */
+        .main-content {
+            height: calc(100vh - 128px);
+            /* Full screen height minus header(65px) and footer(63px) approx. */
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header -->
+        <header class="flex-shrink-0 flex items-center justify-between p-4">
+            <div>
+                <div class="text-3xl font-black" style="color: var(--accent-color);">CC,</div>
+                <div class="text-[10px] font-bold tracking-[0.2em] text-gray-500">CAMPUS CONNECT</div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="flex-shrink-0 flex space-x-8 px-4 border-b border-gray-200">
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">추천</a>
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">모임</a>
+            <!-- '구해요' 탭 활성화 -->
+            <a href="#" class="py-2 text-base font-bold text-gray-800 border-b-2"
+                style="border-color: var(--accent-color);">구해요</a>
+            <a href="#" class="py-2 text-base font-medium text-gray-500 hover:text-black">장소</a>
+        </nav>
+
+        <!-- Main Content -->
+        <!-- MODIFIED: Added main-content class -->
+        <main class="relative flex-grow flex flex-col overflow-hidden main-content">
+            <!-- Filter Section -->
+            <div class="px-4 pt-2 pb-3 border-b border-gray-200">
+                <!-- Filters Wrapper -->
+                <div class="relative flex items-center justify-between">
+                    <!-- Sort Filters: 최신순, 인기순, 마감순 -->
+                    <div id="sort-filters" class="flex items-center space-x-2">
+                        <button data-sort="latest"
+                            class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700 font-bold bg-white">최신순</button>
+                        <button data-sort="popular"
+                            class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700">인기순</button>
+                        <button data-sort="deadline"
+                            class="sort-btn px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700">마감순</button>
+                    </div>
+
+                    <div class="relative">
+                        <button id="category-filter-btn"
+                            class="px-4 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700 flex items-center">
+                            카테고리 <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                        </button>
+                        <div id="category-dropdown"
+                            class="hidden absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl z-10 filter-dropdown origin-top-right">
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                data-category="all">전체</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                data-category="study">스터디</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                data-category="team">팀원</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                data-category="item">물품</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                data-category="place">장소</a>
+                            <a href="#" class="category-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                data-category="etc">기타</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts List Container -->
+            <div id="posts-list-container" class="flex-grow overflow-y-auto bg-gray-100 p-4">
+                <div id="posts-list" class="space-y-3">
+                    <!-- '구해요' 게시물 아이템이 여기에 동적으로 삽입됩니다 -->
+                </div>
+            </div>
+
+            <!-- Create Post Floating Action Button -->
+            <button
+                class="absolute z-20 bottom-6 right-6 w-14 h-14 rounded-full bg-white flex items-center justify-center text-2xl text-black shadow-lg hover:bg-gray-100 active:scale-95 transition-all border border-gray-200">
+                <i class="fas fa-plus"></i>
+            </button>
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <footer class="relative flex-shrink-0 h-14">
+            <!-- Background SVG -->
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z" />
+                </svg>
+            </div>
+
+            <!-- Center Floating Button -->
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <button
+                    class="flex items-center justify-center text-black rounded-full w-16 h-16 shadow-lg shadow-cyan-500/50"
+                    style="background-color: var(--accent-color);">
+                    <i class="fa-solid fa-tower-broadcast text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- 5-column navigation grid -->
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <!-- 1. Home - 비활성화 상태 -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <i class="fas fa-home text-2xl"></i>
+                </a>
+                <!-- 2. Meetings - 비활성화 상태 -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1436/1436701.png" class="w-7 h-7" alt="모임 아이콘">
+                </a>
+                <!-- 3. Placeholder for center button -->
+                <div class="h-full"></div>
+                <!-- 4. Timetable - '구해요' 페이지이므로 활성화 상태 (검정색) -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-800">
+                    <i class="fa-regular fa-calendar-days text-2xl"></i>
+                </a>
+                <!-- 5. My Page - 비활성화 상태 -->
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                    <i class="fas fa-user text-2xl"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let allPosts = []; // 모든 게시물을 저장할 배열
+            let filteredAndSortedPosts = []; // 현재 필터링 및 정렬된 게시물
+            let currentPage = 0;
+            const ITEMS_PER_PAGE = 10;
+            let isLoading = false;
+            let currentSort = 'latest'; // 기본 정렬 방식
+            let currentCategory = 'all'; // 기본 카테고리 필터
+
+            // --- DOM 요소 ---
+            const categoryBtn = document.getElementById('category-filter-btn');
+            const categoryDropdown = document.getElementById('category-dropdown');
+            const categoryItems = document.querySelectorAll('.category-item'); // Select all category items
+            const postsListContainer = document.getElementById('posts-list-container');
+            const postsList = document.getElementById('posts-list');
+            const sortButtons = document.querySelectorAll('.sort-btn');
+
+            // --- Category mapping for display ---
+            const categoryMap = {
+                'all': '전체',
+                'study': '스터디',
+                'team': '팀원',
+                'item': '물품',
+                'place': '장소',
+                'etc': '기타'
+            };
+
+            // --- 헬퍼 함수: 더미 게시물 생성 ---
+            const generateDummyPosts = (count) => {
+                const posts = [];
+                const titles = [
+                    '스터디원 구해요! (파이썬 기초)',
+                    '공모전 팀원 모집합니다 (기획/디자인)',
+                    '아이패드 충전기 빌려주실 분?',
+                    '같이 점심 먹을 사람 구해요!',
+                    '중고 전공서적 판매합니다',
+                    '운동 메이트 구해요 (헬스)',
+                    '카페에서 같이 공부하실 분?',
+                    '졸업 작품 아이디어 구해요'
+                ];
+                const tags = [
+                    ['#스터디', '#파이썬', '#초보환영'],
+                    ['#팀원모집', '#공모전', '#기획', '#디자인'],
+                    ['#물품공유', '#아이패드', '#충전기'],
+                    ['#점심', '#맛집', '#같이먹어요'],
+                    ['#중고거래', '#전공서적'],
+                    ['#운동', '#헬스', '#메이트'],
+                    ['#카공', '#공부'],
+                    ['#졸작', '#아이디어']
+                ];
+                const categories = [ // Added categories to dummy data
+                    'study', 'team', 'item', 'etc', 'item', 'etc', 'study', 'etc'
+                ];
+                const images = [
+                    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=200&h=200&auto=format&fit=crop', // Study
+                    'https://images.unsplash.com/photo-1542744095-291d1f67b591?q=80&w=200&h=200&auto=format&fit=crop', // Team
+                    'https://images.unsplash.com/photo-1621570183188-06b5391d4e6d?q=80&w=200&h=200&auto=format&fit=crop', // Item
+                    'https://images.unsplash.com/photo-1504674900247-087700ff8d74?q=80&w=200&h=200&auto=format&fit=crop', // Food (using etc for this example)
+                    'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=200&h=200&auto=format&fit=crop', // Books (using item for this example)
+                    'https://images.unsplash.com/photo-1571019625470-b6b5860f7e1f?q=80&w=200&h=200&auto=format&fit=crop', // Gym (using etc for this example)
+                    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=200&h=200&auto=format&fit=crop', // Cafe (using study for this example)
+                    'https://images.unsplash.com/photo-1518770660439-4636190af170?q=80&w=200&h=200&auto=format&fit=crop' // Idea (using etc for this example)
+                ];
+
+                let typeIndex;
+
+                for (let i = 0; i < count; i++) {
+                    const today = new Date();
+                    // Randomly set deadline days to include some <= 3 for "마감임박" testing
+                    const deadlineDays = Math.floor(Math.random() * 10) + (Math.random() > 0.7 ? -2 : 1); // More likely to get some low numbers
+                    const deadlineDate = new Date(today);
+                    deadlineDate.setDate(today.getDate() + deadlineDays);
+
+                    posts.push({
+                        id: Date.now() + i,
+                        title: `${titles[i % titles.length]}`,
+                        image: `${images[i % images.length]}&random=${i}`,
+                        tags: tags[i % tags.length].join(' '),
+                        comments: Math.floor(Math.random() * 20) + 1,
+                        views: Math.floor(Math.random() * 500) + 50,
+                        likes: Math.floor(Math.random() * 150) + 20,
+                        isLiked: Math.random() > 0.5,
+                        deadlineDate: deadlineDate,
+                        category: categories[i % categories.length]
+                    });
+                }
+                return posts;
+            };
+
+            // --- Helper function: Render posts ---
+            function renderPosts(postsToRender) {
+                postsToRender.forEach(post => {
+                    const postEl = document.createElement('div');
+                    postEl.className = "relative flex items-start space-x-4 p-3 rounded-lg bg-white shadow-sm";
+
+                    // Calculate deadline and apply styles
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const postDeadlineDate = new Date(post.deadlineDate);
+                    postDeadlineDate.setHours(0, 0, 0, 0);
+
+                    const diffTime = postDeadlineDate.getTime() - today.getTime();
+                    let remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    let deadlineOverlayHtml = '';
+                    // Show "마감임박" overlay if remaining days are 3 or less and not past due
+                    if (remainingDays <= 3 && remainingDays >= 0) {
+                        deadlineOverlayHtml = `
+                        <div class="absolute top-0 left-0 right-0 h-1/4 bg-red-500 flex items-center justify-center text-white font-bold text-sm z-10 rounded-t-lg">
+                            마감임박
+                        </div>
+                    `;
+                    }
+
+                    postEl.innerHTML = `
+                    <div class="relative w-24 h-24 rounded-lg overflow-hidden">
+                        <img src="${post.image}" class="w-full h-full object-cover" alt="${post.title}" onerror="this.onerror=null;this.src='https://placehold.co/96x96/e5e7eb/6b7280?text=No+Image';">
+                        ${deadlineOverlayHtml}
+                    </div>
+                    <div class="flex-grow flex flex-col justify-between h-24 py-1">
+                        <div>
+                            <h3 class="font-bold text-base text-gray-800 mb-1">${post.title}</h3>
+                            <p class="text-sm text-gray-500 mb-1">${post.tags}</p>
+                        </div>
+                        <div class="flex items-center space-x-3 mt-2 text-xs text-gray-500">
+                            <!-- Display only comments count -->
+                            <span><i class="fas fa-comment-dots mr-1"></i><span class="comments-count">${post.comments}</span></span>
+                            <!-- Display only views count -->
+                            <span><i class="fas fa-eye mr-1"></i><span class="views-count">${post.views}</span></span>
+                            <!-- Display likes count -->
+                            <span><i class="fas fa-heart text-red-500 mr-1"></i><span class="likes-count">${post.likes}</span></span>
+                        </div>
+                    </div>
+                    <!-- Category badge at bottom right of the card, using categoryMap for Korean text -->
+                    <span class="absolute bottom-4 right-3 bg-gray-100 px-2 py-0.5 rounded-full text-xs font-medium text-gray-600">
+                        ${categoryMap[post.category] || post.category}
+                    </span>
+                    <!-- Like button at top right of the card -->
+                    <button class="card-like-button absolute top-3 right-3 text-xl ${post.isLiked ? 'text-red-500 fas' : 'text-gray-300 far'}" data-post-id="${post.id}">
+                        <i class="${post.isLiked ? 'fas fa-heart' : 'far fa-heart'}"></i>
+                    </button>
+                `;
+                    postsList.appendChild(postEl);
+                });
+
+                // Add event listeners for the new like buttons
+                document.querySelectorAll('.card-like-button').forEach(likeBtn => {
+                    likeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent card click event from firing
+                        const icon = likeBtn.querySelector('i');
+                        // Find the likes count span within the same card
+                        const likesCountSpan = likeBtn.closest('.relative').querySelector('.likes-count');
+                        let currentLikes = parseInt(likesCountSpan.textContent);
+
+                        if (icon.classList.contains('far')) { // Currently empty heart
+                            icon.classList.remove('far', 'text-gray-300');
+                            icon.classList.add('fas', 'text-red-500');
+                            currentLikes++;
+                            console.log(`Post ${likeBtn.dataset.postId} liked.`);
+                        } else { // Currently filled heart
+                            icon.classList.remove('fas', 'text-red-500');
+                            icon.classList.add('far', 'text-gray-300');
+                            currentLikes = Math.max(0, currentLikes - 1); // Prevent negative likes
+                            console.log(`Post ${likeBtn.dataset.postId} unliked.`);
+                        }
+                        likesCountSpan.textContent = currentLikes; // Update displayed likes count
+                    });
+                });
+            }
+
+            // Function to apply filters and sort
+            function applyFiltersAndSort() {
+                let tempPosts = [...allPosts]; // Start with all original data
+
+                // 1. Apply Category Filter
+                if (currentCategory !== 'all') {
+                    tempPosts = tempPosts.filter(post => post.category === currentCategory);
+                }
+
+                // 2. Apply Sorting
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (currentSort === 'latest') {
+                    tempPosts.sort((a, b) => b.id - a.id);
+                } else if (currentSort === 'popular') {
+                    tempPosts.sort((a, b) => b.views - a.views);
+                } else if (currentSort === 'deadline') {
+                    tempPosts.sort((a, b) => {
+                        const aRemaining = Math.ceil((a.deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                        const bRemaining = Math.ceil((b.deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+                        // Sort expired items to the end
+                        if (aRemaining < 0 && bRemaining >= 0) return 1;
+                        if (aRemaining >= 0 && bRemaining < 0) return -1;
+                        // For non-expired items, sort by remaining days ascending
+                        if (aRemaining >= 0 && bRemaining >= 0) return aRemaining - bRemaining;
+                        // For expired items, maintain their relative order
+                        return 0;
+                    });
+                }
+
+                filteredAndSortedPosts = tempPosts;
+                postsList.innerHTML = ''; // Clear current list
+                currentPage = 0; // Reset page for new data
+                loadMorePosts(); // Load first page of filtered/sorted data
+            }
+
+            // --- Helper function: Load more posts (infinite scroll) ---
+            function loadMorePosts() {
+                if (isLoading) return;
+
+                isLoading = true;
+                const start = currentPage * ITEMS_PER_PAGE;
+                const end = start + ITEMS_PER_PAGE;
+
+                const newPosts = filteredAndSortedPosts.slice(start, end); // Use filtered and sorted data
+
+                if (newPosts.length === 0) {
+                    isLoading = false;
+                    return;
+                }
+
+                setTimeout(() => {
+                    renderPosts(newPosts);
+                    currentPage++;
+                    isLoading = false;
+                }, 500);
+            }
+
+            // --- Event Listeners ---
+            categoryBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = categoryDropdown.classList.contains('hidden');
+                if (isHidden) {
+                    categoryDropdown.classList.remove('hidden');
+                    setTimeout(() => {
+                        categoryDropdown.classList.add('opacity-100', 'transform', 'scale-100');
+                        categoryDropdown.classList.remove('opacity-0', 'scale-95');
+                    }, 10);
+                } else {
+                    categoryDropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        categoryDropdown.classList.add('hidden');
+                        categoryDropdown.classList.remove('opacity-100', 'scale-100');
+                    }, 200);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!categoryBtn.contains(e.target) && !categoryDropdown.contains(e.target)) {
+                    categoryDropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        categoryDropdown.classList.add('hidden');
+                        categoryDropdown.classList.remove('opacity-100', 'scale-100');
+                    }, 200);
+                }
+            });
+
+            // Event Listeners for Category Items
+            categoryItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentCategory = e.target.dataset.category;
+                    // Update button text with Korean category name
+                    categoryBtn.innerHTML = `${categoryMap[currentCategory] || currentCategory} <i class="fas fa-chevron-down ml-2 text-xs"></i>`;
+                    categoryDropdown.classList.add('opacity-0', 'scale-95'); // Close dropdown
+                    setTimeout(() => {
+                        categoryDropdown.classList.add('hidden');
+                    }, 200);
+                    applyFiltersAndSort(); // Re-apply filters and sort
+                });
+            });
+
+            sortButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    currentSort = e.target.dataset.sort;
+                    updateSortButtonStyles();
+                    applyFiltersAndSort(); // Use the new function
+                });
+            });
+
+            function updateSortButtonStyles() {
+                sortButtons.forEach(btn => {
+                    if (btn.dataset.sort === currentSort) {
+                        btn.classList.add('font-bold', 'bg-white');
+                        btn.classList.remove('font-normal');
+                    } else {
+                        btn.classList.remove('font-bold', 'bg-white');
+                        btn.classList.add('font-normal');
+                    }
+                });
+            }
+
+            postsListContainer.addEventListener('scroll', () => {
+                const { scrollTop, scrollHeight, clientHeight } = postsListContainer;
+                if (scrollTop + clientHeight >= scrollHeight - 5) {
+                    loadMorePosts();
+                }
+            });
+
+            // --- Initialization ---
+            allPosts = generateDummyPosts(30);
+            updateSortButtonStyles();
+            applyFiltersAndSort(); // Initial render with default sort/filter
+        });
+    </script>
+    Lorem ipsum dolor sit, amet consectetur adipisicing elit. A cupiditate earum dignissimos error, reprehenderit beatae
+    eum esse? Explicabo, dolore at? Dolor, quia voluptas? Perferendis facere deserunt fuga. Iusto, adipisci id! Lorem
+    ipsum dolor sit amet consectetur adipisicing elit. Aperiam accusamus explicabo dicta hic, temporibus, quis dolor
+    dolore, delectus iure beatae quod quo cupiditate unde cumque a magnam dignissimos voluptatibus ratione.
+</body>
+
+</html>
