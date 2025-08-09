@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>새 게시물 작성</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #5DADE2;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+        }
+        /* Custom focus styles */
+        input:focus, [contenteditable="true"]:focus, select:focus {
+            outline: none;
+        }
+        /* Rich text editor placeholder */
+        [contenteditable="true"]:empty:before {
+            content: attr(placeholder);
+            color: #9ca3af; /* text-gray-400 */
+            pointer-events: none;
+            display: block; /* For line breaks */
+        }
+        /* Font size dropdown */
+        #font-size-dropdown {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        /* Custom select style to remove default arrow */
+        .custom-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        /* Keyboard container */
+        #keyboard-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 28rem; /* max-w-md */
+            margin: 0 auto;
+            z-index: 50;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        #keyboard-container.visible {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header -->
+        <header class="flex-shrink-0 flex items-center justify-between p-2 border-b border-gray-200">
+            <button class="text-gray-600 text-xl w-10 h-10 flex items-center justify-center" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="text-lg font-bold text-gray-800">새 게시물 작성</h1>
+            <button id="submit-post-btn" class="text-sm font-bold py-2 px-4 rounded-full" style="color: var(--accent-color);">
+                완료
+            </button>
+        </header>
+        
+        <!-- Main Content -->
+        <main id="main-content" class="flex-grow overflow-y-auto custom-scrollbar flex flex-col transition-all duration-300">
+            <div class="p-4 space-y-4 flex-grow flex flex-col">
+                <!-- Title and Category -->
+                <div class="flex items-center border-b border-gray-200 pb-2 flex-shrink-0">
+                    <input type="text" id="post-title" placeholder="제목" class="flex-grow p-2 text-xl font-bold focus:outline-none">
+                    <div class="relative">
+                        <select id="post-category" class="custom-select text-center text-sm font-semibold text-gray-800 bg-white py-1 pl-4 pr-8 border-2 border-gray-300 rounded-full focus:outline-none transition-all duration-200">
+                            <option value="자유">자유</option>
+                            <option value="공지">공지</option>
+                            <option value="모임 후기">모임 후기</option>
+                            <option value="가입 인사">가입 인사</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Textarea -->
+                <div id="post-content" contenteditable="true" placeholder="내용을 입력하세요..." class="w-full p-2 flex-grow min-h-[200px] text-gray-800 focus:outline-none" style="white-space: pre-wrap;"></div>
+            </div>
+             <!-- Image Preview Section -->
+            <div id="image-preview-wrapper" class="flex-shrink-0 p-2 border-t border-gray-200 hidden">
+                <p class="text-xs text-gray-500 mb-2 px-1">갤러리에 포함할 사진을 선택하세요.</p>
+                <div id="image-preview-container" class="flex items-center space-x-2 overflow-x-auto custom-scrollbar">
+                    <!-- Image previews will be dynamically inserted here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer Toolbar and Keyboard -->
+        <div id="keyboard-container">
+            <div class="flex items-center justify-between p-2 bg-gray-50 border-t border-gray-200">
+                <div class="flex items-center space-x-2">
+                    <label for="post-image-input" class="p-2 rounded-md hover:bg-gray-200 cursor-pointer">
+                        <i class="fas fa-camera text-gray-600"></i>
+                    </label>
+                    <input type="file" id="post-image-input" accept="image/*" class="hidden" multiple>
+                    
+                    <div class="relative">
+                        <button id="font-size-btn" class="p-2 rounded-md hover:bg-gray-200"><i class="fas fa-text-height text-gray-600"></i></button>
+                        <div id="font-size-dropdown" class="w-36">
+                            <button class="font-size-option block w-full text-left px-4 py-2 text-xs hover:bg-gray-100" data-size="12px">아주 작게</button>
+                            <button class="font-size-option block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" data-size="16px">보통</button>
+                            <button class="font-size-option block w-full text-left px-4 py-2 text-lg hover:bg-gray-100" data-size="20px">크게</button>
+                            <button class="font-size-option block w-full text-left px-4 py-2 text-xl hover:bg-gray-100" data-size="24px">아주 크게</button>
+                        </div>
+                    </div>
+
+                    <button class="p-2 rounded-md hover:bg-gray-200" onclick="document.execCommand('bold', false, null);"><i class="fas fa-bold text-gray-600"></i></button>
+                    <button class="p-2 rounded-md hover:bg-gray-200" onclick="document.execCommand('italic', false, null);"><i class="fas fa-italic text-gray-600"></i></button>
+                    <button class="p-2 rounded-md hover:bg-gray-200" onclick="document.execCommand('underline', false, null);"><i class="fas fa-underline text-gray-600"></i></button>
+                </div>
+            </div>
+            <div id="virtual-keyboard" class="bg-gray-200 p-1">
+                <div class="grid grid-cols-10 gap-1 text-center">
+                    <!-- Keys will be generated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const postContent = document.getElementById('post-content');
+        const keyboardContainer = document.getElementById('keyboard-container');
+        const mainContent = document.getElementById('main-content');
+        const postImageInput = document.getElementById('post-image-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreviewWrapper = document.getElementById('image-preview-wrapper');
+        const submitPostBtn = document.getElementById('submit-post-btn');
+        const fontSizeBtn = document.getElementById('font-size-btn');
+        const fontSizeDropdown = document.getElementById('font-size-dropdown');
+
+        let uploadedFiles = [];
+
+        function showKeyboard() {
+            const keyboardHeight = keyboardContainer.offsetHeight;
+            mainContent.style.paddingBottom = `${keyboardHeight}px`;
+            keyboardContainer.classList.add('visible');
+            mainContent.scrollTop = mainContent.scrollHeight;
+        }
+
+        function hideKeyboard() {
+            keyboardContainer.classList.remove('visible');
+            mainContent.style.paddingBottom = '0px';
+        }
+
+        postContent.addEventListener('focus', showKeyboard);
+        
+        document.addEventListener('click', (e) => {
+            if (!postContent.contains(e.target) && !keyboardContainer.contains(e.target) && !e.target.closest('header')) {
+                hideKeyboard();
+            }
+        });
+
+
+        postImageInput.addEventListener('change', (event) => {
+            const files = event.target.files;
+            if (files.length > 0) {
+                imagePreviewWrapper.classList.remove('hidden');
+            }
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) continue;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const fileId = `file-${Date.now()}-${Math.random()}`;
+                    const fileData = {
+                        id: fileId,
+                        file: file,
+                        addToGallery: true
+                    };
+                    uploadedFiles.push(fileData);
+
+                    const previewElement = createImagePreviewElement(fileId, e.target.result);
+                    imagePreviewContainer.appendChild(previewElement);
+                };
+                reader.readAsDataURL(file);
+            }
+            event.target.value = '';
+        });
+
+        function createImagePreviewElement(id, src) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative group w-24 h-24 flex-shrink-0';
+            wrapper.dataset.fileId = id;
+
+            wrapper.innerHTML = `
+                <img src="${src}" class="w-full h-full object-cover rounded-lg">
+                <button class="remove-image-btn absolute top-1 right-1 bg-black bg-opacity-50 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center">&times;</button>
+                <div class="absolute bottom-0 left-0 right-0 p-1 bg-black bg-opacity-40 rounded-b-lg">
+                    <label class="flex items-center justify-center text-white text-xs cursor-pointer">
+                        <input type="checkbox" class="gallery-checkbox w-3 h-3 mr-1" checked>
+                        갤러리
+                    </label>
+                </div>
+            `;
+
+            wrapper.querySelector('.remove-image-btn').addEventListener('click', () => {
+                uploadedFiles = uploadedFiles.filter(f => f.id !== id);
+                wrapper.remove();
+                if (imagePreviewContainer.children.length === 0) {
+                    imagePreviewWrapper.classList.add('hidden');
+                }
+            });
+            
+            wrapper.querySelector('.gallery-checkbox').addEventListener('change', (e) => {
+                 const fileData = uploadedFiles.find(f => f.id === id);
+                 if (fileData) {
+                     fileData.addToGallery = e.target.checked;
+                 }
+            });
+
+            return wrapper;
+        }
+
+        fontSizeBtn.addEventListener('click', () => {
+            fontSizeDropdown.style.display = fontSizeDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.querySelectorAll('.font-size-option').forEach(button => {
+            button.addEventListener('click', () => {
+                const size = button.dataset.size;
+                document.execCommand('fontSize', false, '1');
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const fontElements = range.commonAncestorContainer.parentNode;
+                    if (fontElements.nodeName === 'FONT') {
+                         const span = document.createElement('span');
+                         span.style.fontSize = size;
+                         span.innerHTML = fontElements.innerHTML;
+                         fontElements.parentNode.replaceChild(span, fontElements);
+                    }
+                }
+                fontSizeDropdown.style.display = 'none';
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!fontSizeBtn.contains(e.target) && !fontSizeDropdown.contains(e.target)) {
+                fontSizeDropdown.style.display = 'none';
+            }
+        });
+
+
+        submitPostBtn.addEventListener('click', () => {
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').innerHTML;
+            const category = document.getElementById('post-category').value;
+
+            if (!title || !content.trim() || content.trim() === '<br>') {
+                alert('제목과 내용을 모두 입력해주세요.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('content', content);
+            formData.append('category', category);
+
+            uploadedFiles.forEach((fileData, index) => {
+                formData.append(`image_${index}`, fileData.file);
+                formData.append(`image_${index}_addToGallery`, fileData.addToGallery);
+            });
+
+            console.log('Submitting post with the following data:');
+            console.log('Title:', title);
+            console.log('Content:', content);
+            console.log('Category:', category);
+            console.log('Files:', uploadedFiles);
+
+            alert('게시글이 성공적으로 작성되었습니다! (콘솔에서 데이터를 확인하세요)');
+        });
+
+        // Dynamically create keyboard to keep initial HTML clean
+        const keyboardGrid = document.querySelector('#virtual-keyboard .grid');
+        const keys1 = 'ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ'.split('');
+        const keys2 = 'ㅁㄴㅇㄹㅎㅗㅓㅏㅣ'.split('');
+        const keys3 = 'ㅋㅌㅊㅍㅠㅜㅡ'.split('');
+
+        keys1.forEach(key => {
+            const button = document.createElement('button');
+            button.className = 'py-3 bg-white rounded-md shadow text-gray-800';
+            button.textContent = key;
+            keyboardGrid.appendChild(button);
+        });
+        keys2.forEach(key => {
+            const button = document.createElement('button');
+            button.className = 'py-3 bg-white rounded-md shadow text-gray-800';
+            button.textContent = key;
+            keyboardGrid.appendChild(button);
+        });
+        
+        const shift = document.createElement('button');
+        shift.className = 'py-3 bg-gray-300 rounded-md shadow';
+        shift.innerHTML = `<i class="fas fa-arrow-up"></i>`;
+        keyboardGrid.appendChild(shift);
+
+        keys3.forEach(key => {
+            const button = document.createElement('button');
+            button.className = 'py-3 bg-white rounded-md shadow text-gray-800';
+            button.textContent = key;
+            keyboardGrid.appendChild(button);
+        });
+
+        const backspace = document.createElement('button');
+        backspace.className = 'py-3 bg-gray-300 rounded-md shadow col-span-2';
+        backspace.innerHTML = `<i class="fas fa-backspace"></i>`;
+        keyboardGrid.appendChild(backspace);
+
+        const space = document.createElement('button');
+        space.className = 'py-3 bg-white rounded-md shadow col-start-3 col-span-6';
+        space.textContent = '스페이스';
+        keyboardGrid.appendChild(space);
+
+        const enter = document.createElement('button');
+        enter.className = 'py-3 bg-blue-500 text-white rounded-md shadow col-span-2';
+        enter.textContent = '완료';
+        keyboardGrid.appendChild(enter);
+
+    });
+</script>
+
+</body>
+</html>

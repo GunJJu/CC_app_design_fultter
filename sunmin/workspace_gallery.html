@@ -1,0 +1,422 @@
+<!-- 워크스페이스 시간표부터 확정 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소모임 워크스페이스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        :root {
+            --accent-color: #5DADE2;
+            /* Main accent color */
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.05));
+        }
+
+        .tab-button.active {
+            border-bottom: 2px solid var(--accent-color);
+            font-weight: bold;
+            color: #111827;
+            /* text-gray-900 */
+        }
+
+        .tab-button:not(.active) {
+            color: #6B7280;
+            /* text-gray-500 */
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 0;
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: transparent;
+        }
+        
+        /* Bottom Sheet Modal Styles */
+        #bottom-sheet-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #bottom-sheet-modal {
+            transition: transform 0.3s ease-in-out;
+            touch-action: none; /* Prevent default touch actions like scrolling */
+        }
+        .line-clamp-2 {
+           overflow: hidden;
+           display: -webkit-box;
+           -webkit-box-orient: vertical;
+           -webkit-line-clamp: 2;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+        <header class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
+            <button class="text-gray-500 text-xl" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="text-lg font-bold text-gray-800 absolute left-1/2 transform -translate-x-1/2">파이썬 스터디 모임</h1>
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+                <select id="role-selector" class="text-sm p-1 rounded-md border border-gray-300">
+                    <option value="creator">개설자</option>
+                    <option value="sub_manager">부방장</option>
+                    <option value="member" selected>사용자</option>
+                </select>
+            </div>
+        </header>
+        <main class="relative flex-grow flex flex-col overflow-hidden">
+            <nav class="flex-shrink-0 flex justify-around border-b border-gray-200 bg-white mb-2">
+                <button class="tab-button py-2 px-4 text-sm active" data-tab="intro">소모임 소개</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="board">게시판</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="free-time">정기모임</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="gallery">갤러리</button>
+                <button class="tab-button py-2 px-4 text-sm hidden" data-tab="management"
+                    id="management-tab-button">관리</button>
+            </nav>
+            <div id="tab-content" class="flex-grow overflow-y-auto custom-scrollbar bg-gray-100">
+                <!-- 소모임 소개 탭 (내용 제거) -->
+                <div id="intro-tab" class="tab-pane active p-4">
+                    <p>소모임 소개 페이지입니다.</p>
+                </div>
+                <!-- 게시판 탭 (내용 제거) -->
+                <div id="board-tab" class="tab-pane hidden p-4">
+                     <p>게시판 페이지입니다.</p>
+                </div>
+                <!-- 정기모임 탭 (내용 제거) -->
+                <div id="free-time-tab" class="tab-pane hidden p-4">
+                    <p>정기모임 페이지입니다.</p>
+                </div>
+                <!-- 갤러리 탭 -->
+                <div id="gallery-tab" class="tab-pane hidden bg-gray-100">
+                    <div class="bg-white shadow-sm">
+                        <div class="p-4 flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-gray-800">갤러리</h2>
+                            <button id="upload-image-btn"
+                                class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-600 transition-colors hidden">
+                                <i class="fas fa-upload mr-2"></i>이미지 업로드
+                            </button>
+                        </div>
+                        <div id="gallery-grid" class="grid grid-cols-3">
+                            <!-- 갤러리 이미지가 여기에 동적으로 추가됩니다. -->
+                        </div>
+                    </div>
+                </div>
+                <!-- 관리 탭 -->
+                <div id="management-tab" class="tab-pane hidden p-4 bg-gray-100">
+                    <div class="bg-white p-4 rounded-lg shadow-sm space-y-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 mb-3">소모임 관리</h2>
+                            <p class="text-sm text-gray-600 mb-4">소모임의 멤버 및 설정을 관리할 수 있습니다.</p>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">소모임 통계</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600 mb-3">이곳은 소모임 활동에 대한 다양한 통계를 확인할 수 있는 페이지입니다.</p>
+                                <ul class="list-disc list-inside text-gray-700 space-y-2 text-sm">
+                                    <li>총 게시글 수: <span>150개</span></li>
+                                    <li>총 댓글 수: <span>500개</span></li>
+                                    <li>가장 활동적인 멤버: <span>김지수</span></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">가입자 관리</h3>
+                            <ul class="space-y-2 mb-4">
+                                <li class="flex items-center justify-between p-2 bg-gray-50 rounded-md text-sm">
+                                    <span>새로운 가입 요청 (홍길동)</span>
+                                    <div>
+                                        <button class="bg-green-500 text-white px-3 py-1 rounded-full text-xs mr-2">수락</button>
+                                        <button class="bg-red-500 text-white px-3 py-1 rounded-full text-xs">거절</button>
+                                    </div>
+                                </li>
+                            </ul>
+                            <button class="w-full bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">모든 가입자 보기</button>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">소모임 삭제</h3>
+                            <button class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors">소모임 삭제하기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="relative flex-shrink-0 h-14">
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z" />
+                </svg>
+            </div>
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <button
+                    class="flex items-center justify-center text-white rounded-full w-16 h-16 shadow-lg shadow-blue-500/50"
+                    style="background-color: var(--accent-color);">
+                    <i class="fa-solid fa-tower-broadcast text-2xl"></i>
+                </button>
+            </div>
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fas fa-home text-2xl"></i>
+                </a>
+                <a href="#" class="flex items-center justify-center h-full text-black">
+                    <span class="material-symbols-outlined text-3xl">diversity_3</span>
+                </a>
+                <div class="h-full"></div>
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fa-regular fa-calendar-days text-2xl"></i>
+                </a>
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fa-solid fa-circle-user text-2xl"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+    
+    <!-- Bottom Sheet Modal -->
+    <div id="bottom-sheet-overlay" class="fixed inset-0 bg-black bg-opacity-75 z-40 hidden opacity-0"></div>
+    <div id="bottom-sheet-modal" class="fixed inset-0 max-w-md mx-auto z-50 transform translate-y-full flex flex-col">
+        <div class="bg-black rounded-t-2xl shadow-xl flex flex-col h-full">
+            <div id="drag-handle" class="w-full py-3 flex-shrink-0 flex justify-center items-center cursor-grab">
+                <div class="w-10 h-1.5 bg-gray-700 rounded-full"></div>
+            </div>
+            <div class="flex-grow overflow-y-auto custom-scrollbar"> <!-- This part will scroll -->
+                <div class="flex flex-col h-full">
+                    <div class="flex-grow flex items-center justify-center">
+                        <img id="modal-image" src="" alt="확대된 이미지" class="w-full h-auto">
+                    </div>
+                    <div class="p-4 flex-shrink-0 bg-gradient-to-t from-black via-black/80 to-transparent">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 id="modal-post-title" class="font-bold text-lg text-white">게시글 제목</h3>
+                            <div class="flex items-center text-sm text-gray-300">
+                                <div class="flex items-center mr-4">
+                                    <i class="fas fa-heart text-red-500 mr-1"></i>
+                                    <span id="modal-likes">0</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-comment text-blue-500 mr-1"></i>
+                                    <span id="modal-comments">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p id="modal-post-content" class="text-gray-300 text-sm leading-relaxed line-clamp-2 mr-4 flex-grow">
+                                게시글 내용의 일부가 여기에 표시됩니다...
+                            </p>
+                            <button id="modal-post-link" class="flex-shrink-0 text-center text-sm font-semibold bg-white/10 text-white px-4 py-2 rounded-full hover:bg-white/20 transition-colors flex items-center space-x-2">
+                                <span>게시글 보기</span>
+                                <i class="fas fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element Selections ---
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            const roleSelector = document.getElementById('role-selector');
+            const managementTabButton = document.getElementById('management-tab-button');
+            const galleryGrid = document.getElementById('gallery-grid');
+            const uploadImageBtn = document.getElementById('upload-image-btn');
+            
+            // Bottom Sheet Elements
+            const bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
+            const bottomSheetModal = document.getElementById('bottom-sheet-modal');
+            const dragHandle = document.getElementById('drag-handle');
+            const modalImage = document.getElementById('modal-image');
+            const modalLikes = document.getElementById('modal-likes');
+            const modalComments = document.getElementById('modal-comments');
+            const modalPostTitle = document.getElementById('modal-post-title');
+            const modalPostContent = document.getElementById('modal-post-content');
+            const modalPostLink = document.getElementById('modal-post-link');
+
+            // --- State Variables ---
+            let currentUserRole = roleSelector.value;
+            let galleryImages = [];
+            let isDragging = false;
+            let startY;
+
+            // --- Functions ---
+            const updateUIForRole = () => {
+                if (currentUserRole === 'creator') {
+                    managementTabButton.classList.remove('hidden');
+                } else {
+                    managementTabButton.classList.add('hidden');
+                }
+                if (currentUserRole === 'creator' || currentUserRole === 'sub_manager') {
+                    uploadImageBtn.classList.remove('hidden');
+                } else {
+                    uploadImageBtn.classList.add('hidden');
+                }
+                renderGallery();
+            };
+
+            const renderGallery = () => {
+                galleryGrid.innerHTML = '';
+                galleryImages.forEach(image => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = "relative w-full overflow-hidden aspect-square cursor-pointer";
+                    imgContainer.dataset.imageId = image.id;
+                    imgContainer.innerHTML = `<img src="${image.src}" alt="${image.alt}" class="w-full h-full object-cover">`;
+                    galleryGrid.appendChild(imgContainer);
+                });
+            };
+
+            const generateDummyGalleryImages = (count) => {
+                galleryImages = [];
+                for (let i = 0; i < count; i++) {
+                    galleryImages.push({
+                        id: `gallery-${i}`,
+                        src: `https://picsum.photos/seed/${i + 100}/600/800`, // 세로가 긴 이미지로 변경
+                        alt: `갤러리 이미지 ${i + 1}`,
+                        likes: Math.floor(Math.random() * 100),
+                        comments: Math.floor(Math.random() * 20),
+                        title: `파이썬 프로젝트 ${i+1}번째 기록`,
+                        content: `오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다. 오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다. 오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다.`,
+                        postId: `post-${i}`
+                    });
+                }
+            };
+
+            const openBottomSheet = (imageId) => {
+                const imageData = galleryImages.find(img => img.id === imageId);
+                if (!imageData) return;
+
+                modalImage.src = imageData.src;
+                modalLikes.textContent = imageData.likes;
+                modalComments.textContent = imageData.comments;
+                modalPostTitle.textContent = imageData.title;
+                modalPostContent.textContent = imageData.content;
+                modalPostLink.dataset.postId = imageData.postId;
+
+                bottomSheetOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    bottomSheetOverlay.classList.remove('opacity-0');
+                    bottomSheetModal.style.transform = 'translateY(0)';
+                }, 10);
+            };
+
+            const closeBottomSheet = () => {
+                bottomSheetModal.style.transform = 'translateY(100%)';
+                bottomSheetOverlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    bottomSheetOverlay.classList.add('hidden');
+                }, 300);
+            };
+
+            // --- Event Listeners ---
+            roleSelector.addEventListener('change', (e) => {
+                currentUserRole = e.target.value;
+                updateUIForRole();
+            });
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    tabPanes.forEach(pane => pane.classList.add('hidden'));
+                    const currentTabPane = document.getElementById(`${button.dataset.tab}-tab`);
+                    currentTabPane.classList.remove('hidden');
+                });
+            });
+
+            galleryGrid.addEventListener('click', (e) => {
+                const imageContainer = e.target.closest('[data-image-id]');
+                if (imageContainer) {
+                    openBottomSheet(imageContainer.dataset.imageId);
+                }
+            });
+            
+            bottomSheetOverlay.addEventListener('click', closeBottomSheet);
+            
+            modalPostLink.addEventListener('click', (e) => {
+                alert(`원본 게시글 (ID: ${e.target.dataset.postId})로 이동합니다.`);
+            });
+            
+            uploadImageBtn.addEventListener('click', () => {
+                alert('이미지 업로드 기능이 여기에 연결됩니다.');
+            });
+            
+            // Drag to close logic
+            const onDragStart = (e) => {
+                isDragging = true;
+                startY = e.pageY || e.touches[0].pageY;
+                bottomSheetModal.style.transition = 'none'; // Disable transition during drag
+            };
+
+            const onDragMove = (e) => {
+                if (!isDragging) return;
+                const currentY = e.pageY || e.touches[0].pageY;
+                const diff = currentY - startY;
+                if (diff > 0) { // Only allow dragging down
+                    bottomSheetModal.style.transform = `translateY(${diff}px)`;
+                }
+            };
+
+            const onDragEnd = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                bottomSheetModal.style.transition = 'transform 0.3s ease-in-out';
+                const currentTransform = new WebKitCSSMatrix(window.getComputedStyle(bottomSheetModal).transform).m42;
+                if (currentTransform > 100) { // If dragged more than 100px down, close it
+                    closeBottomSheet();
+                } else { // Otherwise, snap back to original position
+                    bottomSheetModal.style.transform = 'translateY(0)';
+                }
+            };
+
+            dragHandle.addEventListener('mousedown', onDragStart);
+            dragHandle.addEventListener('touchstart', onDragStart);
+
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('touchmove', onDragMove);
+
+            window.addEventListener('mouseup', onDragEnd);
+            window.addEventListener('touchend', onDragEnd);
+
+
+            // --- Initial Execution ---
+            generateDummyGalleryImages(12);
+            updateUIForRole();
+        });
+    </script>
+</body>
+
+</html>
