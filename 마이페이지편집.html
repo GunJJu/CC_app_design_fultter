@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>마이페이지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap');
+
+    :root {
+      --accent-color: #00ffff;
+      --accent-light-color: #E0FFFF;
+      --text-color: #1F2937;
+      --subtext-color: #6B7280;
+      --border-color: #E5E7EB;
+      --bg-color: #F9FAFB;
+
+      --icon-color-1: #4B7BEF;
+      --icon-color-2: #FF6B6B;
+      --icon-color-3: #A06BFF;
+      --icon-color-4: #43D092;
+      --icon-color-5: #FFC06B;
+    }
+
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #E5E7EB;
+    }
+
+    .pill-box {
+      border-radius: 999px;
+      font-size: .75rem;
+      padding: .5rem .9rem;
+      border: 1px solid var(--border-color);
+      background: #F3F4F6;
+      font-weight: 500;
+      color: var(--subtext-color);
+    }
+
+    .section-card {
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .option-box {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: #fff;
+      transition: .15s;
+      padding: .7rem 1rem;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600
+    }
+
+    .option-box:hover {
+      border-color: var(--accent-color)
+    }
+
+    .option-box.selected {
+      border-color: var(--accent-color);
+      background: var(--accent-light-color)
+    }
+
+    /* 아코디언 에디터 */
+    .editor {
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: #fff;
+      margin-top: .6rem;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .28s ease, opacity .28s ease;
+      will-change: max-height;
+    }
+
+    .editor.open {
+      opacity: 1
+    }
+
+    /* 카메라 버튼 */
+    .cam-btn {
+      position: absolute;
+      right: .25rem;
+      bottom: .25rem;
+      width: 38px;
+      height: 38px;
+      border-radius: 9999px;
+      background: var(--accent-color);
+      color: #111827;
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+      z-index: 999;
+    }
+
+    .cam-btn.hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+    <!-- Header -->
+    <header class="flex-shrink-0 p-4 border-b border-gray-200 relative">
+      <div class="flex justify-between items-center h-full">
+        <button class="text-gray-500"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+        <h1 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-gray-800">마이페이지
+        </h1>
+        <a href="#" class="text-gray-500"><i data-lucide="settings" class="w-6 h-6"></i></a>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="w-full flex-grow flex flex-col overflow-y-auto">
+      <div class="relative bg-white px-6 pb-24 pt-8">
+
+        <!-- 프로필 이미지 -->
+        <div class="mt-3 flex justify-center">
+          <div class="relative w-32 h-32">
+            <div class="absolute inset-0 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-300">
+              <img id="profile-photo" src="https://placehold.co/256x256/E2E8F0/4A5568?text=Me" alt="Profile picture"
+                class="w-full h-full object-cover">
+            </div>
+            <button id="photo-edit-btn" class="cam-btn hidden" title="프로필 사진 변경">
+              <i data-lucide="camera" class="w-4 h-4"></i>
+            </button>
+            <input id="photo-input" type="file" accept="image/*" class="hidden">
+          </div>
+        </div>
+
+        <!-- 이름/학교 + 편집 버튼 -->
+        <div class="text-center mt-4 relative">
+          <h1 class="text-2xl font-bold text-gray-800">김민준</h1>
+          <p class="text-gray-500 mt-1">경복대학교 | 시각디자인학과</p>
+          <button id="edit-btn"
+            class="absolute right-0 -bottom-3 text-xs text-gray-600 underline decoration-2 decoration-gray-600 underline-offset-4 hover:text-gray-700">편집</button>
+        </div>
+
+        <!-- 항목들 -->
+        <div class="mt-8 space-y-3">
+          <!-- 친구유형 -->
+          <div class="profile-item section-card p-4 rounded-lg" data-key="friendType">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-gray-800">만나고 싶은 친구 유형</h3>
+                <p id="friendType" class="text-sm text-gray-500 mt-1">#부담없는 동네 친구</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 profile-arrow hidden"></i>
+            </div>
+            <div class="editor-container"></div>
+          </div>
+
+          <!-- 음주 -->
+          <div class="profile-item section-card p-4 rounded-lg" data-key="drink">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-gray-800">음주</h3>
+                <p id="drink" class="text-sm text-gray-500 mt-1">#가끔 마심</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 profile-arrow hidden"></i>
+            </div>
+            <div class="editor-container"></div>
+          </div>
+
+          <!-- 흡연 -->
+          <div class="profile-item section-card p-4 rounded-lg" data-key="smoke">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-gray-800">흡연</h3>
+                <p id="smoke" class="text-sm text-gray-500 mt-1">#비흡연</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 profile-arrow hidden"></i>
+            </div>
+            <div class="editor-container"></div>
+          </div>
+
+          <!-- MBTI -->
+          <div class="profile-item section-card p-4 rounded-lg" data-key="mbti">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-gray-800">MBTI</h3>
+                <p id="mbti" class="text-sm text-gray-500 mt-1">#ENFP</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 profile-arrow hidden"></i>
+            </div>
+            <div class="editor-container"></div>
+          </div>
+
+          <!-- 성격 -->
+          <div class="profile-item section-card p-4 rounded-lg" data-key="personality">
+            <div class="flex items-center justify-between">
+              <div class="w-full">
+                <h3 class="font-semibold text-gray-800">성격</h3>
+                <div id="personality" class="mt-3 flex flex-wrap gap-2"></div>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 profile-arrow hidden"></i>
+            </div>
+            <div class="editor-container"></div>
+          </div>
+
+          <!-- 관심사 -->
+          <div class="profile-item section-card p-4 rounded-lg" data-key="interests">
+            <div class="flex items-center justify-between">
+              <div class="w-full">
+                <h3 class="font-semibold text-gray-800">관심사</h3>
+                <div id="interests" class="mt-3 flex flex-wrap gap-2"></div>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 profile-arrow hidden"></i>
+            </div>
+            <div class="editor-container"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Nav -->
+    <footer class="w-full max-w-md mx-auto bg-white border-t border-gray-200 fixed bottom-0 z-10">
+      <div class="flex justify-around items-center h-16">
+        <a href="#" class="flex flex-col items-center justify-center text-gray-500"><i data-lucide="home"
+            class="w-6 h-6"></i></a>
+        <a href="#" class="flex flex-col items-center justify-center text-gray-500"><i data-lucide="users"
+            class="w-6 h-6"></i></a>
+        <a href="#" class="flex flex-col items-center justify-center text-gray-500">
+          <div class="w-14 h-14 rounded-full flex items-center justify-center -mt-8 border-4 border-white shadow-lg"
+            style="background-color:var(--accent-color);">
+            <i data-lucide="radio-tower" class="w-7 h-7 text-black"></i>
+          </div>
+        </a>
+        <a href="#" class="flex flex-col items-center justify-center text-gray-500"><i data-lucide="message-circle"
+            class="w-6 h-6"></i></a>
+        <a href="#" class="flex flex-col items-center justify-center" style="color:var(--accent-color);"><i
+            data-lucide="user" class="w-6 h-6"></i></a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // ===== 옵션 데이터 =====
+    const OPTION_MAP = {
+      friendType: {
+        type: 'single-icon',
+        options: [
+          { text: '부담없는 동네 친구', icon: 'message-circle', color: 'var(--icon-color-1)' },
+          { text: '두근두근 썸', icon: 'heart', color: 'var(--icon-color-2)' },
+          { text: '진지한 연애', icon: 'sparkles', color: 'var(--icon-color-3)' },
+          { text: '편한 동성 친구', icon: 'users', color: 'var(--icon-color-4)' },
+          { text: '일단 만나보기', icon: 'star', color: 'var(--icon-color-5)' }
+        ]
+      },
+      drink: { type: 'grid', options: ['전혀 안 마심', '피할 수 없을 때만', '가끔 마심', '자주 마심'] },
+      smoke: { type: 'grid', options: ['흡연', '비흡연', '전자담배', '금연중'] },
+      mbti: { type: 'mbti' },
+      personality: {
+        type: 'multi', max: 8,
+        options: ['유머러스한', '긍정킹', '현실적인', '진지충', '감성적인', '공감요정', '야행성', '아침형 인간', '계획적', '즉흥적', '외강내유', '외유내강', '리더십 있는', '팔로워', '혼자가 편해', '함께가 좋아', '알고보면 또라이', '다정다감', '무뚝뚝', '애교쟁이', '칼답', '완벽주의', '열정맨', '평화주의자', '카리스마']
+      },
+      interests: {
+        type: 'multi', max: 5,
+        options: ['넷플릭스 정주행', '유튜브 시청', '음악 페스티벌', '나만의 맛집 탐방', '새로운 카페 찾기', '헬스/피트니스', '클라이밍', '한강에서 피크닉', '드라이브', '전시회/미술관 관람', '방탈출', '보드게임', '코인노래방', '악기 연주', '자격증/스터디', '봉사활동', '식물 키우기', '셀프 인테리어', '주식/재테크', '요가/필라테스', '언어 교환', '쇼핑', 'PC 게임', '콘솔 게임', '웹툰/웹소설', '국내여행', '해외여행', '사진/영상 촬영', '요리/베이킹', '등산/캠핑']
+      }
+    };
+
+    // ===== 상태 =====
+    let editMode = false;
+    const state = {
+      friendType: '#부담없는 동네 친구',
+      drink: '#가끔 마심',
+      smoke: '#비흡연',
+      mbti: '#ENFP',
+      personality: ['#긍정킹', '#계획적', '#다정다감', '#유머러스', '#성실함'],
+      interests: ['#넷플릭스 정주행', '#맛집 탐방', '#헬스', '#러닝', '#전시회/미술관']
+    };
+
+    // ===== 유틸 =====
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    function renderTags(id, arr) {
+      const el = document.getElementById(id); el.innerHTML = '';
+      arr.forEach(t => { const d = document.createElement('div'); d.className = 'pill-box'; d.textContent = t; el.appendChild(d); });
+    }
+    function sync() {
+      $('#friendType').textContent = state.friendType;
+      $('#drink').textContent = state.drink;
+      $('#smoke').textContent = state.smoke;
+      $('#mbti').textContent = state.mbti;
+      renderTags('personality', state.personality);
+      renderTags('interests', state.interests);
+    }
+    sync();
+
+    // editor height helper
+    function adjustHeight(ed) {
+      requestAnimationFrame(() => { ed.style.maxHeight = ed.scrollHeight + 'px'; });
+    }
+
+    // 편집 토글
+    $('#edit-btn').addEventListener('click', () => {
+      editMode = !editMode;
+      $('#edit-btn').textContent = editMode ? '저장' : '편집';
+      $$('.profile-arrow').forEach(a => a.classList.toggle('hidden', !editMode));
+      $('#photo-edit-btn').classList.toggle('hidden', !editMode);
+      if (!editMode) closeAllEditors();
+      lucide.createIcons();
+    });
+
+    // 사진 변경
+    $('#photo-edit-btn').addEventListener('click', () => { if (editMode) $('#photo-input').click(); });
+    $('#photo-input').addEventListener('change', e => {
+      const file = e.target.files?.[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => { $('#profile-photo').src = ev.target.result; };
+      reader.readAsDataURL(file);
+    });
+
+    // 항목 클릭 → 에디터 토글
+    $$('.profile-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (!editMode) return;
+        if (e.target.closest('.editor')) return; // 에디터 내부 클릭 무시
+        toggleEditor(item, item.dataset.key);
+      });
+    });
+
+    // 에디터 열고 닫기
+    function closeAllEditors() {
+      $$('.editor-container .editor').forEach(ed => {
+        ed.style.maxHeight = '0px'; ed.classList.remove('open');
+        ed.addEventListener('transitionend', function onEnd() {
+          if (!ed.classList.contains('open')) ed.parentElement.innerHTML = '';
+          ed.removeEventListener('transitionend', onEnd);
+        });
+      });
+    }
+
+    function toggleEditor(item, key) {
+      const container = item.querySelector('.editor-container');
+
+      // 다른 에디터 닫기
+      $$('.editor-container').forEach(c => {
+        if (c !== container) {
+          const ed = c.querySelector('.editor');
+          if (ed) {
+            ed.style.maxHeight = '0px'; ed.classList.remove('open');
+            ed.addEventListener('transitionend', function onEnd() { if (!ed.classList.contains('open')) c.innerHTML = ''; ed.removeEventListener('transitionend', onEnd); });
+          }
+        }
+      });
+
+      // 이미 열려 있으면 닫기
+      const opened = container.querySelector('.editor');
+      if (opened) {
+        opened.style.maxHeight = '0px'; opened.classList.remove('open');
+        opened.addEventListener('transitionend', function onEnd() { if (!opened.classList.contains('open')) container.innerHTML = ''; opened.removeEventListener('transitionend', onEnd); });
+        return;
+      }
+
+      const conf = OPTION_MAP[key]; if (!conf) return;
+
+      // ----- 에디터 렌더 -----
+      let html = `<div class="editor p-4">`;
+      if (conf.type === 'single-icon') {
+        html += `<div class="space-y-2">` +
+          conf.options.map(o => {
+            const sel = state[key] === '#' + o.text ? 'selected' : '';
+            return `<div class="option-box ${sel} flex items-center justify-start" data-val="${o.text}">
+                      <i data-lucide="${o.icon}" class="w-5 h-5" style="color:${o.color}"></i>
+                      <span class="ml-3">${o.text}</span>
+                    </div>`;
+          }).join('') + `</div>`;
+      }
+      else if (conf.type === 'grid') {
+        html += `<div class="grid grid-cols-2 gap-2">` +
+          conf.options.map(t => {
+            const sel = state[key] === '#' + t ? 'selected' : '';
+            return `<div class="option-box ${sel}" data-val="${t}">${t}</div>`;
+          }).join('') + `</div>`;
+      }
+      else if (conf.type === 'multi') {
+        const selected = new Set(state[key].map(v => v.replace(/^#/, '')).values());
+        html += `<p class="text-sm text-gray-500 mb-2">최대 ${conf.max}개 선택</p>
+               <div class="flex flex-wrap gap-2">`+
+          conf.options.map(t => {
+            const sel = selected.has(t) ? 'selected' : '';
+            return `<div class="option-box pill-box ${sel}" data-val="${t}">${t}</div>`;
+          }).join('') + `</div>
+          <div class="mt-3 text-right">
+            <button class="px-3 py-1 rounded-md bg-gray-900 text-white text-sm done-btn">완료</button>
+          </div>`;
+      }
+      else if (conf.type === 'mbti') {
+        const current = (state.mbti || '#ENFP').replace('#', '');
+        const rows = [['E', 'I', '외향형 / 내향형'], ['S', 'N', '감각형 / 직관형'], ['T', 'F', '사고형 / 감정형'], ['P', 'J', '판단형 / 인식형']];
+        html += `<div class="space-y-3">` +
+          rows.map((r, i) => {
+            const [a, b, label] = r; const sel = current[i] || '';
+            return `<div>
+              <p class="text-sm text-gray-500 mb-1">${label}</p>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="option-box ${sel === a ? 'selected' : ''}" data-idx="${i}" data-val="${a}">${a}</div>
+                <div class="option-box ${sel === b ? 'selected' : ''}" data-idx="${i}" data-val="${b}">${b}</div>
+              </div>
+            </div>`;
+          }).join('') +
+          `</div>
+          <div class="mt-3 text-right">
+            <button class="px-3 py-1 rounded-md bg-gray-900 text-white text-sm done-btn">완료</button>
+          </div>`;
+      }
+      html += `</div>`;
+      container.innerHTML = html;
+      lucide.createIcons();
+
+      const ed = container.querySelector('.editor');
+      ed.classList.add('open'); adjustHeight(ed);
+
+      // 이벤트 바인딩
+      if (conf.type === 'single-icon' || conf.type === 'grid') {
+        ed.querySelectorAll('.option-box').forEach(box => {
+          box.addEventListener('click', () => {
+            state[key] = '#' + box.dataset.val; sync(); closeAllEditors();
+          });
+        });
+      }
+      else if (conf.type === 'multi') {
+        ed.querySelectorAll('.option-box').forEach(box => {
+          box.addEventListener('click', () => {
+            const val = box.dataset.val;
+            let arr = state[key].map(v => v.replace(/^#/, ''));
+            const i = arr.indexOf(val);
+            if (i > -1) { arr.splice(i, 1); box.classList.remove('selected'); }
+            else {
+              if (arr.length >= conf.max) { alert(`최대 ${conf.max}개까지 선택할 수 있어요.`); return; }
+              arr.push(val); box.classList.add('selected');
+            }
+            state[key] = arr.map(v => '#' + v);
+            adjustHeight(ed);
+          });
+        });
+        ed.querySelector('.done-btn').addEventListener('click', () => { sync(); closeAllEditors(); });
+      }
+      else if (conf.type === 'mbti') {
+        let mbti = (state.mbti || '#ENFP').replace('#', '').split('');
+        ed.querySelectorAll('.option-box').forEach(box => {
+          box.addEventListener('click', () => {
+            const idx = +box.dataset.idx, val = box.dataset.val;
+            mbti[idx] = val;
+            ed.querySelectorAll(`.option-box[data-idx="${idx}"]`).forEach(b => b.classList.remove('selected'));
+            box.classList.add('selected');
+            adjustHeight(ed);
+          });
+        });
+        ed.querySelector('.done-btn').addEventListener('click', () => {
+          if (mbti.some(v => !v)) { alert('모든 항목을 선택해 주세요.'); return; }
+          state.mbti = '#' + mbti.join(''); sync(); closeAllEditors();
+        });
+      }
+    }
+
+    // 바깥 클릭 시 접기
+    document.addEventListener('click', (e) => {
+      if (!editMode) return;
+      if (e.target.closest('.profile-item')) return;
+      closeAllEditors();
+    });
+  </script>
+</body>
+
+</html>
