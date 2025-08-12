@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>환경설정</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap');
+
+        :root {
+            --accent-color: #00ffff;
+            --accent-light: #E0FFFF;
+            --text: #111827;
+            --muted: #6B7280;
+            --line: #E5E7EB;
+            --bg: #F9FAFB;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: #E5E7EB;
+        }
+
+        .wrap {
+            max-width: 430px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #fff
+        }
+
+        .section {
+            padding: 16px 24px
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: space-between;
+            padding: 14px 16px
+        }
+
+        .row+.row {
+            border-top: 1px solid var(--line)
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .title {
+            font-weight: 600;
+            color: var(--text)
+        }
+
+        .desc {
+            font-size: .85rem;
+            color: var(--muted)
+        }
+
+        .link {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .chev {
+            color: #9CA3AF
+        }
+
+        .toggle {
+            appearance: none;
+            width: 46px;
+            height: 28px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .toggle:checked {
+            background: var(--accent-color)
+        }
+
+        .toggle:before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 999px;
+            transition: .2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .2)
+        }
+
+        .toggle:checked:before {
+            transform: translateX(18px)
+        }
+
+        /* Bottom Sheet */
+        .sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .4);
+            opacity: 0;
+            pointer-events: none;
+            transition: .25s
+        }
+
+        .sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: 0 auto;
+            max-width: 430px;
+            background: #fff;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            transform: translateY(100%);
+            transition: .3s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .sheet.open {
+            transform: translateY(0)
+        }
+
+        .sheet-backdrop.open {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            opacity: 0;
+            pointer-events: none;
+            transition: .25s
+        }
+
+        .modal {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -40%);
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            width: 90%;
+            max-width: 360px;
+            opacity: 0;
+            transition: .25s
+        }
+
+        .modal.open {
+            transform: translate(-50%, -50%);
+            opacity: 1
+        }
+
+        .modal-backdrop.open {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+        .danger {
+            color: var(--danger)
+        }
+
+        .badge {
+            font-size: .75rem;
+            background: #F3F4F6;
+            color: #6B7280;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 2px 8px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap mx-auto">
+        <!-- Header -->
+        <header class="flex-shrink-0 p-4 border-b border-gray-200 relative">
+            <div class="flex justify-between items-center">
+                <button id="back" class="text-gray-500"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                <h1 class="text-lg font-bold text-gray-800">환경설정</h1>
+                <div class="w-6 h-6"></div>
+            </div>
+        </header>
+
+        <!-- Body -->
+        <main class="flex-1 overflow-y-auto">
+
+            <!-- 계정 -->
+            <section class="section">
+                <h2 class="mb-2 text-sm font-bold text-gray-500">계정</h2>
+                <div class="card">
+                    <a href="#" id="editProfile" class="row">
+                        <div class="left">
+                            <i data-lucide="id-card" class="w-5 h-5 text-gray-600"></i>
+                            <div>
+                                <div class="title">개인정보 수정</div>
+                                <div class="desc">이름, 소개, 학교/학과 등 편집</div>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="chev w-5 h-5"></i>
+                    </a>
+
+                    <a href="#" id="blocked" class="row">
+                        <div class="left">
+                            <i data-lucide="user-x" class="w-5 h-5 text-gray-600"></i>
+                            <div class="title">차단한 회원 관리</div>
+                        </div>
+                        <span class="badge" id="blockedCount">0명</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- 보안 -->
+            <section class="section">
+                <h2 class="mb-2 text-sm font-bold text-gray-500">보안</h2>
+                <div class="card">
+                    <div class="row">
+                        <div class="left">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-gray-600"></i>
+                            <div>
+                                <div class="title">2단계 인증</div>
+                                <div class="desc">로그인 시 추가 인증 요구</div>
+                            </div>
+                        </div>
+                        <input id="tfaToggle" type="checkbox" class="toggle">
+                    </div>
+                    <div class="row">
+                        <div class="left">
+                            <i data-lucide="fingerprint" class="w-5 h-5 text-gray-600"></i>
+                            <div>
+                                <div class="title">생체 인증 로그인</div>
+                                <div class="desc">Face/Touch ID 사용</div>
+                            </div>
+                        </div>
+                        <input id="bioToggle" type="checkbox" class="toggle">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 알림 설정 -->
+            <section class="section">
+                <h2 class="mb-2 text-sm font-bold text-gray-500">알림 설정</h2>
+                <div class="card">
+                    <div class="row">
+                        <div class="left">
+                            <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
+                            <div class="title">푸시 알림</div>
+                        </div>
+                        <input id="pushToggle" type="checkbox" class="toggle">
+                    </div>
+                    <div class="row">
+                        <div class="left">
+                            <i data-lucide="users" class="w-5 h-5 text-gray-600"></i>
+                            <div class="title">모임 초대 알림</div>
+                        </div>
+                        <input id="inviteToggle" type="checkbox" class="toggle">
+                    </div>
+                    <div class="row">
+                        <div class="left">
+                            <i data-lucide="message-circle" class="w-5 h-5 text-gray-600"></i>
+                            <div class="title">댓글/좋아요 알림</div>
+                        </div>
+                        <input id="socialToggle" type="checkbox" class="toggle">
+                    </div>
+                    <div class="row">
+                        <div class="left">
+                            <i data-lucide="megaphone" class="w-5 h-5 text-gray-600"></i>
+                            <div class="title">소식/공지 알림</div>
+                        </div>
+                        <input id="newsToggle" type="checkbox" class="toggle">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 표시 & 환경 (언어만) -->
+            <section class="section">
+                <h2 class="mb-2 text-sm font-bold text-gray-500">표시 & 환경</h2>
+                <div class="card">
+                    <button id="langBtn" class="row w-full text-left">
+                        <div class="left">
+                            <i data-lucide="languages" class="w-5 h-5 text-gray-600"></i>
+                            <div>
+                                <div class="title">언어</div>
+                                <div class="desc" id="langCurrent">시스템 기본</div>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="chev w-5 h-5"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 앱 정보 & 지원 -->
+            <section class="section">
+                <h2 class="mb-2 text-sm font-bold text-gray-500">앱 정보 & 지원</h2>
+                <div class="card">
+                    <a href="#" id="contact" class="row">
+                        <div class="left">
+                            <i data-lucide="mail" class="w-5 h-5 text-gray-600"></i>
+                            <div class="title">문의하기</div>
+                        </div>
+                        <i data-lucide="chevron-right" class="chev w-5 h-5"></i>
+                    </a>
+
+                    <div class="row">
+                        <div class="left">
+                            <i data-lucide="info" class="w-5 h-5 text-gray-600"></i>
+                            <div>
+                                <div class="title">앱 버전</div>
+                                <div class="desc">v1.3.2 (build 87)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="logoutBtn" class="row w-full text-left">
+                        <div class="left">
+                            <i data-lucide="log-out" class="w-5 h-5 text-gray-600"></i>
+                            <div class="title">로그아웃</div>
+                        </div>
+                        <i data-lucide="chevron-right" class="chev w-5 h-5"></i>
+                    </button>
+
+                    <button id="deleteBtn" class="row w-full text-left">
+                        <div class="left">
+                            <i data-lucide="trash-2" class="w-5 h-5 text-red-500"></i>
+                            <div class="title danger">계정 탈퇴</div>
+                        </div>
+                        <i data-lucide="chevron-right" class="chev w-5 h-5"></i>
+                    </button>
+                </div>
+            </section>
+
+            <div class="h-8"></div>
+        </main>
+
+        <!-- Bottom Sheet: 언어 -->
+        <div id="sheetBackdrop" class="sheet-backdrop"></div>
+        <div id="langSheet" class="sheet">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <div class="font-bold text-gray-800">언어 선택</div>
+                <button id="sheetClose" class="p-1 text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-2">
+                <button data-lang="system"
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg flex items-center justify-between">
+                    <span>시스템 기본</span><i class="hidden sel check-sys" data-lucide="check" class="w-5 h-5"></i>
+                </button>
+                <button data-lang="ko"
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg flex items-center justify-between">
+                    <span>한국어</span><i class="hidden sel check-ko" data-lucide="check" class="w-5 h-5"></i>
+                </button>
+                <button data-lang="en"
+                    class="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg flex items-center justify-between">
+                    <span>English</span><i class="hidden sel check-en" data-lucide="check" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <button id="langSave" class="w-full py-3 rounded-lg font-bold"
+                    style="background:var(--accent-color)">적용</button>
+            </div>
+        </div>
+
+        <!-- Modal: 로그아웃 -->
+        <div id="logoutBackdrop" class="modal-backdrop"></div>
+        <div id="logoutModal" class="modal">
+            <div class="p-5">
+                <div class="font-bold text-gray-800 text-lg">로그아웃하시겠어요?</div>
+                <p class="text-sm text-gray-500 mt-1">다시 로그인하면 언제든 돌아올 수 있어요.</p>
+                <div class="mt-5 flex gap-2">
+                    <button id="logoutCancel" class="flex-1 py-2 rounded-lg border border-gray-200">취소</button>
+                    <button id="logoutOk" class="flex-1 py-2 rounded-lg text-white"
+                        style="background:var(--accent-color)">로그아웃</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: 계정 탈퇴 -->
+        <div id="deleteBackdrop" class="modal-backdrop"></div>
+        <div id="deleteModal" class="modal">
+            <div class="p-5">
+                <div class="font-bold text-gray-800 text-lg">계정을 정말 삭제할까요?</div>
+                <p class="text-sm text-gray-500 mt-1">모든 데이터가 영구 삭제되며 복구할 수 없습니다.</p>
+                <div class="mt-5 flex gap-2">
+                    <button id="deleteCancel" class="flex-1 py-2 rounded-lg border border-gray-200">취소</button>
+                    <button id="deleteOk" class="flex-1 py-2 rounded-lg text-white bg-red-500">영구 삭제</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mock: 차단 관리 바텀시트 -->
+        <div id="blockSheetBackdrop" class="sheet-backdrop"></div>
+        <div id="blockSheet" class="sheet">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <div class="font-bold text-gray-800">차단한 회원 관리</div>
+                <button id="blockClose" class="p-1 text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-2" id="blockedList">
+                <!-- 동적 렌더 -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ===== Local Storage Helpers =====
+        const storage = {
+            get(k, def) { try { const v = localStorage.getItem(k); return v === null ? def : JSON.parse(v); } catch { return def; } },
+            set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+        };
+
+        // ===== Elements =====
+        const toggles = {
+            tfa: document.getElementById('tfaToggle'),
+            bio: document.getElementById('bioToggle'),
+            push: document.getElementById('pushToggle'),
+            invite: document.getElementById('inviteToggle'),
+            social: document.getElementById('socialToggle'),
+            news: document.getElementById('newsToggle'),
+        };
+        const langBtn = document.getElementById('langBtn');
+        const langSheet = document.getElementById('langSheet');
+        const sheetBackdrop = document.getElementById('sheetBackdrop');
+        const sheetClose = document.getElementById('sheetClose');
+        const langCurrent = document.getElementById('langCurrent');
+        const langSave = document.getElementById('langSave');
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutModal = document.getElementById('logoutModal');
+        const logoutBackdrop = document.getElementById('logoutBackdrop');
+        const logoutCancel = document.getElementById('logoutCancel');
+        const logoutOk = document.getElementById('logoutOk');
+
+        const deleteBtn = document.getElementById('deleteBtn');
+        const deleteModal = document.getElementById('deleteModal');
+        const deleteBackdrop = document.getElementById('deleteBackdrop');
+        const deleteCancel = document.getElementById('deleteCancel');
+        const deleteOk = document.getElementById('deleteOk');
+
+        const blockedBtn = document.getElementById('blocked');
+        const blockSheet = document.getElementById('blockSheet');
+        const blockBackdrop = document.getElementById('blockSheetBackdrop');
+        const blockClose = document.getElementById('blockClose');
+        const blockedCount = document.getElementById('blockedCount');
+        const blockedList = document.getElementById('blockedList');
+
+        // ===== Init State =====
+        const state = storage.get('settings', {
+            tfa: false, bio: false, push: true, invite: true, social: true, news: true,
+            lang: 'system',
+            blocked: ['김코딩', '이디자', '박마케', '최운동'] // 데모
+        });
+
+        // Render helpers
+        function applyState() {
+            toggles.tfa.checked = state.tfa;
+            toggles.bio.checked = state.bio;
+            toggles.push.checked = state.push;
+            toggles.invite.checked = state.invite;
+            toggles.social.checked = state.social;
+            toggles.news.checked = state.news;
+
+            const map = { system: '시스템 기본', ko: '한국어', en: 'English' };
+            langCurrent.textContent = map[state.lang] || '시스템 기본';
+
+            blockedCount.textContent = `${state.blocked.length}명`;
+        }
+
+        function saveAndApply() { storage.set('settings', state); applyState(); }
+
+        // Toggle bindings
+        Object.entries(toggles).forEach(([k, el]) => {
+            el.addEventListener('change', () => { state[k] = el.checked; saveAndApply(); });
+        });
+
+        // ===== Language sheet =====
+        let pendingLang = state.lang;
+        function openSheet() {
+            langSheet.classList.add('open');
+            sheetBackdrop.classList.add('open');
+            markLang(pendingLang);
+            lucide.createIcons();
+        }
+        function closeSheet() {
+            langSheet.classList.remove('open');
+            sheetBackdrop.classList.remove('open');
+        }
+        function markLang(code) {
+            document.querySelectorAll('#langSheet .sel').forEach(i => i.classList.add('hidden'));
+            const cls = code === 'ko' ? '.check-ko' : code === 'en' ? '.check-en' : '.check-sys';
+            const el = document.querySelector(cls);
+            if (el) { el.classList.remove('hidden'); el.setAttribute('data-lucide', 'check'); }
+        }
+        langBtn.addEventListener('click', openSheet);
+        sheetBackdrop.addEventListener('click', closeSheet);
+        sheetClose.addEventListener('click', closeSheet);
+        document.querySelectorAll('#langSheet [data-lang]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                pendingLang = btn.getAttribute('data-lang');
+                markLang(pendingLang);
+            });
+        });
+        langSave.addEventListener('click', () => {
+            state.lang = pendingLang;
+            saveAndApply();
+            closeSheet();
+        });
+
+        // ===== Logout modal =====
+        function openModal(m, b) { m.classList.add('open'); b.classList.add('open'); }
+        function closeModal(m, b) { m.classList.remove('open'); b.classList.remove('open'); }
+
+        logoutBtn.addEventListener('click', () => openModal(logoutModal, logoutBackdrop));
+        logoutCancel.addEventListener('click', () => closeModal(logoutModal, logoutBackdrop));
+        logoutBackdrop.addEventListener('click', () => closeModal(logoutModal, logoutBackdrop));
+        logoutOk.addEventListener('click', () => {
+            closeModal(logoutModal, logoutBackdrop);
+            alert('로그아웃 되었습니다. (연동 시 실제 로그아웃 처리)');
+        });
+
+        // ===== Delete modal =====
+        deleteBtn.addEventListener('click', () => openModal(deleteModal, deleteBackdrop));
+        deleteCancel.addEventListener('click', () => closeModal(deleteModal, deleteBackdrop));
+        deleteBackdrop.addEventListener('click', () => closeModal(deleteModal, deleteBackdrop));
+        deleteOk.addEventListener('click', () => {
+            closeModal(deleteModal, deleteBackdrop);
+            alert('계정이 삭제되었습니다. (연동 시 실제 탈퇴 처리)');
+        });
+
+        // ===== Blocked users sheet =====
+        function openBlock() {
+            blockSheet.classList.add('open');
+            blockBackdrop.classList.add('open');
+            renderBlocked();
+        }
+        function closeBlock() {
+            blockSheet.classList.remove('open');
+            blockBackdrop.classList.remove('open');
+        }
+        function renderBlocked() {
+            blockedList.innerHTML = '';
+            if (state.blocked.length === 0) {
+                blockedList.innerHTML = '<div class="p-4 text-center text-gray-500">차단한 사용자가 없습니다.</div>';
+                blockedCount.textContent = '0명';
+                return;
+            }
+            state.blocked.forEach((name, idx) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.innerHTML = `
+          <div class="left">
+            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold">${name[0]}</div>
+            <div class="title">${name}</div>
+          </div>
+          <button class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 unblk">해제</button>`;
+                row.querySelector('.unblk').addEventListener('click', () => {
+                    state.blocked.splice(idx, 1);
+                    saveAndApply();
+                    renderBlocked();
+                });
+                blockedList.appendChild(row);
+            });
+        }
+        blockedBtn.addEventListener('click', openBlock);
+        blockBackdrop.addEventListener('click', closeBlock);
+        blockClose.addEventListener('click', closeBlock);
+
+        // Misc
+        document.getElementById('contact').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'mailto:support@example.com?subject=%5B문의%5D%20도움이%20필요해요&body=앱%20버전:%20v1.3.2%0D%0A내용:%20';
+        });
+        document.getElementById('back').addEventListener('click', () => history.back());
+
+        // Kick off
+        applyState();
+    </script>
+</body>
+
+</html>
