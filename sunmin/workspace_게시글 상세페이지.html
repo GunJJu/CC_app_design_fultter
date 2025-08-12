@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시물 상세</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #5DADE2;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --bg-color: #F9FAFB;
+            --border-color: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+        }
+
+        /* Kebab menu dropdown */
+        #kebab-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+        }
+
+        /* Post content styling */
+        #post-content-view {
+            line-height: 1.7;
+        }
+
+        #post-content-view img {
+            max-width: 100%;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header -->
+        <header class="flex-shrink-0 flex items-center justify-between p-2 border-b border-gray-200">
+            <button class="text-gray-600 text-xl w-10 h-10 flex items-center justify-center" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 id="header-title" class="text-lg font-bold text-gray-800">자유</h1>
+
+            <!-- Role Selector for Demo -->
+            <select id="role-selector" class="text-sm p-1 rounded-md border border-gray-300">
+                <option value="creator">모임리더</option>
+                <option value="sub_manager">운영진</option>
+                <option value="member_author">멤버 (글작성자)</option>
+                <option value="member_other" selected>멤버 (타인)</option>
+            </select>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto custom-scrollbar p-4">
+            <!-- Author Info & Kebab Menu -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <img id="author-avatar" src="https://placehold.co/40x40/cccccc/666666?text=김"
+                        class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        <p id="author-name" class="font-bold text-gray-800">김코딩</p>
+                        <p id="post-date" class="text-xs text-gray-500">2024. 08. 10 14:30</p>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button id="kebab-btn" class="text-gray-600 text-xl w-10 h-10 flex items-center justify-center">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div id="kebab-menu" class="w-28">
+                        <button id="edit-post-btn"
+                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">수정</button>
+                        <button id="delete-post-btn"
+                            class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">삭제</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post Title -->
+            <h2 id="post-title-view" class="text-2xl font-bold text-gray-900 mb-4 pb-4 border-b border-gray-200">
+                이번주 스터디 내용 공지
+            </h2>
+
+            <!-- Post Content -->
+            <div id="post-content-view" class="text-gray-800 mb-6">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+
+            <!-- Post Stats -->
+            <div class="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                <span><i class="fas fa-heart mr-1"></i> <span id="like-count">25</span></span>
+                <span><i class="fas fa-comment-dots mr-1"></i> <span id="comment-count">5</span></span>
+                <span><i class="fas fa-eye mr-1"></i> <span id="view-count">128</span></span>
+            </div>
+
+            <hr class="border-gray-200">
+
+            <!-- Comments Section -->
+            <div id="comments-section" class="mt-4">
+                <h3 class="font-bold mb-3">댓글 <span id="comment-count-display">5</span></h3>
+                <div id="comments-list" class="space-y-4">
+                    <!-- Comments will be dynamically inserted here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer Comment Input -->
+        <footer class="flex-shrink-0 p-2 border-t border-gray-200 bg-white">
+            <div class="flex items-center bg-gray-100 rounded-full px-4">
+                <input type="text" placeholder="댓글을 입력하세요..."
+                    class="flex-grow bg-transparent p-2 focus:outline-none text-sm">
+                <button class="font-bold text-sm py-2 px-4 rounded-full" style="color: var(--accent-color);">
+                    등록
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DUMMY DATA ---
+            const postData = {
+                id: 'post123',
+                author: '김코딩',
+                title: '이번주 스터디 내용 공지',
+                category: '공지',
+                date: '2024. 08. 10 14:30',
+                content: `
+                    <p style="font-size: 16px;">안녕하세요, 파이썬 스터디 모임원 여러분!</p>
+                    <p style="font-size: 16px;">이번 주 스터디 주제는 <strong>'데이터 시각화 라이브러리 Matplotlib'</strong>입니다.</p>
+                    <br>
+                    <p style="font-size: 20px;"><strong>주요 학습 내용:</strong></p>
+                    <ul>
+                        <li>기본적인 플롯 생성하기 (line, bar, scatter)</li>
+                        <li>축과 레이블, 제목 설정</li>
+                        <li>여러 개의 플롯을 한 번에 그리기</li>
+                    </ul>
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" alt="데이터 시각화 이미지">
+                    <p style="font-size: 12px;"><em>* 관련 자료는 스터디 전까지 공유 드리겠습니다.</em></p>
+                `,
+                stats: {
+                    likes: 25,
+                    comments: 5,
+                    views: 128
+                },
+                comments: [
+                    { author: '이파이', avatar: 'https://placehold.co/32x32/A9CCE3/000000?text=이', text: '드디어 데이터 시각화를 배우는군요! 기대됩니다!', date: '2시간 전' },
+                    { author: '박스터디', avatar: 'https://placehold.co/32x32/F5B7B1/000000?text=박', text: '혹시 예습할 만한 자료가 있을까요?', date: '1시간 전' },
+                    { author: '김코딩', avatar: 'https://placehold.co/32x32/cccccc/000000?text=김', text: '네, 좋은 질문입니다! 관련 공식 문서 링크 곧 공유해드릴게요.', date: '30분 전', isAuthor: true },
+                ]
+            };
+
+            // --- DOM Elements ---
+            const roleSelector = document.getElementById('role-selector');
+            const kebabBtn = document.getElementById('kebab-btn');
+            const kebabMenu = document.getElementById('kebab-menu');
+            const editPostBtn = document.getElementById('edit-post-btn');
+            const deletePostBtn = document.getElementById('delete-post-btn');
+
+            // --- Functions ---
+
+            function renderPost(data) {
+                // Header
+                document.getElementById('header-title').textContent = data.category;
+
+                // Author Info
+                document.getElementById('author-avatar').src = `https://placehold.co/40x40/cccccc/666666?text=${data.author.charAt(0)}`;
+                document.getElementById('author-name').textContent = data.author;
+                document.getElementById('post-date').textContent = data.date;
+
+                // Post Body
+                document.getElementById('post-title-view').textContent = data.title;
+                document.getElementById('post-content-view').innerHTML = data.content;
+
+                // Stats
+                document.getElementById('like-count').textContent = data.stats.likes;
+                document.getElementById('comment-count').textContent = data.stats.comments;
+                document.getElementById('view-count').textContent = data.stats.views;
+
+                // Comments
+                document.getElementById('comment-count-display').textContent = data.comments.length;
+                const commentsList = document.getElementById('comments-list');
+                commentsList.innerHTML = '';
+                data.comments.forEach(comment => {
+                    const commentEl = document.createElement('div');
+                    commentEl.className = 'flex items-start';
+                    commentEl.innerHTML = `
+                        <img src="${comment.avatar}" class="w-8 h-8 rounded-full mr-3 mt-1">
+                        <div class="flex-grow">
+                            <div class="bg-gray-100 p-3 rounded-lg">
+                                <p class="font-bold text-sm">${comment.author} ${comment.isAuthor ? '<span class="text-xs font-normal text-blue-500 bg-blue-100 px-1 rounded-sm">작성자</span>' : ''}</p>
+                                <p class="text-sm text-gray-800 mt-1">${comment.text}</p>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1 ml-1">${comment.date}</p>
+                        </div>
+                    `;
+                    commentsList.appendChild(commentEl);
+                });
+            }
+
+            function checkPermissions() {
+                const currentUserRole = roleSelector.value;
+                const isAuthor = currentUserRole === 'member_author';
+                const isAdmin = currentUserRole === 'creator' || currentUserRole === 'sub_manager';
+
+                if (isAuthor || isAdmin) {
+                    kebabBtn.classList.remove('hidden');
+                } else {
+                    kebabBtn.classList.add('hidden');
+                }
+            }
+
+            // --- Event Listeners ---
+            roleSelector.addEventListener('change', checkPermissions);
+
+            kebabBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                kebabMenu.style.display = kebabMenu.style.display === 'block' ? 'none' : 'block';
+            });
+
+            document.addEventListener('click', () => {
+                kebabMenu.style.display = 'none';
+            });
+
+            editPostBtn.addEventListener('click', () => alert('게시물 수정 페이지로 이동합니다.'));
+            deletePostBtn.addEventListener('click', () => {
+                if (confirm('정말로 게시물을 삭제하시겠습니까?')) {
+                    alert('게시물이 삭제되었습니다.');
+                    // 실제 앱에서는 목록 페이지로 이동하는 로직 추가
+                }
+            });
+
+            // --- Initial Load ---
+            renderPost(postData);
+            checkPermissions();
+        });
+    </script>
+
+</body>
+
+</html>

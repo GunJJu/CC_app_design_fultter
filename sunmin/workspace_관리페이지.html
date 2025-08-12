@@ -1,0 +1,515 @@
+<!-- 워크스페이스 시간표부터 확정 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소모임 워크스페이스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --accent-color: #FFC300;
+            /* Main accent color */
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.05));
+        }
+
+        .tab-button.active {
+            border-bottom: 2px solid var(--accent-color);
+            font-weight: bold;
+            color: #111827;
+            /* text-gray-900 */
+        }
+
+        .tab-button:not(.active) {
+            color: #6B7280;
+            /* text-gray-500 */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 0;
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: transparent;
+        }
+
+        /* Bottom Sheet Modal Styles */
+        .bottom-sheet-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .bottom-sheet-modal {
+            transition: transform 0.3s ease-in-out;
+            touch-action: none;
+            /* Prevent default touch actions like scrolling */
+        }
+
+        .line-clamp-2 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+        <header class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
+            <button class="text-gray-500 text-xl" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="text-lg font-bold text-gray-800 absolute left-1/2 transform -translate-x-1/2">파이썬 스터디 모임</h1>
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+                <select id="role-selector" class="text-sm p-1 rounded-md border border-gray-300">
+                    <option value="creator">모임리더</option>
+                    <option value="sub_manager">운영진</option>
+                    <option value="member" selected>사용자</option>
+                </select>
+            </div>
+        </header>
+        <main class="relative flex-grow flex flex-col overflow-hidden">
+            <nav class="flex-shrink-0 flex justify-around border-b border-gray-200 bg-white mb-2">
+                <button class="tab-button py-2 px-4 text-sm active" data-tab="intro">소모임 소개</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="board">게시판</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="free-time">정기모임</button>
+                <button class="tab-button py-2 px-4 text-sm" data-tab="gallery">갤러리</button>
+                <button class="tab-button py-2 px-4 text-sm hidden" data-tab="management"
+                    id="management-tab-button">관리</button>
+            </nav>
+            <div id="tab-content" class="flex-grow overflow-y-auto custom-scrollbar bg-gray-100">
+                <!-- 소모임 소개 탭 (내용 제거) -->
+                <div id="intro-tab" class="tab-pane active p-4">
+                    <p>소모임 소개 페이지입니다.</p>
+                </div>
+                <!-- 게시판 탭 (내용 제거) -->
+                <div id="board-tab" class="tab-pane hidden p-4">
+                    <p>게시판 페이지입니다.</p>
+                </div>
+                <!-- 정기모임 탭 (내용 제거) -->
+                <div id="free-time-tab" class="tab-pane hidden p-4">
+                    <p>정기모임 페이지입니다.</p>
+                </div>
+                <!-- 갤러리 탭 -->
+                <div id="gallery-tab" class="tab-pane hidden bg-gray-100">
+                    <div class="bg-white shadow-sm">
+                        <div class="p-4 flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-gray-800">갤러리</h2>
+                            <button id="upload-image-btn"
+                                class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-600 transition-colors hidden">
+                                <i class="fas fa-upload mr-2"></i>이미지 업로드
+                            </button>
+                        </div>
+                        <div id="gallery-grid" class="grid grid-cols-3">
+                            <!-- 갤러리 이미지가 여기에 동적으로 추가됩니다. -->
+                        </div>
+                    </div>
+                </div>
+                <!-- 관리 탭 -->
+                <div id="management-tab" class="tab-pane hidden bg-white">
+                    <div class="divide-y divide-gray-100">
+                        <!-- 통계 섹션 -->
+                        <div class="p-4">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">소모임 통계</h2>
+                            <div class="grid grid-cols-2 gap-4 text-center mb-6">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-2xl font-bold text-blue-500" id="weekly-active-members">0</p>
+                                    <p class="text-xs text-gray-500">주간 활성 멤버</p>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-2xl font-bold text-green-500" id="new-member-rate">0%</p>
+                                    <p class="text-xs text-gray-500">신규 멤버 참여율</p>
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <h3 class="text-md font-semibold text-gray-700 mb-2">멤버 성장 현황</h3>
+                                <canvas id="member-growth-chart"></canvas>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-semibold text-gray-700 mb-2">카테고리별 게시글</h3>
+                                <canvas id="category-chart" class="max-w-xs mx-auto"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- 멤버 관리 섹션 -->
+                        <div class="p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-bold text-gray-800">멤버 관리</h2>
+                                <button id="toggle-member-management-btn" class="text-sm font-semibold"
+                                    style="color: var(--accent-color);">관리</button>
+                            </div>
+                            <div id="member-list" class="space-y-3">
+                                <!-- 멤버 목록이 여기에 동적으로 추가됩니다. -->
+                            </div>
+                        </div>
+
+                        <!-- 소모임 삭제 섹션 -->
+                        <div class="p-4">
+                            <h2 class="text-xl font-bold text-gray-800 mb-2">소모임 삭제</h2>
+                            <p class="text-sm text-gray-600 mb-4">소모임을 삭제하면 모든 데이터가 영구적으로 사라집니다. 신중하게 결정해주세요.</p>
+                            <button
+                                class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors">소모임
+                                삭제하기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="relative flex-shrink-0 h-14">
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z" />
+                </svg>
+            </div>
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <button
+                    class="flex items-center justify-center text-black rounded-full w-16 h-16 shadow-lg shadow-yellow-500/50"
+                    style="background-color: var(--accent-color);">
+                    <i class="fa-solid fa-tower-broadcast text-2xl"></i>
+                </button>
+            </div>
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fas fa-home text-2xl"></i>
+                </a>
+                <a href="#" class="flex items-center justify-center h-full text-black">
+                    <span class="material-symbols-outlined text-3xl">diversity_3</span>
+                </a>
+                <div class="h-full"></div>
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fa-regular fa-calendar-days text-2xl"></i>
+                </a>
+                <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-black">
+                    <i class="fa-solid fa-circle-user text-2xl"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <!-- Gallery Bottom Sheet Modal -->
+    <div id="bottom-sheet-overlay"
+        class="bottom-sheet-overlay fixed inset-0 bg-black bg-opacity-75 z-40 hidden opacity-0"></div>
+    <div id="bottom-sheet-modal"
+        class="bottom-sheet-modal fixed inset-0 max-w-md mx-auto z-50 transform translate-y-full flex flex-col">
+        <div class="bg-black rounded-t-2xl shadow-xl flex flex-col h-full">
+            <div id="drag-handle" class="w-full py-3 flex-shrink-0 flex justify-center items-center cursor-grab">
+                <div class="w-10 h-1.5 bg-gray-700 rounded-full"></div>
+            </div>
+            <div class="flex-grow overflow-y-auto custom-scrollbar"> <!-- This part will scroll -->
+                <div class="flex flex-col h-full">
+                    <div class="flex-grow flex items-center justify-center">
+                        <img id="modal-image" src="" alt="확대된 이미지" class="w-full h-auto">
+                    </div>
+                    <div class="p-4 flex-shrink-0 bg-gradient-to-t from-black via-black/80 to-transparent">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 id="modal-post-title" class="font-bold text-lg text-white">게시글 제목</h3>
+                            <div class="flex items-center text-sm text-gray-300">
+                                <div class="flex items-center mr-4">
+                                    <i class="fas fa-heart text-red-500 mr-1"></i>
+                                    <span id="modal-likes">0</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-comment text-blue-500 mr-1"></i>
+                                    <span id="modal-comments">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p id="modal-post-content"
+                                class="text-gray-300 text-sm leading-relaxed line-clamp-2 mr-4 flex-grow">
+                                게시글 내용의 일부가 여기에 표시됩니다...
+                            </p>
+                            <button id="modal-post-link"
+                                class="flex-shrink-0 text-center text-sm font-semibold bg-white/10 text-white px-4 py-2 rounded-full hover:bg-white/20 transition-colors flex items-center space-x-2">
+                                <span>게시글 보기</span>
+                                <i class="fas fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element Selections ---
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            const roleSelector = document.getElementById('role-selector');
+            const managementTabButton = document.getElementById('management-tab-button');
+            const galleryGrid = document.getElementById('gallery-grid');
+            const uploadImageBtn = document.getElementById('upload-image-btn');
+
+            // Gallery Bottom Sheet Elements
+            const bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
+            const bottomSheetModal = document.getElementById('bottom-sheet-modal');
+            const dragHandle = document.getElementById('drag-handle');
+            const modalImage = document.getElementById('modal-image');
+            const modalLikes = document.getElementById('modal-likes');
+            const modalComments = document.getElementById('modal-comments');
+            const modalPostTitle = document.getElementById('modal-post-title');
+            const modalPostContent = document.getElementById('modal-post-content');
+            const modalPostLink = document.getElementById('modal-post-link');
+
+            // Management Tab Elements
+            const memberListContainer = document.getElementById('member-list');
+            const toggleMemberManagementBtn = document.getElementById('toggle-member-management-btn');
+
+            // --- State Variables ---
+            let currentUserRole = roleSelector.value;
+            let galleryImages = [];
+            let isDragging = false;
+            let startY;
+            let memberGrowthChart = null;
+            let categoryChart = null;
+            let members = [
+                { id: 1, name: '김지수', role: 'creator', avatar: 'https://placehold.co/40x40/FFC300/000000?text=K' },
+                { id: 2, name: '활동적인 다람쥐', role: 'sub_manager', avatar: 'https://placehold.co/40x40/cccccc/666666?text=A' },
+                { id: 3, name: '지혜로운 부엉이', role: 'member', avatar: 'https://placehold.co/40x40/cccccc/666666?text=W' },
+                { id: 4, name: '탐구하는 고양이', role: 'member', avatar: 'https://placehold.co/40x40/cccccc/666666?text=C' },
+                { id: 5, name: '성실한 강아지', role: 'member', avatar: 'https://placehold.co/40x40/cccccc/666666?text=D' },
+            ];
+            let isMemberEditing = false;
+
+            // --- Functions ---
+            const updateUIForRole = () => {
+                if (currentUserRole === 'creator') {
+                    managementTabButton.classList.remove('hidden');
+                    renderManagementTab();
+                } else {
+                    managementTabButton.classList.add('hidden');
+                }
+                if (currentUserRole === 'creator' || currentUserRole === 'sub_manager') {
+                    uploadImageBtn.classList.remove('hidden');
+                } else {
+                    uploadImageBtn.classList.add('hidden');
+                }
+                renderGallery();
+            };
+
+            const renderGallery = () => {
+                galleryGrid.innerHTML = '';
+                galleryImages.forEach(image => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = "relative w-full overflow-hidden aspect-square cursor-pointer";
+                    imgContainer.dataset.imageId = image.id;
+                    imgContainer.innerHTML = `<img src="${image.src}" alt="${image.alt}" class="w-full h-full object-cover">`;
+                    galleryGrid.appendChild(imgContainer);
+                });
+            };
+
+            const generateDummyGalleryImages = (count) => {
+                galleryImages = [];
+                for (let i = 0; i < count; i++) {
+                    galleryImages.push({
+                        id: `gallery-${i}`,
+                        src: `https://picsum.photos/seed/${i + 100}/600/800`,
+                        alt: `갤러리 이미지 ${i + 1}`,
+                        likes: Math.floor(Math.random() * 100),
+                        comments: Math.floor(Math.random() * 20),
+                        title: `파이썬 프로젝트 ${i + 1}번째 기록`,
+                        content: `오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다. 오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다. 오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다.`,
+                        postId: `post-${i}`
+                    });
+                }
+            };
+
+            const openBottomSheet = (imageId) => {
+                const imageData = galleryImages.find(img => img.id === imageId);
+                if (!imageData) return;
+
+                modalImage.src = imageData.src;
+                modalLikes.textContent = imageData.likes;
+                modalComments.textContent = imageData.comments;
+                modalPostTitle.textContent = imageData.title;
+                modalPostContent.textContent = imageData.content;
+                modalPostLink.dataset.postId = imageData.postId;
+
+                bottomSheetOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    bottomSheetOverlay.classList.remove('opacity-0');
+                    bottomSheetModal.style.transform = 'translateY(0)';
+                }, 10);
+            };
+
+            const closeBottomSheet = () => {
+                bottomSheetModal.style.transform = 'translateY(100%)';
+                bottomSheetOverlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    bottomSheetOverlay.classList.add('hidden');
+                }, 300);
+            };
+
+            // --- Management Tab Functions ---
+            const renderManagementTab = () => {
+                document.getElementById('weekly-active-members').textContent = '8';
+                document.getElementById('new-member-rate').textContent = '75%';
+                renderMemberGrowthChart();
+                renderCategoryChart();
+                renderMemberList(isMemberEditing);
+            };
+
+            const renderMemberGrowthChart = () => {
+                const ctx = document.getElementById('member-growth-chart').getContext('2d');
+                if (memberGrowthChart) memberGrowthChart.destroy();
+                memberGrowthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: ['4월', '5월', '6월', '7월'], datasets: [{ label: '총 멤버 수', data: [5, 7, 9, 12], borderColor: 'rgba(255, 195, 0, 1)', backgroundColor: 'rgba(255, 195, 0, 0.2)', fill: true, tension: 0.3 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+            };
+
+            const renderCategoryChart = () => {
+                const ctx = document.getElementById('category-chart').getContext('2d');
+                if (categoryChart) categoryChart.destroy();
+                categoryChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ['모임 후기', '자유', '가입 인사', '공지'], datasets: [{ data: [40, 30, 20, 10], backgroundColor: ['#FFC300', '#FFD700', '#FFEE75', '#FFFACD'] }] },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } }
+                });
+            };
+
+            const renderMemberList = (isEditing) => {
+                memberListContainer.innerHTML = '';
+                members.forEach(member => {
+                    const memberEl = document.createElement('div');
+                    memberEl.className = 'flex items-center justify-between p-2 rounded-lg';
+                    let roleBadge = '';
+                    if (member.role === 'creator') roleBadge = `<span class="text-xs font-bold text-yellow-600">모임리더</span>`;
+                    else if (member.role === 'sub_manager') roleBadge = `<span class="text-xs font-bold text-green-600">운영진</span>`;
+
+                    let manageButtons = '';
+                    if (isEditing && member.role !== 'creator') {
+                        if (member.role === 'member') {
+                            manageButtons = `
+                                <div class="flex items-center space-x-2">
+                                    <button class="manage-action-btn text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full hover:bg-blue-200" data-action="promote" data-member-id="${member.id}">운영진 임명</button>
+                                    <button class="manage-action-btn text-xs font-semibold bg-red-100 text-red-700 px-3 py-1.5 rounded-full hover:bg-red-200" data-action="kick" data-member-id="${member.id}">내보내기</button>
+                                </div>`;
+                        } else if (member.role === 'sub_manager') {
+                            manageButtons = `
+                                <div class="flex items-center space-x-2">
+                                    <button class="manage-action-btn text-xs font-semibold bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full hover:bg-gray-300" data-action="demote" data-member-id="${member.id}">운영진 해제</button>
+                                    <button class="manage-action-btn text-xs font-semibold bg-red-100 text-red-700 px-3 py-1.5 rounded-full hover:bg-red-200" data-action="kick" data-member-id="${member.id}">내보내기</button>
+                                </div>`;
+                        }
+                    }
+
+                    memberEl.innerHTML = `
+                        <div class="flex items-center">
+                            <img src="${member.avatar}" class="w-10 h-10 rounded-full mr-3">
+                            <div>
+                                <p class="font-semibold text-gray-800 leading-tight">${member.name}</p>
+                                ${roleBadge ? `<div>${roleBadge}</div>` : ''}
+                            </div>
+                        </div>
+                        ${manageButtons}`;
+                    memberListContainer.appendChild(memberEl);
+                });
+            };
+
+            // --- Event Listeners ---
+            roleSelector.addEventListener('change', (e) => {
+                currentUserRole = e.target.value;
+                updateUIForRole();
+            });
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    tabPanes.forEach(pane => pane.classList.add('hidden'));
+                    const currentTabPane = document.getElementById(`${button.dataset.tab}-tab`);
+                    currentTabPane.classList.remove('hidden');
+                    if (button.dataset.tab === 'management' && currentUserRole === 'creator') {
+                        renderManagementTab();
+                    }
+                });
+            });
+
+            galleryGrid.addEventListener('click', (e) => {
+                const imageContainer = e.target.closest('[data-image-id]');
+                if (imageContainer) openBottomSheet(imageContainer.dataset.imageId);
+            });
+
+            bottomSheetOverlay.addEventListener('click', closeBottomSheet);
+            modalPostLink.addEventListener('click', (e) => alert(`원본 게시글 (ID: ${e.target.dataset.postId})로 이동합니다.`));
+            uploadImageBtn.addEventListener('click', () => alert('이미지 업로드 기능이 여기에 연결됩니다.'));
+
+            toggleMemberManagementBtn.addEventListener('click', () => {
+                isMemberEditing = !isMemberEditing;
+                if (isMemberEditing) {
+                    toggleMemberManagementBtn.textContent = '완료';
+                    toggleMemberManagementBtn.classList.remove('text-blue-600');
+                    toggleMemberManagementBtn.classList.add('text-gray-800', 'font-bold');
+                } else {
+                    toggleMemberManagementBtn.textContent = '관리';
+                    toggleMemberManagementBtn.classList.add('text-blue-600');
+                    toggleMemberManagementBtn.classList.remove('text-gray-800', 'font-bold');
+                }
+                renderMemberList(isMemberEditing);
+            });
+
+            memberListContainer.addEventListener('click', (e) => {
+                const button = e.target.closest('.manage-action-btn');
+                if (button) {
+                    const memberId = parseInt(button.dataset.memberId);
+                    const action = button.dataset.action;
+                    const member = members.find(m => m.id === memberId);
+                    if (member) {
+                        alert(`${member.name}님에게 '${action}' 액션을 실행합니다.`);
+                    }
+                }
+            });
+
+            // Drag to close logic
+            const onDragStart = (e) => { isDragging = true; startY = e.pageY || e.touches[0].pageY; bottomSheetModal.style.transition = 'none'; };
+            const onDragMove = (e) => { if (!isDragging) return; const currentY = e.pageY || e.touches[0].pageY; const diff = currentY - startY; if (diff > 0) bottomSheetModal.style.transform = `translateY(${diff}px)`; };
+            const onDragEnd = (e) => { if (!isDragging) return; isDragging = false; bottomSheetModal.style.transition = 'transform 0.3s ease-in-out'; const currentTransform = new WebKitCSSMatrix(window.getComputedStyle(bottomSheetModal).transform).m42; if (currentTransform > 100) closeBottomSheet(); else bottomSheetModal.style.transform = 'translateY(0)'; };
+            dragHandle.addEventListener('mousedown', onDragStart);
+            dragHandle.addEventListener('touchstart', onDragStart);
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('touchmove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+            window.addEventListener('touchend', onDragEnd);
+
+            // --- Initial Execution ---
+            generateDummyGalleryImages(12);
+            updateUIForRole();
+        });
+    </script>
+</body>
+
+</html>

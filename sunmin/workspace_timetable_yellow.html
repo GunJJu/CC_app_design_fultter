@@ -236,8 +236,8 @@
             <div id="tab-content" class="flex-grow overflow-y-auto custom-scrollbar bg-gray-100">
                 <div id="intro-tab" class="tab-pane active bg-white"></div>
                 <div id="board-tab" class="tab-pane hidden bg-white"></div>
-                <div id="free-time-tab" class="tab-pane hidden p-4 bg-gray-100">
-                    <div id="admin-view" class="hidden">
+                <div id="free-time-tab" class="tab-pane">
+                    <div id="admin-view" class="hidden p-4">
                         <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
                             <div class="flex justify-between items-center mb-4">
                                 <h2 id="creation-mode-title" class="text-xl font-bold text-gray-800"></h2>
@@ -281,7 +281,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="scheduled-meetings-view"></div>
+                    <div id="scheduled-meetings-view" class="p-4 space-y-3"></div>
                 </div>
                 <div id="gallery-tab" class="tab-pane hidden p-4 bg-gray-100">
                     <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
@@ -490,14 +490,11 @@
 
             // --- Functions ---
             const updateUIForRole = () => {
-                // 모임 생성 기능은 개설자와 부방장에게만 보임
                 if (currentUserRole === 'creator' || currentUserRole === 'sub_manager') {
                     adminView.classList.remove('hidden');
                 } else {
                     adminView.classList.add('hidden');
                 }
-
-                // 관리 탭은 개설자에게만 보임
                 if (currentUserRole === 'creator') {
                     managementTabButton.classList.remove('hidden');
                 } else {
@@ -511,10 +508,9 @@
                 const commonTimetable = Array(DAYS.length).fill(null).map(() =>
                     Array(HOURS.length).fill(false)
                 );
-                // Fixed common times
-                if (commonTimetable[0]) commonTimetable[0][1] = true; // Mon 10-11
-                if (commonTimetable[2]) commonTimetable[2][6] = true; // Wed 15-16
-                if (commonTimetable[4]) commonTimetable[4][4] = true; // Fri 13-14
+                if (commonTimetable[0]) commonTimetable[0][1] = true;
+                if (commonTimetable[2]) commonTimetable[2][6] = true;
+                if (commonTimetable[4]) commonTimetable[4][4] = true;
                 commonTimetableData = commonTimetable;
                 renderCommonTimetable(commonTimetableData);
             };
@@ -665,30 +661,27 @@
             const renderScheduledMeetings = () => {
                 scheduledMeetingsView.innerHTML = '';
                 if (scheduledMeetings.length === 0) {
-                    if (currentUserRole === 'member' || currentUserRole === 'sub_manager') {
-                        scheduledMeetingsView.innerHTML = `<p class="text-center text-gray-500 py-10">예정된 모임이 없습니다.</p>`;
-                    } else { // creator
-                        scheduledMeetingsView.innerHTML = `<div class="bg-white p-4 rounded-lg shadow-sm"><h2 class="text-xl font-bold text-gray-800 mb-3">예정된 정기모임</h2><p class="text-center text-gray-500 pt-4 pb-2">예정된 모임이 없습니다.</p></div>`;
-                    }
+                    scheduledMeetingsView.innerHTML = `<div class="bg-white rounded-lg shadow-sm p-4"><p class="text-center text-gray-500 py-10">예정된 모임이 없습니다.</p></div>`;
                     return;
                 }
 
-                const listContainer = document.createElement('div');
                 if (currentUserRole === 'creator' || currentUserRole === 'sub_manager') {
-                    listContainer.className = "bg-white p-4 rounded-lg shadow-sm";
-                    listContainer.innerHTML = `<h2 class="text-xl font-bold text-gray-800 mb-3">예정된 정기모임</h2>`;
+                    const titleEl = document.createElement('h2');
+                    titleEl.className = "text-xl font-bold text-gray-800 mb-3";
+                    titleEl.textContent = "예정된 정기모임";
+                    scheduledMeetingsView.appendChild(titleEl);
                 }
+
                 const listElement = document.createElement('div');
                 listElement.id = "scheduled-meetings-list";
                 listElement.className = "space-y-3";
-                listContainer.appendChild(listElement);
-                scheduledMeetingsView.appendChild(listContainer);
+                scheduledMeetingsView.appendChild(listElement);
 
                 scheduledMeetings.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                scheduledMeetings.forEach(meeting => {
+                scheduledMeetings.forEach((meeting) => {
                     const meetingEl = document.createElement('div');
-                    meetingEl.className = "bg-white p-4 rounded-lg shadow-sm border";
+                    meetingEl.className = "p-4 bg-white rounded-lg shadow-sm";
                     meetingEl.id = `meeting-card-${meeting.id}`;
 
                     if (editingMeetingId === meeting.id) {
