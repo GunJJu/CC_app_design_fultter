@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>신청 완료</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #00ffff;
+            --text-color: #111827;
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --success-color: #22c55e;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        #app-container {
+            background-color: white;
+            width: 393px;
+            height: 852px;
+            border-radius: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: var(--text-color);
+            background-color: var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .content-container {
+            animation: fade-in-up 0.7s ease-in-out;
+        }
+
+        .profile-container {
+            animation: pop-in 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        @keyframes pop-in {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-container">
+        <header class="w-full py-4 px-4 flex items-center flex-shrink-0">
+            <h1 class="text-xl font-bold text-center flex-grow text-gray-800">가입 신청 완료</h1>
+        </header>
+
+        <main class="w-full flex-grow flex flex-col items-center justify-center p-8 text-center">
+            <div class="content-container">
+                <div class="relative inline-block mb-8 profile-container">
+                    <img src="https://picsum.photos/seed/userprofile/128/128" alt="프로필 사진"
+                        class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                    <div
+                        class="absolute -bottom-1 -right-1 bg-[var(--accent-color)] text-white rounded-full w-10 h-10 flex items-center justify-center border-4 border-white">
+                        <i class="fas fa-check text-lg"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-3">신청이 완료되었습니다.</h2>
+                <p class="text-gray-600">
+                    관리자 승인까지 1~2일 소요될 수 있습니다.<br>
+                    승인이 완료되면 알려드릴게요!
+                </p>
+            </div>
+        </main>
+
+        <footer class="w-full p-8 pt-0">
+            <button id="home-button" class="action-button">홈으로 가기</button>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('home-button').addEventListener('click', () => {
+            alert('홈 화면으로 이동합니다.');
+            // 실제 앱에서는 홈 페이지로 리디렉션합니다.
+            // window.location.href = '/home';
+        });
+    </script>
+</body>
+
+</html>

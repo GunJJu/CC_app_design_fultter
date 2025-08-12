@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅방 (라이트 모드)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #00ffff;
+            --my-chat-color: #E5E7EB;
+            --other-chat-color: #00ffff;
+            --icon-gray: #6B7280;
+            /* 진한 회색 (gray-500) */
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: #E5E7EB;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .gallery-scroll::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+        }
+
+        .snackbar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, bottom 0.3s ease-in-out;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .snackbar.show {
+            opacity: 1;
+        }
+
+        .vertical-wrapper {
+            position: relative;
+            width: 100vw;
+            max-width: 430px;
+            aspect-ratio: 2 / 3;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vertical-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        @media (max-width: 640px) {
+            .vertical-wrapper {
+                max-width: 100vw;
+            }
+        }
+
+        #image-viewer-modal {
+            background: #fff !important;
+        }
+
+        /* 닫기/다운로드 버튼 아이콘 세트: 같은 진회색, 크기 1.6rem */
+        #close-viewer-button,
+        #download-image-button {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            width: auto !important;
+            height: auto !important;
+            padding: 0 !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #close-viewer-button i,
+        #download-image-button i {
+            color: var(--icon-gray) !important;
+            font-size: 1.6rem !important;
+            transition: color 0.15s;
+        }
+
+        #close-viewer-button:hover i,
+        #download-image-button:hover i {
+            color: #111 !important;
+            /* hover: 완전 진한 블랙 */
+        }
+    </style>
+</head>
+
+<body class="flex justify-center items-center">
+    <div id="app-container" class="relative w-full max-w-md h-screen bg-white flex flex-col overflow-hidden shadow-2xl">
+        <header
+            class="w-full py-3 px-4 flex items-center justify-between absolute top-0 left-0 z-20 bg-white/80 backdrop-blur-sm border-b border-gray-100">
+            <button id="back-button"
+                class="text-gray-500 text-2xl focus:outline-none w-10 h-10 rounded-full hover:bg-gray-100">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="flex items-center">
+                <span class="text-gray-800 font-bold text-lg">제니</span>
+            </div>
+            <button id="menu-button"
+                class="text-gray-500 text-2xl focus:outline-none w-10 h-10 rounded-full hover:bg-gray-100">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+        <div id="menu-dropdown"
+            class="hidden absolute top-16 right-4 z-40 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl w-48 shadow-lg">
+            <div class="p-2">
+                <a id="menu-gallery" href="#"
+                    class="flex items-center gap-3 px-4 py-2 text-gray-800 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-images w-5 text-center text-gray-500"></i>
+                    <span>갤러리</span>
+                </a>
+                <a id="menu-block" href="#"
+                    class="flex items-center gap-3 px-4 py-2 text-gray-800 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-user-slash w-5 text-center text-gray-500"></i>
+                    <span>차단하기</span>
+                </a>
+                <hr class="border-gray-200 my-1">
+                <a id="menu-leave" href="#"
+                    class="flex items-center gap-3 px-4 py-2 text-red-500 rounded-lg hover:bg-red-500/10 transition-colors">
+                    <i class="fas fa-arrow-right-from-bracket w-5 text-center"></i>
+                    <span>채팅방 나가기</span>
+                </a>
+            </div>
+        </div>
+        <main id="chat-messages"
+            class="flex-grow pt-20 pb-24 px-4 flex flex-col overflow-y-auto custom-scroll transition-all duration-300">
+        </main>
+        <footer class="absolute bottom-0 left-0 w-full p-3 bg-white/80 backdrop-blur-sm border-t border-gray-100 z-10">
+            <div class="relative bg-gray-100 rounded-2xl flex items-center p-2 gap-2">
+                <button id="photo-button"
+                    class="w-10 h-10 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center">
+                    <i class="fas fa-image text-xl"></i>
+                </button>
+                <input type="text" id="chat-input" placeholder="메시지 보내기..."
+                    class="flex-grow bg-transparent text-gray-800 px-3 focus:outline-none placeholder-gray-400">
+                <button id="send-button"
+                    class="w-10 h-10 flex-shrink-0 text-black rounded-xl flex items-center justify-center text-lg transition-transform hover:scale-110"
+                    style="background-color: var(--accent-color);">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+        </footer>
+        <div id="snackbar" class="snackbar"></div>
+        <div id="leave-modal"
+            class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">채팅방 나가기</h3>
+                <p class="text-gray-500 mb-6">채팅방을 정말 나가시겠습니까?<br>대화 내용이 모두 삭제됩니다.</p>
+                <div class="flex gap-3">
+                    <button id="cancel-leave-button"
+                        class="w-full py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">아니요</button>
+                    <button id="confirm-leave-button"
+                        class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors">예</button>
+                </div>
+            </div>
+        </div>
+        <div id="block-modal"
+            class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">사용자 차단하기</h3>
+                <p class="text-gray-500 mb-6">이 사용자를 정말 차단하시겠습니까?<br>더 이상 메시지를 주고받을 수 없습니다.</p>
+                <div class="flex gap-3">
+                    <button id="cancel-block-button"
+                        class="w-full py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">아니요</button>
+                    <button id="confirm-block-button"
+                        class="w-full py-3 text-white rounded-lg transition-opacity hover:opacity-90"
+                        style="background-color: #e14040;">차단</button>
+                </div>
+            </div>
+        </div>
+        <div id="gallery-modal"
+            class="hidden absolute inset-0 z-50 flex flex-col bg-white transition-opacity duration-300">
+            <header
+                class="w-full py-4 px-4 flex items-center justify-between flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100">
+                <div class="w-10"></div>
+                <h3 class="text-gray-800 font-bold text-lg">갤러리</h3>
+                <button id="close-gallery-button"
+                    class="text-gray-500 text-2xl focus:outline-none w-10 h-10 hover:bg-gray-100 rounded-full">
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+            <main id="gallery-content" class="flex-grow overflow-y-auto gallery-scroll p-4">
+            </main>
+        </div>
+        <div id="image-viewer-modal"
+            class="hidden absolute inset-0 z-[60] flex flex-col transition-opacity duration-300">
+            <button id="close-viewer-button" class="absolute top-4 right-4 text-2xl z-10">
+                <i class="fas fa-times"></i>
+            </button>
+            <main class="flex-grow flex items-center justify-center p-4 overflow-hidden">
+                <div class="vertical-wrapper">
+                    <img id="fullscreen-image" src="" alt="Full-screen view" class="vertical-img">
+                </div>
+            </main>
+            <button id="download-image-button" class="absolute bottom-6 right-6 z-10">
+                <i class="fas fa-download"></i>
+            </button>
+        </div>
+    </div>
+    <script>
+        const snackbar = document.getElementById('snackbar');
+        const chatMessagesContainer = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const photoButton = document.getElementById('photo-button');
+        const backButton = document.getElementById('back-button');
+        const menuButton = document.getElementById('menu-button');
+        const menuDropdown = document.getElementById('menu-dropdown');
+        const menuGallery = document.getElementById('menu-gallery');
+        const menuBlock = document.getElementById('menu-block');
+        const menuLeave = document.getElementById('menu-leave');
+        const leaveModal = document.getElementById('leave-modal');
+        const confirmLeaveButton = document.getElementById('confirm-leave-button');
+        const cancelLeaveButton = document.getElementById('cancel-leave-button');
+        const blockModal = document.getElementById('block-modal');
+        const confirmBlockButton = document.getElementById('confirm-block-button');
+        const cancelBlockButton = document.getElementById('cancel-block-button');
+        const galleryModal = document.getElementById('gallery-modal');
+        const closeGalleryButton = document.getElementById('close-gallery-button');
+        const galleryContent = document.getElementById('gallery-content');
+        const imageViewerModal = document.getElementById('image-viewer-modal');
+        const closeViewerButton = document.getElementById('close-viewer-button');
+        const fullscreenImage = document.getElementById('fullscreen-image');
+        const downloadImageButton = document.getElementById('download-image-button');
+
+        const dummyMessages = [
+            { sender: 'other', text: '주말에 뭐해요? 같이 카페 갈래요? ☕️', timestamp: '오후 8:25' },
+            { sender: 'other', text: '네, 안녕하세요! 반갑습니다. ㅎㅎ', timestamp: '오후 8:25' },
+            { sender: 'me', text: '안녕하세요! 매칭돼서 연락드렸어요. 😊', timestamp: '오후 8:26' },
+        ];
+
+        const galleryData = [
+            {
+                date: '2025년 7월 22일',
+                images: [
+                    "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1444065381814-865dc9da92c0?auto=format&fit=crop&w=600&q=80"
+                ]
+            },
+            {
+                date: '2025년 7월 20일',
+                images: [
+                    "https://images.unsplash.com/photo-1465101178521-c1a9136a3a36?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80"
+                ]
+            },
+            {
+                date: '2025년 7월 19일',
+                images: [
+                    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1444065381814-865dc9da92c0?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1465101178521-c1a9136a3a36?auto=format&fit=crop&w=600&q=80",
+                    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80"
+                ]
+            }
+        ];
+
+        function showSnackBar(message) {
+            snackbar.textContent = message;
+            snackbar.classList.add('show');
+            setTimeout(() => { snackbar.classList.remove('show'); }, 3000);
+        }
+
+        function renderMessages() {
+            chatMessagesContainer.innerHTML = '';
+            dummyMessages.forEach(msg => {
+                const messageBubble = document.createElement('div');
+                const isMine = msg.sender === 'me';
+                messageBubble.className = 'flex gap-3 max-w-[80%] mb-4';
+                if (isMine) {
+                    messageBubble.classList.add('self-end');
+                    messageBubble.innerHTML = `<div class="flex flex-col items-end"><div class="text-gray-800 p-3 rounded-t-2xl rounded-bl-2xl shadow-md" style="background-color: var(--my-chat-color);"><p class="leading-relaxed">${msg.text}</p></div><p class="text-xs text-gray-400 mt-1">${msg.timestamp}</p></div>`;
+                } else {
+                    messageBubble.classList.add('self-start');
+                    messageBubble.innerHTML = `<img src="https://picsum.photos/seed/jenny/200/200" alt="Jenny" class="w-10 h-10 rounded-full object-cover self-start flex-shrink-0"><div class="flex flex-col items-start"><div class="text-black p-3 rounded-t-2xl rounded-br-2xl shadow-md" style="background-color: var(--other-chat-color);"><p class="leading-relaxed">${msg.text}</p></div><p class="text-xs text-gray-400 mt-1">${msg.timestamp}</p></div>`;
+                }
+                chatMessagesContainer.appendChild(messageBubble);
+            });
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text === '') return;
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? '오후' : '오전';
+            const formattedHours = hours % 12 || 12;
+            const newMessage = {
+                sender: 'me',
+                text: text,
+                timestamp: `${ampm} ${formattedHours}:${minutes}`
+            };
+            dummyMessages.push(newMessage);
+            renderMessages();
+            chatInput.value = '';
+        }
+
+        function openGallery() {
+            galleryContent.innerHTML = '';
+            galleryData.forEach(group => {
+                const dateSection = document.createElement('div');
+                dateSection.className = 'mb-6';
+                const dateHeader = document.createElement('h3');
+                dateHeader.className = 'text-gray-500 text-sm font-semibold mb-2';
+                dateHeader.textContent = group.date;
+                const separator = document.createElement('hr');
+                separator.className = 'border-gray-200 mb-3';
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-3 gap-1';
+                group.images.forEach(imageUrl => {
+                    const imageLink = document.createElement('a');
+                    imageLink.href = imageUrl;
+                    imageLink.className = 'aspect-square bg-gray-100 rounded-md overflow-hidden';
+                    imageLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        openImageViewer(imageUrl);
+                    });
+                    const image = document.createElement('img');
+                    image.src = imageUrl;
+                    image.alt = 'Gallery image';
+                    image.className = 'w-full h-full object-cover hover:scale-110 transition-transform duration-300';
+                    imageLink.appendChild(image);
+                    grid.appendChild(imageLink);
+                });
+                dateSection.appendChild(dateHeader);
+                dateSection.appendChild(separator);
+                dateSection.appendChild(grid);
+                galleryContent.appendChild(dateSection);
+            });
+            galleryModal.classList.remove('hidden');
+        }
+
+        function closeGallery() {
+            galleryModal.classList.add('hidden');
+        }
+
+        function openImageViewer(imageUrl) {
+            fullscreenImage.src = imageUrl;
+            imageViewerModal.classList.remove('hidden');
+        }
+
+        function closeImageViewer() {
+            imageViewerModal.classList.add('hidden');
+            fullscreenImage.src = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMessages();
+            menuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuDropdown.classList.toggle('hidden');
+            });
+            document.addEventListener('click', (e) => {
+                if (!menuDropdown.classList.contains('hidden') && !menuButton.contains(e.target) && !menuDropdown.contains(e.target)) {
+                    menuDropdown.classList.add('hidden');
+                }
+            });
+            backButton.addEventListener('click', () => showSnackBar('채팅 목록으로 돌아갑니다.'));
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+            photoButton.addEventListener('click', () => showSnackBar('사진 전송 기능이 추가될 예정입니다.'));
+            menuGallery.addEventListener('click', (e) => {
+                e.preventDefault();
+                menuDropdown.classList.add('hidden');
+                openGallery();
+            });
+            closeGalleryButton.addEventListener('click', closeGallery);
+            closeViewerButton.addEventListener('click', closeImageViewer);
+            downloadImageButton.addEventListener('click', () => {
+                showSnackBar('이미지 저장 기능은 준비 중입니다.');
+            });
+            menuBlock.addEventListener('click', (e) => { e.preventDefault(); menuDropdown.classList.add('hidden'); blockModal.classList.remove('hidden'); });
+            menuLeave.addEventListener('click', (e) => { e.preventDefault(); menuDropdown.classList.add('hidden'); leaveModal.classList.remove('hidden'); });
+            cancelLeaveButton.addEventListener('click', () => leaveModal.classList.add('hidden'));
+            confirmLeaveButton.addEventListener('click', () => { leaveModal.classList.add('hidden'); showSnackBar('채팅방에서 나갔습니다.'); });
+            cancelBlockButton.addEventListener('click', () => blockModal.classList.add('hidden'));
+            confirmBlockButton.addEventListener('click', () => { blockModal.classList.add('hidden'); showSnackBar('사용자를 차단했습니다.'); });
+        });
+    </script>
+</body>
+
+</html>

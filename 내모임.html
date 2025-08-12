@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 활동</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: #f7f8fa;
+        }
+
+        .main-color {
+            color: #00ffff;
+        }
+
+        .bg-main-color {
+            background-color: #00ffff;
+        }
+
+        .border-main-color {
+            border-color: #00ffff;
+        }
+
+        .main-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .accordion-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .accordion-header[aria-expanded="true"] .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            transition: max-height 0.4s ease-in-out;
+            overflow: hidden;
+        }
+
+        .accordion-header[aria-expanded="true"]+.accordion-content {
+            max-height: 1000px;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        .divider {
+            width: calc(100% + 24px);
+            height: 1px;
+            background: #e5e7eb;
+            border-radius: 0 !important;
+            margin: 18px 0 6px 0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+        <!-- Header -->
+        <header class="p-4 border-b border-gray-200 sticky top-0 bg-white z-20">
+            <h1 class="text-xl font-bold text-center text-gray-800">내 활동</h1>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200 sticky top-[69px] bg-white z-20">
+            <button onclick="changeTab('meetings')" id="tab-meetings"
+                class="flex-1 py-3 text-center font-semibold text-gray-500 border-b-2 border-transparent transition-all duration-300">모임</button>
+            <button onclick="changeTab('jobs')" id="tab-jobs"
+                class="flex-1 py-3 text-center font-semibold text-gray-500 border-b-2 border-transparent transition-all duration-300">구인구직</button>
+            <button onclick="changeTab('places')" id="tab-places"
+                class="flex-1 py-3 text-center font-semibold text-gray-500 border-b-2 border-transparent transition-all duration-300">장소</button>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto main-content bg-gray-50">
+            <div id="panel-meetings" class="p-4 space-y-4"></div>
+            <div id="panel-places" class="hidden p-4 space-y-4"></div>
+            <div id="panel-jobs" class="hidden p-4 space-y-4"></div>
+            <div class="pb-20"></div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <footer class="w-full max-w-md mx-auto bg-white border-t border-gray-200 fixed bottom-0 z-10">
+            <div class="flex justify-around items-center h-16">
+                <a href="#"
+                    class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-800 transition-colors"><i
+                        data-lucide="home" class="w-6 h-6"></i></a>
+                <a href="#" class="flex flex-col items-center justify-center main-color"><i data-lucide="users"
+                        class="w-6 h-6"></i></a>
+                <a href="#"
+                    class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-800 transition-colors">
+                    <div
+                        class="w-14 h-14 rounded-full bg-main-color flex items-center justify-center -mt-8 border-4 border-white shadow-lg">
+                        <i data-lucide="radio-tower" class="w-7 h-7 text-black"></i></div>
+                </a>
+                <a href="#"
+                    class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-800 transition-colors"><i
+                        data-lucide="calendar-days" class="w-6 h-6"></i></a>
+                <a href="#"
+                    class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-800 transition-colors"><i
+                        data-lucide="user" class="w-6 h-6"></i></a>
+            </div>
+        </footer>
+
+        <!-- Generic Detail Modal -->
+        <div id="detail-modal"
+            class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl w-full max-w-sm">
+                <div id="detail-modal-content" class="p-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabs = ['meetings', 'jobs', 'places'];
+        const panels = {
+            meetings: document.getElementById('panel-meetings'),
+            jobs: document.getElementById('panel-jobs'),
+            places: document.getElementById('panel-places')
+        };
+        const tabButtons = {
+            meetings: document.getElementById('tab-meetings'),
+            jobs: document.getElementById('tab-jobs'),
+            places: document.getElementById('tab-places')
+        };
+        const detailModal = document.getElementById('detail-modal');
+        const detailModalContent = document.getElementById('detail-modal-content');
+
+        let dummyData = {
+            meetings: {
+                '내가 만든 모임': [{ id: 1, title: '주말 코딩 스터디', image: 'https://placehold.co/80x80/00FFFF/333333?text=Code', description: '매주 토요일, 강남역' }],
+                '내가 가입한 모임': [
+                    { id: 2, title: '맛집 탐방 동호회', image: 'https://placehold.co/80x80/FBBF24/FFFFFF?text=Food', description: '매달 새로운 맛집 탐방', joinDate: '2025-07-01', myPosts: ['맛집 공유합니다!'], myComments: ['여기 정말 맛있었어요.'] },
+                    { id: 13, title: '영화 감상 동호회', image: 'https://placehold.co/80x80/F87171/FFFFFF?text=Movie', description: '매주 금요일에 만나요', joinDate: '2025-06-20', myPosts: ['인생 영화 추천합니다.'], myComments: ['이 영화 정말 감동적이었어요.'] }
+                ],
+                '좋아요한 모임': [
+                    { id: 3, type: 'meetings', title: '보드게임 카페 정모', image: 'https://placehold.co/80x80/A78BFA/FFFFFF?text=Game', description: '다양한 보드게임을 즐겨요!', liked: true },
+                    { id: 11, type: 'meetings', title: '영화 감상 동호회', image: 'https://placehold.co/80x80/F87171/FFFFFF?text=Movie', description: '매주 금요일에 만나요', liked: true },
+                    { id: 12, type: 'meetings', title: '등산 동호회', image: 'https://placehold.co/80x80/34D399/FFFFFF?text=Hike', description: '주말마다 산에 갑니다', liked: true }
+                ]
+            },
+            places: {
+                '내가 올린 장소': [{ id: 4, title: '조용한 스터디 카페', image: 'https://placehold.co/80x80/6EE7B7/333333?text=Cafe', description: '콘센트 많고 조용해요.' }],
+                '좋아요한 장소': [{ id: 5, type: 'places', title: '별 보러 가는 언덕', image: 'https://placehold.co/80x80/3B82F6/FFFFFF?text=Star', description: '서울 근교 별 보기 좋은 곳', liked: true }]
+            },
+            jobs: {
+                '내가 올린 구인구직': [
+                    { id: 6, title: '졸업작품 팀원 모집', image: 'https://placehold.co/80x80/F472B6/FFFFFF?text=Team', description: '디자이너 1명 구합니다.', active: true, applicants: [{ id: 101, name: '김지원', status: 'pending', application: '디자인 전공이며, UI/UX 디자인 경험이 많습니다. 포트폴리오: [링크]' }, { id: 102, name: '박헬프', status: 'pending', application: '영상 편집 툴을 잘 다룹니다. 관련 공모전 수상 경력이 있습니다.' }] },
+                    { id: 7, title: '단기 알바 구함', image: 'https://placehold.co/80x80/9CA3AF/FFFFFF?text=Job', description: '행사 스태프 2명', active: false, applicants: [{ id: 103, name: '이알바', status: 'accepted', application: '행사 진행 경험 다수 있습니다.' }] }
+                ],
+                '내가 지원한 내역': [
+                    { id: 8, title: '카페 주말 알바', image: 'https://placehold.co/80x80/F97316/FFFFFF?text=Apply', description: '오후 타임', myApplication: '성실하고 시간 약속을 잘 지킵니다. 카페 아르바이트 경험 있습니다.' },
+                    { id: 9, title: '밴드 보컬 구인', image: 'https://placehold.co/80x80/EC4899/FFFFFF?text=Vocal', description: '락밴드 보컬 구합니다.', myApplication: '노래에 자신 있습니다. 오디션 영상 첨부합니다.' }
+                ],
+                '좋아요한 구인구직': [{ id: 10, type: 'jobs', title: '공모전 팀원 모집', image: 'https://placehold.co/80x80/8B5CF6/FFFFFF?text=Contest', description: '영상 편집 가능자 우대', liked: true }]
+            }
+        };
+
+        let accordionState = {};
+
+        function changeTab(tabName) {
+            Object.values(panels).forEach(panel => panel.classList.add('hidden'));
+            Object.values(tabButtons).forEach(button => {
+                button.classList.remove('border-main-color', 'main-color', 'text-gray-800');
+                button.classList.add('text-gray-500', 'border-transparent');
+            });
+
+            panels[tabName].classList.remove('hidden');
+            tabButtons[tabName].classList.add('border-main-color', 'main-color', 'text-gray-800');
+            tabButtons[tabName].classList.remove('text-gray-500', 'border-transparent');
+
+            Object.keys(dummyData).forEach(key => {
+                Object.keys(dummyData[key]).forEach(subKey => {
+                    if (subKey.includes('좋아요')) {
+                        dummyData[key][subKey] = dummyData[key][subKey].filter(item => item.liked);
+                    }
+                });
+            });
+            renderAllPanels();
+        }
+
+        function createAccordionItem(title, content, isExpanded = false) {
+            const item = document.createElement('div');
+            item.className = 'accordion-item bg-white rounded-xl shadow-sm overflow-hidden';
+            const uniqueId = title.replace(/\s+/g, '-');
+            const expandedState = accordionState[uniqueId] !== undefined ? accordionState[uniqueId] : isExpanded;
+
+            item.innerHTML = `
+            <button class="accordion-header w-full flex justify-between items-center p-4" aria-expanded="${expandedState}" data-id="${uniqueId}">
+                <span class="text-lg font-semibold text-gray-800">${title}</span>
+                <i data-lucide="chevron-down" class="accordion-icon w-6 h-6 text-gray-500"></i>
+            </button>
+            <div class="accordion-content">
+                <div class="px-4 pb-4 space-y-4">${content}</div>
+            </div>
+        `;
+            return item;
+        }
+
+        // joined-group에서 버튼에 tailwind만 적용!
+        function createCard(item, type) {
+            let actionHtml = '';
+            if (type === 'joined-group') {
+                actionHtml = `
+                <div class="divider -mx-3"></div>
+                <button class="activity-btn text-sm font-semibold text-gray-700 hover:text-cyan-400 my-activity-btn" data-id="${item.id}">
+                    내 활동 보기
+                </button>
+            `;
+            } else if (type === 'liked') {
+                const heartIcon = item.liked ? `<i data-lucide="heart" class="w-6 h-6 text-red-500 fill-current"></i>` : `<i data-lucide="heart" class="w-6 h-6 text-red-500"></i>`;
+                actionHtml = `<button class="unlike-btn" data-id="${item.id}" data-type="${item.type}">${heartIcon}</button>`;
+            } else if (type === 'my-application') {
+                actionHtml = `<button class="my-application-btn text-gray-500 hover:text-gray-800" data-id="${item.id}"><i data-lucide="file-text" class="w-5 h-5"></i></button>`;
+            }
+            return `<div class="p-3 rounded-lg ${type !== 'my-posting' ? 'border border-gray-200' : ''} transition-all duration-300 card-hover ${!item.active && type === 'my-posting' ? 'opacity-50' : ''}" data-item-id="${item.id}">
+                    <div class="flex items-center">
+                        <img src="${item.image}" alt="${item.title}" class="w-16 h-16 rounded-md mr-4 object-cover">
+                        <div class="flex-grow flex flex-col justify-center">
+                            <h3 class="font-bold text-gray-800">${item.title}</h3>
+                            <p class="text-sm text-gray-500 mt-1">${item.description}</p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0">${type === 'liked' || type === 'my-application' ? actionHtml : ''}</div>
+                    </div>
+                    ${type === 'joined-group' ? actionHtml : ''}
+                </div>`;
+        }
+
+        // 지원자 목록 위에 divider 추가
+        function createApplicantList(applicants, jobId) {
+            if (!applicants || applicants.length === 0) return '<p class="text-sm text-center text-gray-500 py-4">지원자가 없습니다.</p>';
+            return applicants.map((applicant) => `
+            <div class="flex items-center justify-between p-2">
+                <button class="applicant-name font-semibold flex items-center gap-2 text-gray-800" data-job-id="${jobId}" data-applicant-id="${applicant.id}">
+                    ${applicant.name}
+                    <i data-lucide="file-text" class="w-4 h-4 text-gray-400"></i>
+                </button>
+                <button class="contact-btn text-sm font-semibold text-blue-500" data-applicant-name="${applicant.name}">Contact</button>
+            </div>
+        `).join('');
+        }
+
+        function setupAccordions() {
+            document.querySelectorAll('.accordion-header').forEach(header => {
+                const content = header.nextElementSibling;
+                const id = header.dataset.id;
+
+                if (accordionState[id]) {
+                    header.setAttribute('aria-expanded', 'true');
+                    content.style.maxHeight = content.scrollHeight + "px";
+                } else {
+                    header.setAttribute('aria-expanded', 'false');
+                    content.style.maxHeight = '0';
+                }
+
+                header.addEventListener('click', (e) => {
+                    if (e.target.closest('button') !== header && e.target.closest('a')) return;
+
+                    const isExpanded = header.getAttribute('aria-expanded') === 'true';
+                    accordionState[id] = !isExpanded;
+                    header.setAttribute('aria-expanded', !isExpanded);
+                    content.style.maxHeight = !isExpanded ? content.scrollHeight + "px" : '0';
+                });
+            });
+        }
+
+        function renderAllPanels() {
+            Object.keys(panels).forEach(panelKey => {
+                const panel = panels[panelKey];
+                panel.innerHTML = '';
+                const data = dummyData[panelKey];
+                Object.entries(data).forEach(([title, items], index) => {
+                    let contentHtml;
+                    if (panelKey === 'jobs' && title === '내가 올린 구인구직') {
+                        contentHtml = items.map(item => {
+                            const applicantsHtml = createApplicantList(item.applicants, item.id);
+                            const isExpanded = accordionState[`job-${item.id}`] || false;
+                            return `
+                            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                                ${createCard(item, 'my-posting')}
+                                <div class="divider"></div>
+                                <div class="accordion-item">
+                                    <button class="accordion-header w-full flex justify-between items-center text-sm font-semibold text-gray-600 p-3" aria-expanded="${isExpanded}" data-id="job-${item.id}">
+                                        <span>지원자 목록 (${item.applicants.length}명)</span>
+                                        <i data-lucide="chevron-down" class="accordion-icon w-5 h-5"></i>
+                                    </button>
+                                    <div class="accordion-content">
+                                        <div class="px-4 pb-2 space-y-2">${applicantsHtml}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        }).join('');
+                    } else if (panelKey === 'meetings' && title === '내가 가입한 모임') {
+                        const cardsHtml = items.map(item => createCard(item, 'joined-group')).join('');
+                        contentHtml = `<div class="space-y-4">${cardsHtml}</div>`;
+                    }
+                    else {
+                        contentHtml = items.map(item => createCard(item,
+                            title.includes('좋아요') ? 'liked' :
+                                (panelKey === 'jobs' && title === '내가 지원한 내역' ? 'my-application' : 'default')
+                        )).join('');
+                    }
+                    panel.appendChild(createAccordionItem(title, contentHtml, accordionState[title.replace(/\s+/g, '-')] || index === 0));
+                });
+            });
+            lucide.createIcons();
+            setupAccordions();
+        }
+
+        function openModal(title, content) {
+            detailModalContent.innerHTML = `
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">${title}</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            ${content}
+        `;
+            detailModal.classList.remove('hidden');
+        }
+
+        window.closeModal = () => {
+            detailModal.classList.add('hidden');
+        };
+
+        document.addEventListener('click', function (e) {
+            const applicantBtn = e.target.closest('.applicant-name');
+            if (applicantBtn) {
+                const jobId = applicantBtn.dataset.jobId;
+                const applicantId = applicantBtn.dataset.applicantId;
+                const job = dummyData.jobs['내가 올린 구인구직'].find(j => j.id === parseInt(jobId));
+                const applicant = job.applicants.find(a => a.id === parseInt(applicantId));
+                openModal(`${applicant.name}님의 지원서`, `<div class="mt-2 text-gray-600 bg-gray-100 p-4 rounded-md space-y-3"><p><strong>1. 반려동물을 있으신가요?</strong><br>${applicant.application}</p><p><strong>2. 청소나 정리정돈 깔끔한 성격이신가요?</strong><br>네, 항상 주변을 깨끗하게 유지하려고 노력합니다.</p></div>`);
+            }
+
+            const myApplicationBtn = e.target.closest('.my-application-btn');
+            if (myApplicationBtn) {
+                const jobId = myApplicationBtn.closest('[data-item-id]').dataset.itemId;
+                const job = dummyData.jobs['내가 지원한 내역'].find(j => j.id === parseInt(jobId));
+                openModal('내 지원서', `<p class="text-gray-600">${job.myApplication}</p>`);
+            }
+
+            const myActivityBtn = e.target.closest('.my-activity-btn');
+            if (myActivityBtn) {
+                const groupId = myActivityBtn.closest('[data-item-id]').dataset.itemId;
+                const group = dummyData.meetings['내가 가입한 모임'].find(g => g.id === parseInt(groupId));
+                const content = `
+                <div class="flex items-center gap-4 pb-4 border-b border-gray-200">
+                    <img src="https://placehold.co/80x80/333333/FFFFFF?text=Me" class="w-16 h-16 rounded-full object-cover">
+                    <div>
+                        <p class="font-bold text-lg">내 이름</p>
+                        <p class="text-sm text-gray-500">가입일: ${group.joinDate}</p>
+                    </div>
+                </div>
+                <div class="py-4">
+                    <h4 class="font-semibold mb-2">내가 쓴 글</h4>
+                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">${group.myPosts.map(p => `<li>${p}</li>`).join('')}</ul>
+                </div>
+                <div class="pt-4 border-t border-gray-200">
+                    <h4 class="font-semibold mb-2">내가 쓴 댓글</h4>
+                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">${group.myComments.map(c => `<li>${c}</li>`).join('')}</ul>
+                </div>
+            `;
+                openModal('모임 활동 내역', content);
+            }
+
+            const unlikeBtn = e.target.closest('.unlike-btn');
+            if (unlikeBtn) {
+                const id = parseInt(unlikeBtn.dataset.id);
+                const type = unlikeBtn.dataset.type;
+
+                let itemToUnlike;
+                if (type === 'meetings') itemToUnlike = dummyData.meetings['좋아요한 모임'].find(item => item.id === id);
+                if (type === 'places') itemToUnlike = dummyData.places['좋아요한 장소'].find(item => item.id === id);
+                if (type === 'jobs') itemToUnlike = dummyData.jobs['좋아요한 구인구직'].find(item => item.id === id);
+
+                if (itemToUnlike) {
+                    itemToUnlike.liked = !itemToUnlike.liked;
+                    unlikeBtn.innerHTML = itemToUnlike.liked ? `<i data-lucide="heart" class="w-6 h-6 text-red-500 fill-current"></i>` : `<i data-lucide="heart" class="w-6 h-6 text-red-500"></i>`;
+                    lucide.createIcons();
+                }
+            }
+
+            const contactBtn = e.target.closest('.contact-btn');
+            if (contactBtn) {
+                alert(contactBtn.dataset.applicantName + '님에게 연락합니다.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllPanels();
+            changeTab('meetings');
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>프로필 생성</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap');
+
+        :root {
+            --accent-color: #00ffff;
+            /* Cyan Accent Color */
+            --accent-light-color: #E0FFFF;
+            /* Light Cyan */
+            --text-color: #1F2937;
+            /* Dark Gray */
+            --subtext-color: #6B7280;
+            /* Medium Gray */
+            --border-color: #E5E7EB;
+            /* Light Gray */
+            --bg-color: #F9FAFB;
+
+            /* Icon Colors */
+            --icon-color-1: #4B7BEF;
+            /* Blue */
+            --icon-color-2: #FF6B6B;
+            /* Red */
+            --icon-color-3: #A06BFF;
+            /* Purple */
+            --icon-color-4: #43D092;
+            /* Green */
+            --icon-color-5: #FFC06B;
+            /* Orange */
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        #app-container {
+            background-color: white;
+            width: 393px;
+            height: 852px;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: black;
+            background-color: var(--accent-color);
+            box-shadow: 0 4px 14px 0 rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .action-button:disabled {
+            background-color: #D1D5DB;
+            color: #9CA3AF;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Step Animation */
+        .step-enter-active {
+            animation: slide-in-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .step-exit-active {
+            animation: slide-out-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .mbti-group-container {
+            animation: slide-in-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes slide-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slide-out-up {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-25px);
+            }
+        }
+
+
+        /* Option Styling */
+        .option-box {
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border-radius: 12px;
+            background-color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .option-box:hover {
+            border-color: var(--accent-color);
+        }
+
+        .option-box.selected {
+            border-color: var(--accent-color);
+            background-color: var(--accent-light-color);
+            color: black;
+            font-weight: 700;
+        }
+
+        .pill-box {
+            border-radius: 999px;
+            font-size: 0.875rem;
+            padding: 0.75rem 1rem;
+        }
+
+        .photo-preview-box {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .photo-preview-box:hover {
+            border-color: var(--accent-color);
+        }
+
+        .photo-preview-box i {
+            color: #9CA3AF;
+            font-size: 24px;
+        }
+
+        /* Custom Select Styling */
+        .custom-select-container {
+            position: relative;
+        }
+
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            background-color: white;
+        }
+
+        .custom-select-trigger.open {
+            border-color: var(--accent-color);
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-select-options.open {
+            display: block;
+        }
+
+        .custom-select-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .custom-select-option:hover {
+            background-color: var(--accent-light-color);
+        }
+
+        .custom-select-option.selected {
+            background-color: var(--accent-light-color);
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-container">
+        <!-- Header -->
+        <header class="w-full py-4 px-4 flex items-center flex-shrink-0 z-10">
+            <button id="back-button" class="text-gray-500 text-2xl focus:outline-none w-10 h-10"><i
+                    class="fas fa-arrow-left"></i></button>
+            <div class="flex-grow px-4">
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="progress-bar"
+                        class="bg-[var(--accent-color)] h-1.5 rounded-full transition-all duration-500"
+                        style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="w-10"></div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main-content" class="w-full flex-grow p-8 pt-4 flex flex-col overflow-y-auto">
+            <!-- Steps will be rendered here -->
+        </main>
+
+        <footer id="footer" class="w-full p-8 pt-0 flex-shrink-0">
+            <button id="next-button" class="action-button">다음</button>
+        </footer>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const steps = [
+            {
+                id: 'friendType', question: '어떤 친구를 만나고 싶나요?', type: 'single-choice-icon', options: [
+                    { text: '부담없는 동네 친구', icon: 'fa-regular fa-comments', color: 'var(--icon-color-1)' },
+                    { text: '두근두근 썸', icon: 'fa-solid fa-heart', color: 'var(--icon-color-2)' },
+                    { text: '진지한 연애', icon: 'fa-solid fa-ring', color: 'var(--icon-color-3)' },
+                    { text: '편한 동성 친구', icon: 'fa-solid fa-user-group', color: 'var(--icon-color-4)' },
+                    { text: '일단 만나보기', icon: 'fa-solid fa-star', color: 'var(--icon-color-5)' }
+                ]
+            },
+            { id: 'drinking', question: '음주를 즐기시나요?', type: 'grid-choice', options: ['전혀 안 마심', '피할 수 없을 때만', '가끔 마심', '자주 마심'] },
+            { id: 'smoking', question: '흡연 여부를 알려주세요.', type: 'grid-choice', options: ['흡연', '비흡연', '전자담배', '금연중'] },
+            { id: 'religion', question: '종교가 있으신가요?', type: 'grid-choice', options: ['기독교', '불교', '천주교', '무교', '기타'] },
+            { id: 'school', question: '소속 학과를 선택해주세요.', type: 'dropdown' },
+            { id: 'status', question: '현재 학생 상태를 선택해주세요.', type: 'single-choice', options: ['재학생', '졸업생', '휴학생'] },
+            { id: 'mbti', question: '회원님의 MBTI를 알려주세요.', type: 'mbti-sequential' },
+            { id: 'personality', question: '내 성격을 표현하는 키워드를 골라주세요!', type: 'multiple-choice-pill', max: 8, options: ['유머러스한', '긍정킹', '현실적인', '진지충', '감성적인', '공감요정', '야행성', '아침형 인간', '계획적', '즉흥적', '외강내유', '외유내강', '리더십 있는', '팔로워', '혼자가 편해', '함께가 좋아', '알고보면 또라이', '다정다감', '무뚝뚝', '애교쟁이', '칼답', '완벽주의', '열정맨', '평화주의자', '카리스마'] },
+            { id: 'interests', question: '요즘 이런거에 관심있어요!', type: 'multiple-choice-pill', max: 5, options: ['넷플릭스 정주행', '유튜브 시청', '음악 페스티벌', '나만의 맛집 탐방', '새로운 카페 찾기', '헬스/피트니스', '클라이밍', '한강에서 피크닉', '드라이브', '전시회/미술관 관람', '방탈출', '보드게임', '코인노래방', '악기 연주', '자격증/스터디', '봉사활동', '식물 키우기', '셀프 인테리어', '주식/재테크', '요가/필라테스', '언어 교환', '쇼핑', 'PC 게임', '콘솔 게임', '웹툰/웹소설', '국내여행', '해외여행', '사진/영상 촬영', '요리/베이킹', '등산/캠핑'] },
+            { id: 'friendStyle', question: '이런 스타일의 친구면 좋겠어요!', type: 'multiple-choice-pill', max: 3, options: ['자주 연락하는', '가끔 봐도 편한', '함께 성장하는', '고민상담 잘해주는', '취미 공유', '개그코드 잘 맞는', '리액션 부자', '배울 점 있는', '먼저 연락하는', '약속 잘 지키는', '패션센스 좋은', '에너지가 넘치는', '차분하고 안정적인', '통화 좋아함', '메시지 선호', '선물/기념일 챙기는', '표현을 잘하는', '긍정적인 사람', '다정한 사람', '진중한 사람', '솔직 담백한', '허세 없는', 'MBTI 과몰입 환영', '술친구/밥친구', '운동 파트너', '가치관 비슷한', '경제관념 있는', '시간 약속 철저한', '예의 바른', '뒷담화 안하는'] },
+            { id: 'photo', question: '프로필 사진을 등록해주세요.', type: 'photo' }
+        ];
+        const departments = [
+            { name: '간호학과', icon: 'fa-stethoscope', color: 'var(--icon-color-2)' },
+            { name: '공간디자인학과', icon: 'fa-ruler-combined', color: 'var(--icon-color-5)' },
+            { name: '공연예술학과', icon: 'fa-masks-theater', color: 'var(--icon-color-3)' },
+            { name: '디자인융합자유전공학과', icon: 'fa-palette', color: 'var(--icon-color-5)' },
+            { name: '드론건설환경과', icon: 'fa-helicopter', color: 'var(--icon-color-1)' },
+            { name: '물리치료학과', icon: 'fa-briefcase-medical', color: 'var(--icon-color-2)' },
+            { name: '반려동물보관과', icon: 'fa-paw', color: 'var(--icon-color-4)' },
+            { name: '뷰티코스메틱과', icon: 'fa-magic-wand-sparkles', color: 'var(--icon-color-3)' },
+            { name: '뷰티자유전공학과', icon: 'fa-star', color: 'var(--icon-color-3)' },
+            { name: '빅데이터학과', icon: 'fa-chart-simple', color: 'var(--icon-color-1)' },
+            { name: '사회복지학과', icon: 'fa-hand-holding-heart', color: 'var(--icon-color-4)' },
+            { name: '서비스경영학과', icon: 'fa-user-tie', color: 'var(--icon-color-1)' },
+            { name: '소프트웨어융합학과', icon: 'fa-code', color: 'var(--icon-color-1)' },
+            { name: '시각디자인학과', icon: 'fa-eye', color: 'var(--icon-color-5)' },
+            { name: '실용음악학과', icon: 'fa-guitar', color: 'var(--icon-color-3)' },
+            { name: '안전보건과', icon: 'fa-hard-hat', color: 'var(--icon-color-5)' },
+            { name: '약손피부미용과', icon: 'fa-hand-sparkles', color: 'var(--icon-color-3)' },
+            { name: '영상미디어콘텐츠학과', icon: 'fa-video', color: 'var(--icon-color-5)' },
+            { name: '유아교육학과', icon: 'fa-shapes', color: 'var(--icon-color-4)' },
+            { name: '의료미용학과', icon: 'fa-user-nurse', color: 'var(--icon-color-2)' },
+            { name: '임상병리학과', icon: 'fa-microscope', color: 'var(--icon-color-2)' },
+            { name: '작업치료학과', icon: 'fa-puzzle-piece', color: 'var(--icon-color-2)' },
+            { name: '준오헤어디자인과', icon: 'fa-scissors', color: 'var(--icon-color-3)' },
+            { name: '친환경건축학과', icon: 'fa-leaf', color: 'var(--icon-color-4)' },
+            { name: '치위생학과', icon: 'fa-tooth', color: 'var(--icon-color-2)' },
+            { name: '항공서비스학과', icon: 'fa-plane-departure', color: 'var(--icon-color-1)' },
+            { name: '호텔관광과', icon: 'fa-martini-glass', color: 'var(--icon-color-1)' }
+        ].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+
+        const userResponses = {};
+        let currentStepIndex = 0;
+
+        // --- DOM ELEMENTS ---
+        const mainContent = document.getElementById('main-content');
+        const progressBar = document.getElementById('progress-bar');
+        const nextButton = document.getElementById('next-button');
+        const backButton = document.getElementById('back-button');
+
+        // --- FUNCTIONS ---
+        function renderCurrentStep() {
+            if (currentStepIndex >= steps.length) {
+                // Redirect to completion page
+                window.location.href = '#';
+                alert("가입 신청 완료 페이지로 이동합니다.");
+                return;
+            }
+
+            const step = steps[currentStepIndex];
+            mainContent.innerHTML = '';
+            const stepContainer = document.createElement('div');
+            stepContainer.className = 'step-container step-enter-active w-full';
+
+            let contentHTML = `<h2 class="text-2xl font-bold text-gray-800 mb-2">${step.question}</h2>`;
+            if (step.max) {
+                contentHTML += `<p class="text-sm text-gray-500 mb-6">최대 ${step.max}개까지 선택할 수 있어요.</p>`;
+            } else {
+                contentHTML += `<p class="text-sm text-gray-500 mb-6">&nbsp;</p>`;
+            }
+
+            nextButton.style.display = 'block';
+
+            switch (step.type) {
+                case 'single-choice-icon':
+                    contentHTML += '<div class="space-y-3">';
+                    step.options.forEach(option => {
+                        const selectedClass = userResponses[step.id] === option.text ? 'selected' : '';
+                        contentHTML += `<div onclick="selectSingleChoice('${option.text}')" class="option-box flex items-center p-4 text-left ${selectedClass}">
+                                           <i class="${option.icon} text-lg w-8 text-center" style="color: ${option.color};"></i>
+                                           <span class="ml-3 font-semibold">${option.text}</span>
+                                        </div>`;
+                    });
+                    contentHTML += '</div>';
+                    nextButton.style.display = 'none';
+                    break;
+
+                case 'single-choice':
+                    contentHTML += '<div class="space-y-3">';
+                    step.options.forEach(option => {
+                        const selectedClass = userResponses[step.id] === option ? 'selected' : '';
+                        contentHTML += `<div onclick="selectSingleChoice('${option}')" class="option-box p-4 font-semibold ${selectedClass}">${option}</div>`;
+                    });
+                    contentHTML += '</div>';
+                    nextButton.style.display = 'none';
+                    break;
+
+                case 'grid-choice':
+                    contentHTML += `<div class="grid grid-cols-2 gap-3">`;
+                    step.options.forEach(option => {
+                        const selectedClass = userResponses[step.id] === option ? 'selected' : '';
+                        contentHTML += `<div onclick="selectSingleChoice('${option}')" class="option-box p-4 font-semibold ${selectedClass}">${option}</div>`;
+                    });
+                    contentHTML += '</div>';
+                    nextButton.style.display = 'none';
+                    break;
+
+                case 'dropdown':
+                    contentHTML += `
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-400">학교명</p>
+                            <p class="text-lg font-bold text-gray-700">경복대학교</p>
+                        </div>
+                        <div id="custom-select" class="custom-select-container">
+                             <div id="custom-select-trigger" onclick="toggleDropdown()" class="custom-select-trigger">
+                                <i id="selected-icon" class="fas fa-graduation-cap text-gray-400 w-8 text-center text-lg"></i>
+                                <span id="selected-text" class="ml-3 text-gray-400 font-semibold">학과를 선택해주세요</span>
+                                <i class="fas fa-chevron-down ml-auto text-gray-400"></i>
+                             </div>
+                             <div id="custom-select-options" class="custom-select-options">
+                                ${departments.map(dept => `<div class="custom-select-option" onclick="selectDropdownOption('${dept.name}', '${dept.icon}', '${dept.color}')">
+                                    <i class="fas ${dept.icon} w-8 text-center" style="color: ${dept.color};"></i>
+                                    <span class="ml-3">${dept.name}</span>
+                                </div>`).join('')}
+                             </div>
+                        </div>
+                    `;
+                    nextButton.style.display = 'none';
+                    break;
+
+                case 'mbti-sequential':
+                    if (!userResponses.mbti) userResponses.mbti = [];
+                    contentHTML += `<div id="mbti-wrapper" class="space-y-4"></div>`;
+                    nextButton.style.display = 'none';
+                    break;
+
+                case 'multiple-choice-pill':
+                    contentHTML += `<div class="flex flex-wrap gap-2 justify-center">`;
+                    step.options.forEach(option => {
+                        const selectedClass = userResponses[step.id]?.includes(option) ? 'selected' : '';
+                        contentHTML += `<div onclick="selectMultipleChoice(this, '${option}')" class="option-box pill-box ${selectedClass}">${option}</div>`;
+                    });
+                    contentHTML += '</div>';
+                    updateNextButtonState();
+                    break;
+
+                case 'text':
+                    contentHTML += `<input type="text" id="text-input" class="w-full p-4 border-2 border-gray-200 rounded-xl text-lg focus:outline-none focus:border-[var(--accent-color)]" placeholder="${step.placeholder}" value="${userResponses[step.id] || ''}" oninput="updateNextButtonState()">`;
+                    updateNextButtonState();
+                    break;
+
+                case 'photo':
+                    contentHTML += `
+                        <div class="flex flex-col items-center gap-4">
+                             <div class="grid grid-cols-3 gap-3">
+                                <div id="photo-preview-0" class="photo-preview-box"><label for="photo-input-0" class="w-full h-full flex items-center justify-center cursor-pointer"><i class="fas fa-plus"></i></label><input type="file" id="photo-input-0" class="hidden" accept="image/*" onchange="handlePhotoPreview(event, 0)"></div>
+                                <div id="photo-preview-1" class="photo-preview-box"><label for="photo-input-1" class="w-full h-full flex items-center justify-center cursor-pointer"><i class="fas fa-plus"></i></label><input type="file" id="photo-input-1" class="hidden" accept="image/*" onchange="handlePhotoPreview(event, 1)"></div>
+                                <div id="photo-preview-2" class="photo-preview-box"><label for="photo-input-2" class="w-full h-full flex items-center justify-center cursor-pointer"><i class="fas fa-plus"></i></label><input type="file" id="photo-input-2" class="hidden" accept="image/*" onchange="handlePhotoPreview(event, 2)"></div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">최소 1장의 사진을 등록해주세요.</p>
+                        </div>
+                    `;
+                    updateNextButtonState();
+                    break;
+            }
+
+            stepContainer.innerHTML = contentHTML;
+            mainContent.appendChild(stepContainer);
+
+            if (currentStepIndex === steps.length - 1) {
+                nextButton.textContent = '완료';
+            } else {
+                nextButton.textContent = '다음';
+            }
+
+            // --- RESTORE STATE AFTER RENDERING ---
+            if (step.type === 'mbti-sequential') {
+                renderAllMbtiGroups();
+            }
+            if (step.type === 'dropdown' && userResponses[step.id]) {
+                const selectedDept = departments.find(d => d.name === userResponses[step.id]);
+                if (selectedDept) {
+                    updateDropdownSelection(selectedDept.name, selectedDept.icon, selectedDept.color);
+                }
+            }
+            if (step.type === 'photo' && userResponses.photo) {
+                userResponses.photo.forEach((file, index) => {
+                    if (file) restorePhotoPreview(file, index);
+                });
+            }
+
+            updateProgress();
+            updateNextButtonState();
+        }
+
+        function renderAllMbtiGroups() {
+            const mbtiWrapper = document.getElementById('mbti-wrapper');
+            mbtiWrapper.innerHTML = '';
+
+            const mbtiPairs = [
+                { title: '외향형 / 내향형', pair: ['E', 'I'] },
+                { title: '감각형 / 직관형', pair: ['S', 'N'] },
+                { title: '사고형 / 감정형', pair: ['T', 'F'] },
+                { title: '판단형 / 인식형', pair: ['P', 'J'] }
+            ];
+
+            const maxRenderStep = userResponses.mbti.length < 4 ? userResponses.mbti.length : 3;
+
+            for (let i = 0; i <= maxRenderStep; i++) {
+                const group = mbtiPairs[i];
+                if (!group) continue;
+
+                const groupContainer = document.createElement('div');
+                groupContainer.id = `mbti-group-${i}`;
+                if (i === maxRenderStep) { // only animate the newest group
+                    groupContainer.className = 'mbti-group-container';
+                }
+
+                let groupHTML = `<h3 class="font-semibold text-gray-500 text-sm mb-2">${group.title}</h3><div class="grid grid-cols-2 gap-3">`;
+
+                group.pair.forEach(option => {
+                    let classes = "option-box p-4 text-center text-lg font-bold";
+                    if (i < userResponses.mbti.length) {
+                        classes += " opacity-50 pointer-events-none selected";
+                        if (userResponses.mbti[i] !== option) {
+                            classes = "option-box p-4 text-center text-lg font-bold opacity-50 pointer-events-none";
+                        }
+                    }
+                    groupHTML += `<div id="mbti-${option}" onclick="selectMbtiChoice(this, '${option}', ${i})" class="${classes}">${option}</div>`;
+                });
+
+                groupHTML += '</div>';
+                groupContainer.innerHTML = groupHTML;
+                mbtiWrapper.appendChild(groupContainer);
+            }
+        }
+
+        function renderNextMbtiGroup() {
+            const mbtiWrapper = document.getElementById('mbti-wrapper');
+            const mbtiPairs = [
+                { title: '외향형 / 내향형', pair: ['E', 'I'] },
+                { title: '감각형 / 직관형', pair: ['S', 'N'] },
+                { title: '사고형 / 감정형', pair: ['T', 'F'] },
+                { title: '판단형 / 인식형', pair: ['P', 'J'] }
+            ];
+            const nextGroupIndex = userResponses.mbti.length;
+            const group = mbtiPairs[nextGroupIndex];
+            if (!group) return;
+
+            const groupContainer = document.createElement('div');
+            groupContainer.id = `mbti-group-${nextGroupIndex}`;
+            groupContainer.className = 'mbti-group-container';
+            let groupHTML = `<h3 class="font-semibold text-gray-500 text-sm mb-2">${group.title}</h3><div class="grid grid-cols-2 gap-3">`;
+            group.pair.forEach(option => {
+                groupHTML += `<div id="mbti-${option}" onclick="selectMbtiChoice(this, '${option}', ${nextGroupIndex})" class="option-box p-4 text-center text-lg font-bold">${option}</div>`;
+            });
+            groupHTML += `</div>`;
+            groupContainer.innerHTML = groupHTML;
+            mbtiWrapper.appendChild(groupContainer);
+        }
+
+        function toggleDropdown() {
+            const trigger = document.getElementById('custom-select-trigger');
+            const options = document.getElementById('custom-select-options');
+            trigger.classList.toggle('open');
+            options.classList.toggle('open');
+        }
+
+        function updateDropdownSelection(name, icon, color) {
+            document.getElementById('selected-text').textContent = name;
+            document.getElementById('selected-text').classList.remove('text-gray-400');
+            const iconEl = document.getElementById('selected-icon');
+            iconEl.className = `fas ${icon} w-8 text-center text-lg`;
+            iconEl.style.color = color;
+        }
+
+        function selectDropdownOption(name, icon, color) {
+            userResponses.school = name;
+            updateDropdownSelection(name, icon, color);
+            toggleDropdown();
+            goToNextStep();
+        }
+
+        function selectSingleChoice(option) {
+            const step = steps[currentStepIndex];
+            userResponses[step.id] = option;
+            goToNextStep();
+        }
+
+        function selectMbtiChoice(element, option, groupIndex) {
+            if (groupIndex !== userResponses.mbti.length) return;
+
+            userResponses.mbti[groupIndex] = option;
+
+            const pair = option === 'E' || option === 'I' ? ['E', 'I']
+                : option === 'S' || option === 'N' ? ['S', 'N']
+                    : option === 'T' || option === 'F' ? ['T', 'F']
+                        : ['P', 'J'];
+
+            document.getElementById(`mbti-${pair[0]}`).classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById(`mbti-${pair[1]}`).classList.add('opacity-50', 'pointer-events-none');
+
+            element.classList.remove('opacity-50');
+            element.classList.add('selected');
+
+            if (userResponses.mbti.length === 4) {
+                setTimeout(goToNextStep, 300);
+            } else {
+                setTimeout(() => renderNextMbtiGroup(), 200);
+            }
+        }
+
+        function selectMultipleChoice(element, option) {
+            const step = steps[currentStepIndex];
+            if (!userResponses[step.id]) {
+                userResponses[step.id] = [];
+            }
+            const selectedOptions = userResponses[step.id];
+
+            if (selectedOptions.includes(option)) {
+                const index = selectedOptions.indexOf(option);
+                selectedOptions.splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                if (selectedOptions.length < step.max) {
+                    selectedOptions.push(option);
+                    element.classList.add('selected');
+                } else {
+                    alert(`최대 ${step.max}개까지 선택할 수 있습니다.`);
+                }
+            }
+            updateNextButtonState();
+        }
+
+        function handlePhotoPreview(event, index) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (!userResponses.photo) userResponses.photo = [];
+                userResponses.photo[index] = e.target.result; // Store base64 string
+                restorePhotoPreview(e.target.result, index);
+            }
+            reader.readAsDataURL(file);
+            updateNextButtonState();
+        }
+
+        function restorePhotoPreview(base64String, index) {
+            const previewBox = document.getElementById(`photo-preview-${index}`);
+            if (previewBox) {
+                previewBox.style.backgroundImage = `url(${base64String})`;
+                previewBox.innerHTML = '';
+            }
+        }
+
+        function updateNextButtonState() {
+            const step = steps[currentStepIndex];
+            if (!step) return;
+            let enabled = false;
+            switch (step.type) {
+                case 'text':
+                    const input = document.getElementById('text-input');
+                    enabled = input && input.value.trim().length > 0;
+                    break;
+                case 'mbti-sequential':
+                case 'dropdown':
+                case 'single-choice':
+                case 'single-choice-icon':
+                case 'grid-choice':
+                    nextButton.style.display = 'none';
+                    return;
+                case 'multiple-choice-pill':
+                    enabled = userResponses[step.id] && userResponses[step.id].length > 0;
+                    break;
+                case 'photo':
+                    enabled = userResponses.photo && userResponses.photo.length > 0 && userResponses.photo.some(p => p);
+                    break;
+                default:
+                    enabled = true;
+            }
+            nextButton.disabled = !enabled;
+        }
+
+        function goToNextStep() {
+            if (currentStepIndex >= steps.length - 1) {
+                alert("가입 신청 완료 페이지로 이동합니다.");
+                return;
+            }
+
+            if (steps[currentStepIndex].id === 'mbti' && Array.isArray(userResponses.mbti) && userResponses.mbti.length === 4) {
+                userResponses.mbti = userResponses.mbti.join('');
+            }
+
+            const currentContainer = mainContent.querySelector('.step-container');
+            if (currentContainer) {
+                currentContainer.classList.add('step-exit-active');
+                currentContainer.addEventListener('animationend', () => {
+                    currentStepIndex++;
+                    renderCurrentStep();
+                }, { once: true });
+            } else {
+                currentStepIndex++;
+                renderCurrentStep();
+            }
+        }
+
+        function goToPreviousStep() {
+            if (currentStepIndex > 0) {
+                if (typeof userResponses.mbti === 'string') {
+                    userResponses.mbti = userResponses.mbti.split('');
+                }
+                const currentContainer = mainContent.querySelector('.step-container');
+                if (currentContainer) {
+                    currentContainer.classList.add('step-exit-active');
+                    currentContainer.addEventListener('animationend', () => {
+                        currentStepIndex--;
+                        if (steps[currentStepIndex].id === 'mbti' && Array.isArray(userResponses.mbti) && userResponses.mbti.length > 0) {
+                            userResponses.mbti.pop();
+                        }
+                        renderCurrentStep();
+                    }, { once: true });
+                } else {
+                    currentStepIndex--;
+                    renderCurrentStep();
+                }
+
+            } else {
+                alert("첫 번째 단계입니다.");
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentStepIndex / (steps.length - 1)) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // --- INITIALIZATION ---
+        nextButton.addEventListener('click', goToNextStep);
+        backButton.addEventListener('click', goToPreviousStep);
+        renderCurrentStep();
+
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('custom-select');
+            if (dropdown && !dropdown.contains(event.target)) {
+                document.getElementById('custom-select-trigger').classList.remove('open');
+                document.getElementById('custom-select-options').classList.remove('open');
+            }
+        });
+
+    </script>
+</body>
+
+</html>

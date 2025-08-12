@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>비밀번호 찾기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #00ffff;
+            --text-color: #111827;
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --error-color: #e14040;
+            --success-color: #22c55e;
+            --disabled-color: #D1D5DB;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        #app-container {
+            background-color: white;
+            width: 393px;
+            height: 852px;
+            border-radius: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.2s ease-in-out;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border: 2px solid var(--accent-color);
+            padding: calc(12px - 1px) calc(16px - 1px);
+        }
+
+        .form-input:disabled {
+            background-color: #F3F4F6;
+            color: #6B7280;
+            cursor: not-allowed;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: var(--text-color);
+            background-color: var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .action-button:disabled {
+            background-color: var(--disabled-color);
+            cursor: not-allowed;
+        }
+
+        .validation-message {
+            font-size: 0.875rem;
+            color: var(--error-color);
+            text-align: left;
+        }
+
+        .auth-code-container {
+            position: relative;
+        }
+
+        .auth-code-container .timer {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--error-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-container">
+        <!-- Header -->
+        <header class="w-full py-4 px-4 flex items-center flex-shrink-0">
+            <button id="back-button" class="text-gray-600 text-2xl focus:outline-none w-10 h-10"><i
+                    class="fas fa-arrow-left"></i></button>
+            <h1 class="text-xl font-bold text-center flex-grow text-gray-800">비밀번호 찾기</h1>
+            <div class="w-10"></div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main-content" class="w-full flex-grow p-8 pt-4 flex flex-col">
+            <!-- Initial Form for Name and Email -->
+            <div id="initial-form">
+                <div class="mb-6">
+                    <label for="name-input" class="block text-gray-700 text-sm font-bold mb-2">이름</label>
+                    <input type="text" id="name-input" class="form-input" placeholder="실명을 입력해주세요">
+                </div>
+                <div class="mb-4">
+                    <label for="email-input" class="block text-gray-700 text-sm font-bold mb-2">이메일</label>
+                    <input type="email" id="email-input" class="form-input" placeholder="가입 시 등록한 이메일">
+                </div>
+                <div id="error-message-container" class="mt-4 mb-4 text-center"></div>
+                <button id="send-auth-code-button" class="action-button">인증번호 발송</button>
+            </div>
+
+            <!-- Container for auth code input (initially hidden) -->
+            <div id="auth-code-form" class="hidden w-full mt-4">
+                <p id="auth-info-message" class="text-sm text-green-600 mb-4 text-left"></p>
+                <div class="auth-code-container mb-2">
+                    <input type="text" id="auth-code-input" class="form-input" placeholder="인증번호 6자리">
+                    <span id="timer" class="timer">3:00</span>
+                </div>
+                <button id="resend-auth-code-button"
+                    class="text-sm text-gray-500 hover:underline text-right w-full mb-4">인증번호 재전송</button>
+                <button id="verify-auth-code-button" class="action-button">인증번호 확인</button>
+            </div>
+
+
+            <!-- Container for password reset (initially hidden) -->
+            <div id="reset-password-form" class="hidden w-full">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 text-left">새 비밀번호 설정</h2>
+                <div class="mb-4">
+                    <label for="password-input" class="block text-gray-700 text-sm font-bold mb-2">새 비밀번호</label>
+                    <input type="password" id="password-input" class="form-input" placeholder="영문, 숫자, 특수문자 조합 8자 이상">
+                </div>
+                <div class="mb-6">
+                    <label for="password-confirm-input" class="block text-gray-700 text-sm font-bold mb-2">비밀번호
+                        확인</label>
+                    <input type="password" id="password-confirm-input" class="form-input" placeholder="비밀번호를 다시 입력해주세요">
+                </div>
+                <div id="password-error-message" class="mb-4 validation-message"></div>
+                <button id="reset-password-button" class="action-button">비밀번호 재설정</button>
+            </div>
+
+            <!-- Container for reset success (initially hidden) -->
+            <div id="success-container" class="hidden w-full text-center">
+                <p id="success-message" class="text-lg text-green-600 font-bold my-8"></p>
+                <button id="login-button" class="action-button">로그인하러가기</button>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // --- DATABASE ---
+        const userDatabase = [
+            { name: "김선민", email: "wjk1226@kbu.ac.kr" },
+        ];
+
+        // --- DOM ELEMENTS ---
+        const nameInput = document.getElementById('name-input');
+        const emailInput = document.getElementById('email-input');
+        const sendAuthCodeButton = document.getElementById('send-auth-code-button');
+        const errorMessageContainer = document.getElementById('error-message-container');
+
+        const initialForm = document.getElementById('initial-form');
+        const authCodeForm = document.getElementById('auth-code-form');
+        const authInfoMessage = document.getElementById('auth-info-message');
+        const authCodeInput = document.getElementById('auth-code-input');
+        const verifyAuthCodeButton = document.getElementById('verify-auth-code-button');
+        const resendAuthCodeButton = document.getElementById('resend-auth-code-button');
+        const timerElement = document.getElementById('timer');
+
+        const resetPasswordForm = document.getElementById('reset-password-form');
+        const passwordInput = document.getElementById('password-input');
+        const passwordConfirmInput = document.getElementById('password-confirm-input');
+        const passwordErrorMessage = document.getElementById('password-error-message');
+        const resetPasswordButton = document.getElementById('reset-password-button');
+
+        const successContainer = document.getElementById('success-container');
+        const successMessage = document.getElementById('success-message');
+        const loginButton = document.getElementById('login-button');
+
+        let timerInterval;
+
+        // --- FUNCTIONS ---
+        function findUser(name, email) {
+            return userDatabase.find(user => user.name === name && user.email === email);
+        }
+
+        function displayError(message) {
+            errorMessageContainer.innerHTML = `<p class="validation-message">${message}</p>`;
+        }
+
+        function clearError() {
+            errorMessageContainer.innerHTML = '';
+        }
+
+        function startTimer() {
+            let duration = 180; // 3 minutes in seconds
+            clearInterval(timerInterval); // Clear any existing timer
+
+            timerInterval = setInterval(() => {
+                const minutes = String(Math.floor(duration / 60)).padStart(1, '0');
+                const seconds = String(duration % 60).padStart(2, '0');
+                timerElement.textContent = `${minutes}:${seconds}`;
+
+                if (--duration < 0) {
+                    clearInterval(timerInterval);
+                    timerElement.textContent = "시간만료";
+                    verifyAuthCodeButton.disabled = true;
+                }
+            }, 1000);
+        }
+
+        function validatePassword(password) {
+            const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$/;
+            return regex.test(password);
+        }
+
+
+        // --- EVENT LISTENERS ---
+        sendAuthCodeButton.addEventListener('click', () => {
+            clearError();
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+
+            if (!name || !email) {
+                displayError("이름과 이메일을 모두 입력해주세요.");
+                return;
+            }
+
+            const user = findUser(name, email);
+            if (user) {
+                console.log("인증번호 발송 로직 실행 (시뮬레이션)");
+
+                // Disable initial form inputs
+                nameInput.disabled = true;
+                emailInput.disabled = true;
+                sendAuthCodeButton.disabled = true;
+                sendAuthCodeButton.textContent = "발송 완료";
+
+
+                // Show auth code form
+                authInfoMessage.textContent = `${email}(으)로 인증번호를 보냈습니다.`;
+                authCodeForm.classList.remove('hidden');
+                startTimer();
+            } else {
+                displayError("가입되지 않은 정보입니다.");
+            }
+        });
+
+        resendAuthCodeButton.addEventListener('click', () => {
+            console.log("인증번호 재전송 로직 실행 (시뮬레이션)");
+            authCodeInput.value = '';
+            verifyAuthCodeButton.disabled = false;
+            startTimer();
+            alert("인증번호를 재전송했습니다.");
+        });
+
+        verifyAuthCodeButton.addEventListener('click', () => {
+            const code = authCodeInput.value.trim();
+            if (code === '1234') {
+                clearInterval(timerInterval);
+                initialForm.classList.add('hidden');
+                authCodeForm.classList.add('hidden');
+                resetPasswordForm.classList.remove('hidden');
+            } else {
+                alert("인증번호가 올바르지 않습니다.");
+            }
+        });
+
+        resetPasswordButton.addEventListener('click', () => {
+            const password = passwordInput.value;
+            const passwordConfirm = passwordConfirmInput.value;
+            passwordErrorMessage.textContent = '';
+
+            if (!validatePassword(password)) {
+                passwordErrorMessage.textContent = "비밀번호는 영문, 숫자, 특수문자를 포함하여 8자 이상이어야 합니다.";
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                passwordErrorMessage.textContent = "비밀번호가 일치하지 않습니다.";
+                return;
+            }
+
+            // --- Password Reset Success ---
+            console.log("비밀번호 재설정 성공!");
+            resetPasswordForm.classList.add('hidden');
+
+            // Disable inputs and button
+            passwordInput.disabled = true;
+            passwordConfirmInput.disabled = true;
+            resetPasswordButton.disabled = true;
+
+            // Show success UI
+            successMessage.textContent = "비밀번호가 성공적으로 재설정되었습니다.";
+            successContainer.classList.remove('hidden');
+
+        });
+
+        loginButton.addEventListener('click', () => {
+            alert("로그인 페이지로 이동합니다.");
+            // window.location.href = '/login';
+        });
+
+    </script>
+</body>
+
+</html>

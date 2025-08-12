@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>아이디 찾기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #00ffff;
+            --text-color: #111827;
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+            --error-color: #e14040;
+            /* 요청하신 에러 색상 */
+            --success-color: #22c55e;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        #app-container {
+            background-color: white;
+            width: 393px;
+            height: 852px;
+            border-radius: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.2s ease-in-out;
+            font-size: 1rem;
+            box-shadow: none;
+        }
+
+        .form-input.has-error {
+            border: 2px solid var(--error-color);
+        }
+
+        .form-input:focus {
+            outline: none;
+            box-shadow: none;
+            border: 2px solid var(--accent-color);
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: var(--text-color);
+            background-color: var(--accent-color);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .validation-message {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            color: var(--error-color);
+            display: none;
+        }
+
+        .error-message-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--error-color);
+            animation: fade-in-up 0.5s ease-in-out;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            /* 버튼과의 간격을 위해 margin-bottom으로 변경 */
+        }
+
+        .success-icon {
+            color: var(--success-color);
+            font-size: 4rem;
+            font-weight: bold;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 결과 페이지 공통 레이아웃 */
+        .result-page-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 10rem;
+        }
+
+        .result-bottom-buttons {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            margin-top: 3rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            color: var(--text-color);
+            background-color: var(--accent-color);
+        }
+
+        .btn-secondary {
+            color: #4b5563;
+            background-color: #f3f4f6;
+            border-color: #e5e7eb;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 초기 페이지: 아이디 찾기 폼 -->
+    <div id="app-container">
+        <header class="w-full py-4 px-4 flex items-center flex-shrink-0 border-b border-gray-200">
+            <button onclick="history.back()"
+                class="text-gray-600 text-xl focus:outline-none w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="text-xl font-bold text-center flex-grow text-gray-800">아이디 찾기</h1>
+            <div class="w-10"></div>
+        </header>
+        <main class="w-full p-8">
+            <div class="space-y-6">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">이름</label>
+                    <input type="text" id="name" placeholder="실명을 입력해주세요" class="form-input">
+                    <p id="name-error" class="validation-message">이름을 입력해주세요.</p>
+                </div>
+                <div>
+                    <label for="dob" class="block text-sm font-medium text-gray-700 mb-2">생년월일</label>
+                    <input type="text" id="dob" placeholder="YYYYMMDD" class="form-input" maxlength="8">
+                    <p id="dob-error" class="validation-message">생년월일은 8자리로 입력해주세요.</p>
+                </div>
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">연락처</label>
+                    <input type="tel" id="phone" placeholder="'-' 없이 숫자만 입력" class="form-input" maxlength="11">
+                    <p id="phone-error" class="validation-message">연락처를 입력해주세요.</p>
+                </div>
+            </div>
+            <div class="mt-8">
+                <!-- 오류 메시지 위치를 버튼 위로 변경 -->
+                <div id="error-container"></div>
+                <button id="find-id-button" class="action-button">아이디 찾기</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const mockUserDatabase = [
+            { name: '김우진', dob: '19950101', phone: '01012345678', email: 'woojin.kim@kbu.ac.kr' },
+            { name: '김선민', dob: '20001226', phone: '01045576246', email: 'wjk1226@gmail.com' },
+            { name: '박영희', dob: '20000515', phone: '01055556666', email: 'park.younghee@kbu.ac.kr' },
+        ];
+
+        const getFormElements = () => ({
+            nameInput: document.getElementById('name'),
+            dobInput: document.getElementById('dob'),
+            phoneInput: document.getElementById('phone'),
+            findButton: document.getElementById('find-id-button'),
+            errorContainer: document.getElementById('error-container'),
+            errorMessages: {
+                name: document.getElementById('name-error'),
+                dob: document.getElementById('dob-error'),
+                phone: document.getElementById('phone-error'),
+            }
+        });
+
+        function maskEmail(email) {
+            const [localPart, domain] = email.split('@');
+            if (localPart.length <= 3) return `${localPart.substring(0, 1)}**@${domain}`;
+            const maskedLocal = localPart.substring(0, 3) + '****';
+            return `${maskedLocal}@${domain}`;
+        }
+
+        function renderResultPage(user) {
+            const resultPageHTML = `
+                <div id="app-container">
+                    <header class="w-full py-4 px-4 flex items-center justify-end flex-shrink-0">
+                        <button onclick="window.location.reload()" class="text-gray-500 text-2xl focus:outline-none w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </header>
+                    <div class="result-page-content">
+                        <div>
+                            <div class="success-icon"><i class="fas fa-check"></i></div>
+                            <p class="text-xl text-gray-800">${user.name}님의 아이디는</p>
+                            <p class="text-2xl font-bold text-black mt-2">${maskEmail(user.email)}입니다.</p>
+                            
+                            <div class="result-bottom-buttons">
+                                <button class="btn btn-secondary">비밀번호 찾기</button>
+                                <button class="btn btn-primary">로그인하기</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.innerHTML = resultPageHTML;
+        }
+
+        function findId() {
+            const elements = getFormElements();
+
+            // 이전 오류 메시지 초기화
+            Object.values(elements.errorMessages).forEach(msg => msg.style.display = 'none');
+            elements.errorContainer.innerHTML = '';
+
+            let isValid = true;
+            if (elements.nameInput.value.trim() === '') { elements.errorMessages.name.style.display = 'block'; isValid = false; }
+            if (elements.dobInput.value.trim().length !== 8) { elements.errorMessages.dob.style.display = 'block'; isValid = false; }
+            if (elements.phoneInput.value.trim() === '') { elements.errorMessages.phone.style.display = 'block'; isValid = false; }
+            if (!isValid) return;
+
+            const foundUser = mockUserDatabase.find(user =>
+                user.name === elements.nameInput.value.trim() &&
+                user.dob === elements.dobInput.value &&
+                user.phone === elements.phoneInput.value
+            );
+
+            if (foundUser) {
+                renderResultPage(foundUser);
+            } else {
+                elements.errorContainer.innerHTML = `
+                <div class="error-message-container">
+                    <i class="fas fa-times-circle mr-2"></i>
+                    <span>일치하는 회원을 찾을 수 없습니다.</span>
+                </div>`;
+            }
+        }
+
+        function initialize() {
+            const elements = getFormElements();
+            if (!elements.findButton) return;
+            elements.dobInput.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, ''); });
+            elements.phoneInput.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, ''); });
+            elements.findButton.addEventListener('click', findId);
+        }
+
+        initialize();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>마이페이지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap');
+
+        :root {
+            --accent-color: #00ffff;
+            --accent-light-color: #E0FFFF;
+            --text-color: #1F2937;
+            --subtext-color: #6B7280;
+            --border-color: #E5E7EB;
+            --bg-color: #F9FAFB;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #E5E7EB;
+        }
+
+        .pill-box {
+            border-radius: 999px;
+            font-size: 0.875rem;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            font-weight: 500;
+            color: var(--text-color);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .pill-box:hover {
+            background-color: var(--accent-light-color);
+            border-color: var(--accent-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+        <!-- Header -->
+        <header class="flex-shrink-0 p-4 border-b border-gray-200 relative">
+            <div class="flex justify-between items-center h-full">
+                <button class="text-gray-500">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h1 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-gray-800">
+                    마이페이지</h1>
+                <a href="#" class="text-gray-500">
+                    <i data-lucide="settings" class="w-6 h-6"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="w-full flex-grow flex flex-col overflow-y-auto">
+            <!-- Profile Info Section -->
+            <div class="relative bg-white px-6 pb-24 pt-8">
+                <!-- Profile Image -->
+                <div class="flex justify-center">
+                    <div class="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-gray-300">
+                        <img src="https://placehold.co/128x128/E2E8F0/4A5568?text=Me" alt="Profile picture"
+                            class="w-full h-full rounded-full object-cover">
+                    </div>
+                </div>
+
+                <!-- User Details -->
+                <div class="text-center mt-4">
+                    <h1 class="text-2xl font-bold text-gray-800">김민준</h1>
+                    <p class="text-gray-500 mt-1">경복대학교 | 시각디자인학과</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 flex justify-center gap-3">
+                    <button
+                        class="flex-1 py-3 bg-gray-100 rounded-lg font-semibold text-gray-700 hover:bg-gray-200 transition">프로필
+                        편집</button>
+                    <button
+                        class="flex-1 py-3 bg-gray-100 rounded-lg font-semibold text-gray-700 hover:bg-gray-200 transition">내
+                        활동</button>
+                </div>
+
+                <!-- Interests Section -->
+                <div class="mt-8">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-gray-800">관심사</h2>
+                        <button class="text-sm font-semibold text-gray-500 hover:text-gray-800">수정</button>
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-2 justify-center">
+                        <div class="pill-box">#넷플릭스 정주행</div>
+                        <div class="pill-box">#나만의 맛집 탐방</div>
+                        <div class="pill-box">#헬스/피트니스</div>
+                        <div class="pill-box">#전시회/미술관 관람</div>
+                        <div class="pill-box">#사진/영상 촬영</div>
+                        <div class="pill-box">#긍정킹</div>
+                        <div class="pill-box">#계획적</div>
+                        <div class="pill-box">#다정다감</div>
+                        <div class="pill-box">#열정맨</div>
+                        <div class="pill-box">#부담없는 동네 친구</div>
+                        <div class="pill-box">#가끔 마심</div>
+                        <div class="pill-box">#비흡연</div>
+                        <div class="pill-box">#무교</div>
+                        <div class="pill-box">#ENFP</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <footer class="w-full max-w-md mx-auto bg-white border-t border-gray-200 fixed bottom-0 z-10">
+            <div class="flex justify-around items-center h-16">
+                <a href="#" class="flex flex-col items-center justify-center text-gray-500"><i data-lucide="home"
+                        class="w-6 h-6"></i></a>
+                <a href="#" class="flex flex-col items-center justify-center text-gray-500"><i data-lucide="users"
+                        class="w-6 h-6"></i></a>
+                <a href="#" class="flex flex-col items-center justify-center text-gray-500">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center -mt-8 border-4 border-white shadow-lg"
+                        style="background-color: var(--accent-color);">
+                        <i data-lucide="radio-tower" class="w-7 h-7 text-black"></i>
+                    </div>
+                </a>
+                <a href="#" class="flex flex-col items-center justify-center text-gray-500"><i
+                        data-lucide="message-circle" class="w-6 h-6"></i></a>
+                <a href="#" class="flex flex-col items-center justify-center" style="color: var(--accent-color);"><i
+                        data-lucide="user" class="w-6 h-6"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원서 질문 생성</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #3B82F6;
+            /* Calmer Blue Color */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+        }
+
+        /* Custom focus styles */
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+
+        <!-- Header -->
+        <header class="flex-shrink-0 p-4 border-b border-gray-200 relative">
+            <div class="flex justify-between items-center h-full">
+                <button class="text-gray-500 text-xl" onclick="history.back()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-gray-800">
+                    지원서 질문 생성</h1>
+                <div class="w-6"></div> <!-- Spacer for centering -->
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow overflow-y-auto p-6 flex flex-col">
+            <p class="text-sm text-gray-600 mb-6">지원자에게 궁금한 점을 질문으로 만들어보세요. 최소 3개, 최대 10개까지 추가할 수 있습니다.</p>
+
+            <div id="question-list" class="space-y-4">
+                <!-- Questions will be dynamically added here -->
+            </div>
+
+            <!-- Add/Remove Question Buttons -->
+            <div id="add-remove-container" class="text-center mt-4 flex justify-center items-center gap-4">
+                <button id="add-question-button" class="text-gray-300 hover:text-blue-500 transition-colors">
+                    <i class="fas fa-plus-circle text-2xl"></i>
+                </button>
+                <button id="remove-question-button" class="text-gray-300 hover:text-red-500 transition-colors hidden">
+                    <i class="fas fa-minus-circle text-2xl"></i>
+                </button>
+            </div>
+        </main>
+
+        <!-- Submit Button Footer -->
+        <footer class="p-4 flex-shrink-0 bg-white border-t">
+            <button id="submit-post-button"
+                class="w-full py-3 rounded-lg text-white font-bold text-lg transition-all duration-300"
+                style="background-color: var(--accent-color);">
+                등록하기
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const questionList = document.getElementById('question-list');
+            const addButton = document.getElementById('add-question-button');
+            const removeButton = document.getElementById('remove-question-button');
+            let questionCount = 0;
+
+            const defaultQuestions = [
+                "간단한 자기소개를 부탁드려요.",
+                "팀에 지원하게 된 동기가 무엇인가요?",
+                "관련 경험이 있다면 알려주세요."
+            ];
+
+            const additionalDefaultQuestions = [
+                "자신을 어필할 수 있는 내용을 자유롭게 작성해주세요.",
+                "포트폴리오나 참고 자료가 있다면 링크를 첨부해주세요.",
+                "팀에 기여하고 싶은 점이 있다면 무엇인가요?",
+                "어떤 성향의 팀원과 함께하고 싶으신가요?",
+                "어려움을 해결했던 경험에 대해 이야기해주세요.",
+                "이번 활동을 통해 무엇을 얻고 싶으신가요?",
+                "마지막으로 하고 싶은 말이 있나요?"
+            ];
+
+            function createQuestionInput(questionText = "", isSuggestion = false) {
+                questionCount++;
+                const questionId = `question-${questionCount}`;
+                const suggestionClass = isSuggestion ? 'text-gray-400' : '';
+
+                const questionDiv = document.createElement('div');
+                questionDiv.className = "question-item";
+                questionDiv.innerHTML = `
+                <label for="${questionId}" class="block text-sm font-semibold text-gray-700 mb-2">질문 ${questionCount}</label>
+                <input type="text" id="${questionId}" class="w-full p-3 border border-gray-300 rounded-lg transition ${suggestionClass}" value="${questionText}" placeholder="질문을 입력하세요">
+            `;
+                questionList.appendChild(questionDiv);
+
+                const inputElement = questionDiv.querySelector('input');
+                if (isSuggestion) {
+                    inputElement.addEventListener('input', () => {
+                        inputElement.classList.remove('text-gray-400');
+                    }, { once: true });
+                }
+
+                updateButtons();
+            }
+
+            function removeLastQuestion() {
+                if (questionCount <= 3) return; // Prevent removing below 3 questions
+
+                const lastQuestion = questionList.querySelector('.question-item:last-child');
+                if (lastQuestion) {
+                    lastQuestion.remove();
+                    questionCount--;
+                    updateButtons();
+                }
+            }
+
+            function updateButtons() {
+                // Add button visibility
+                if (questionCount >= 10) { // Max 10 questions
+                    addButton.classList.add('hidden');
+                } else {
+                    addButton.classList.remove('hidden');
+                }
+
+                // Remove button visibility
+                if (questionCount > 3) { // Min 3 questions
+                    removeButton.classList.remove('hidden');
+                } else {
+                    removeButton.classList.add('hidden');
+                }
+            }
+
+            // Add default questions on page load
+            defaultQuestions.forEach(q => createQuestionInput(q, true));
+
+            addButton.addEventListener('click', () => {
+                if (questionCount < 10) { // Max 10 questions
+                    let newQuestionText = "";
+                    let isSuggestion = false;
+                    // Use additional default questions for the 4th, 5th, etc.
+                    if (questionCount >= 3 && questionCount - 3 < additionalDefaultQuestions.length) {
+                        newQuestionText = additionalDefaultQuestions[questionCount - 3];
+                        isSuggestion = true;
+                    }
+                    createQuestionInput(newQuestionText, isSuggestion);
+                }
+            });
+
+            removeButton.addEventListener('click', () => {
+                removeLastQuestion();
+            });
+        });
+    </script>
+
+</body>
+
+</html>

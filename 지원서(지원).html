@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원서 작성</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col">
+        <!-- Header -->
+        <header class="p-4 border-b border-gray-200 sticky top-0 bg-white z-20 flex items-center">
+            <a href="#" class="text-gray-800"><i data-lucide="arrow-left" class="w-6 h-6"></i></a>
+            <h1 class="text-xl font-bold text-center text-gray-800 flex-grow">지원서 작성</h1>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto p-6 space-y-6">
+            <!-- Job Info -->
+            <section>
+                <p class="text-sm text-gray-500">지원할 공고</p>
+                <div class="mt-2 p-3 rounded-lg border border-gray-200">
+                    <div class="flex items-center">
+                        <img src="https://placehold.co/80x80/F472B6/FFFFFF?text=Team" alt="Job Image"
+                            class="w-12 h-12 rounded-md mr-4 object-cover">
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-gray-800">졸업작품 팀원 모집</h3>
+                            <p class="text-sm text-gray-500 mt-1">디자이너 1명 구합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Divider -->
+            <hr class="border-gray-100">
+
+            <!-- Application Form -->
+            <section class="space-y-4">
+                <h3 class="text-lg font-bold text-gray-800">질문</h3>
+                <form class="space-y-6">
+                    <div>
+                        <label for="q1" class="font-semibold text-gray-700">1. 간단한 자기소개를 부탁드려요.</label>
+                        <textarea id="q1" rows="4"
+                            class="w-full mt-2 p-3 bg-gray-100 rounded-md border border-transparent focus:border-cyan-300 transition"
+                            placeholder="답변을 입력하세요..."></textarea>
+                    </div>
+                    <div>
+                        <label for="q2" class="font-semibold text-gray-700">2. 졸업작품 팀에 지원하게 된 동기가 무엇인가요?</label>
+                        <textarea id="q2" rows="4"
+                            class="w-full mt-2 p-3 bg-gray-100 rounded-md border border-transparent focus:border-cyan-300 transition"
+                            placeholder="답변을 입력하세요..."></textarea>
+                    </div>
+                    <div>
+                        <label for="q3" class="font-semibold text-gray-700">3. UI/UX 디자인 관련 경험이 있다면 알려주세요.</label>
+                        <textarea id="q3" rows="4"
+                            class="w-full mt-2 p-3 bg-gray-100 rounded-md border border-transparent focus:border-cyan-300 transition"
+                            placeholder="포트폴리오 링크가 있다면 함께 기재해주세요."></textarea>
+                    </div>
+                    <div>
+                        <label for="q4" class="font-semibold text-gray-700">4. 일주일에 활동 가능한 시간은 어느 정도인가요?</label>
+                        <textarea id="q4" rows="4"
+                            class="w-full mt-2 p-3 bg-gray-100 rounded-md border border-transparent focus:border-cyan-300 transition"
+                            placeholder="예: 주 15시간 이상, 수/금 오후 및 주말 등"></textarea>
+                    </div>
+                    <div>
+                        <label for="q5" class="font-semibold text-gray-700">5. 마지막으로 하고 싶은 말이 있나요?</label>
+                        <textarea id="q5" rows="4"
+                            class="w-full mt-2 p-3 bg-gray-100 rounded-md border border-transparent focus:border-cyan-300 transition"
+                            placeholder="답변을 입력하세요..."></textarea>
+                    </div>
+                </form>
+            </section>
+        </main>
+
+        <!-- Bottom Action Buttons -->
+        <footer class="p-4 bg-white border-t border-gray-200">
+            <button
+                class="w-full py-3 bg-cyan-400 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors">제출하기</button>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html> Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad deleniti assumenda et nam consequatur qui quis
+cupiditate aut saepe cum similique, dolorem vitae totam repudiandae nemo porro eum placeat enim.
