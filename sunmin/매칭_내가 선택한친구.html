@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>내가 선택한 친구들</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap');
+
+        :root {
+            --accent-color: #2E8B57;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: #F9FAFB;
+        }
+
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.05));
+        }
+
+        .card-enter {
+            animation: fade-in-up .5s cubic-bezier(.25, .46, .45, .94) forwards;
+            opacity: 0;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        img.logo {
+            image-rendering: -webkit-optimize-contrast;
+        }
+
+        /* 상세 팝업 기본 트랜지션 */
+        #profile-detail-modal {
+            transition: opacity .3s ease-in-out;
+        }
+
+        #profile-detail-modal .modal-content {
+            transition: transform .3s ease-in-out, opacity .3s ease-in-out;
+        }
+
+        /* confirm 모달 공통 */
+        .pop-enter {
+            transform: translateY(6px) scale(.96);
+            opacity: 0;
+        }
+
+        .pop-enter-active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            transition: transform .2s ease, opacity .2s ease;
+        }
+
+        .glass-card {
+            background: radial-gradient(120% 80% at 50% -10%, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .88) 40%, rgba(255, 255, 255, .86) 100%),
+                linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .85));
+            border: 1px solid rgba(15, 23, 42, .06);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .14), inset 0 1px 0 rgba(255, 255, 255, .7);
+            backdrop-filter: blur(8px);
+        }
+
+        .cute-badge {
+            background: linear-gradient(180deg, #fff, #f1f5f9);
+            border: 1px solid rgba(2, 6, 23, .08);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, .10), inset 0 1px 0 rgba(255, 255, 255, .9);
+            animation: badge-pop .28s ease;
+            border-radius: 14px;
+        }
+
+        @keyframes badge-pop {
+            from {
+                transform: translateY(8px) scale(.9);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1
+            }
+        }
+
+        #confirm-card.theme-positive #confirm-ok {
+            background: linear-gradient(180deg, var(--accent-color), #1f6a43);
+            box-shadow: 0 8px 18px rgba(46, 139, 87, .25);
+        }
+
+        #confirm-card.theme-danger #confirm-ok {
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+            box-shadow: 0 8px 18px rgba(239, 68, 68, .25);
+        }
+
+        #confirm-card.theme-positive #confirm-badge {
+            background: linear-gradient(180deg, #fff, #e9fbf2);
+            border-color: #cdeedd;
+            color: var(--accent-color);
+            box-shadow: 0 8px 18px rgba(46, 139, 87, .20), inset 0 1px 0 rgba(255, 255, 255, .9);
+        }
+
+        #confirm-card.theme-danger #confirm-badge {
+            background: linear-gradient(180deg, #fff, #fee2e2);
+            border-color: #fecaca;
+            color: #ef4444;
+            box-shadow: 0 8px 18px rgba(239, 68, 68, .20), inset 0 1px 0 rgba(255, 255, 255, .9);
+        }
+
+        .btn-pill {
+            border-radius: 9999px;
+            padding: .8rem 1.1rem;
+            font-weight: 700;
+            letter-spacing: -.01em;
+            transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+        }
+
+        .btn-pill:active {
+            transform: translateY(1px);
+        }
+
+        /* ✅ 여기! overflow를 visible로 바꿔 배지가 안 잘리게 */
+        #confirm-card {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-radius: 28px;
+            overflow: visible;
+            /* was hidden */
+            position: relative;
+        }
+
+        #confirm-modal {
+            backdrop-filter: blur(4px);
+        }
+
+        #confirm-ok {
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+        }
+
+        #confirm-cancel {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ========= 상세 팝업 '완전 열린 뒤' 입체 효과 ========= */
+        #profile-detail-modal .modal-content.open-active {
+            border: none !important;
+            background:
+                radial-gradient(140% 90% at 50% -20%, rgba(255, 255, 255, .98) 0%, rgba(255, 255, 255, .96) 40%, rgba(248, 250, 252, .96) 100%),
+                linear-gradient(180deg, #ffffff, #f8fafc);
+            box-shadow: 0 30px 80px rgba(2, 6, 23, .28), 0 12px 32px rgba(2, 6, 23, .18), 0 2px 6px rgba(2, 6, 23, .06);
+            animation: shadowBreath 5s ease-in-out infinite;
+        }
+
+        #profile-detail-modal .modal-content.open-active::before {
+            display: none !important;
+        }
+
+        @keyframes shadowBreath {
+
+            0%,
+            100% {
+                box-shadow: 0 30px 80px rgba(2, 6, 23, .28), 0 12px 32px rgba(2, 6, 23, .18), 0 2px 6px rgba(2, 6, 23, .06);
+            }
+
+            50% {
+                box-shadow: 0 36px 92px rgba(2, 6, 23, .30), 0 14px 36px rgba(2, 6, 23, .20), 0 2px 6px rgba(2, 6, 23, .06);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+    <div class="max-w-md mx-auto h-screen bg-white flex flex-col relative overflow-hidden">
+        <header class="flex-shrink-0 p-4 space-y-2">
+            <div class="flex items-center">
+                <img src="https://i.imgur.com/22aa80a.png" alt="CC Logo" class="logo h-10 w-auto select-none" />
+            </div>
+            <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">내가 선택한 친구들</h1>
+            <p class="text-sm text-gray-500">다시 이야기 나눠볼까요?</p>
+        </header>
+
+        <main class="flex-grow overflow-y-auto p-4 pb-20">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="user-card relative aspect-[3/4] rounded-xl overflow-hidden shadow-lg card-enter cursor-pointer"
+                    style="animation-delay:.1s;" data-name="에이든"
+                    data-image1="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&h=533&auto=format&fit=crop"
+                    data-image2="https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?q=80&w=400&h=533&auto=format&fit=crop"
+                    data-dept="시각디자인학과" data-age="23" data-mbti="ENFP" data-smoking="비흡연" data-drinking="가끔 마심"
+                    data-bio="맛집 탐방과 영화 감상을 즐겨요!">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&h=533&auto=format&fit=crop"
+                        class="w-full h-full object-cover" alt="User Avatar">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
+                        <h2 class="text-lg font-bold">에이든, 23</h2>
+                        <p class="text-xs opacity-90">시각디자인학과</p>
+                    </div>
+                </div>
+
+                <div class="user-card relative aspect-[3/4] rounded-xl overflow-hidden shadow-lg card-enter cursor-pointer"
+                    style="animation-delay:.2s;" data-name="벨라"
+                    data-image1="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&h=533&auto=format&fit=crop"
+                    data-image2="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&h=533&auto=format&fit=crop"
+                    data-dept="소프트웨어융합학과" data-age="21" data-mbti="ISTJ" data-smoking="비흡연" data-drinking="전혀 안 마심"
+                    data-bio="코딩 스터디 같이 할 분 찾아요. 긍정적인 성격입니다!">
+                    <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&h=533&auto=format&fit=crop"
+                        class="w-full h-full object-cover" alt="User Avatar">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
+                        <h2 class="text-lg font-bold">벨라, 21</h2>
+                        <p class="text-xs opacity-90">소프트웨어융합학과</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full max-w-md mx-auto bg-transparent fixed bottom-0 z-10 h-16">
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z" />
+                </svg>
+            </div>
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <a href="#" class="flex items-center justify-center text-white rounded-full w-16 h-16 shadow-lg"
+                    style="background-color:var(--accent-color); box-shadow:0 5px 20px rgba(46,139,87,.4);">
+                    <i data-lucide="home" class="w-7 h-7"></i>
+                </a>
+            </div>
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <a href="#" class="flex items-center justify-center h-full" style="color:var(--accent-color);">
+                    <i data-lucide="heart" class="w-7 h-7"></i>
+                </a>
+                <a href="#"
+                    class="flex items-center justify-center h-full text-gray-400 hover:text-[var(--accent-color)]">
+                    <i data-lucide="eye" class="w-7 h-7"></i>
+                </a>
+                <div class="h-full"></div>
+                <a href="#"
+                    class="flex items-center justify-center h-full text-gray-400 hover:text-[var(--accent-color)]">
+                    <i data-lucide="message-circle" class="w-7 h-7"></i>
+                </a>
+                <a href="#"
+                    class="flex items-center justify-center h-full text-gray-400 hover:text-[var(--accent-color)]">
+                    <i data-lucide="user" class="w-7 h-7"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <!-- Profile Detail Modal -->
+    <div id="profile-detail-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2">
+        <div
+            class="modal-content bg-gray-100 rounded-2xl w-full max-w-md flex flex-col transform scale-95 opacity-0 max-h-[95vh] relative">
+            <div class="grid grid-cols-2">
+                <img id="detail-image1" class="w-full aspect-[3/4] object-cover rounded-tl-2xl" alt="detail 1">
+                <img id="detail-image2" class="w-full aspect-[3/4] object-cover rounded-tr-2xl" alt="detail 2">
+            </div>
+
+            <div class="p-6 overflow-y-auto">
+                <h2 id="detail-name" class="text-3xl font-bold text-gray-800"></h2>
+
+                <div class="mt-4 space-y-3 text-base">
+                    <div class="flex items-center gap-3"><i data-lucide="graduation-cap"
+                            class="w-5 h-5 text-gray-400"></i>
+                        <p id="detail-dept" class="font-semibold"></p>
+                    </div>
+                    <div class="flex items-center gap-3"><i data-lucide="calendar" class="w-5 h-5 text-gray-400"></i>
+                        <p id="detail-age" class="font-semibold"></p>
+                    </div>
+                    <div class="flex items-center gap-3"><i data-lucide="brain" class="w-5 h-5 text-gray-400"></i>
+                        <p id="detail-mbti" class="font-semibold"></p>
+                    </div>
+                    <div class="flex items-center gap-3"><i data-lucide="cigarette" class="w-5 h-5 text-gray-400"></i>
+                        <p id="detail-smoking" class="font-semibold"></p>
+                    </div>
+                    <div class="flex items-center gap-3"><i data-lucide="wine" class="w-5 h-5 text-gray-400"></i>
+                        <p id="detail-drinking" class="font-semibold"></p>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="quote" class="w-5 h-5 text-gray-400 mt-1"></i>
+                        <p id="detail-bio" class="text-gray-700"></p>
+                    </div>
+                </div>
+
+                <div class="mt-7 flex justify-center">
+                    <button id="unlike-btn"
+                        class="btn-pill bg-white text-red-600 border border-red-200 hover:bg-red-50 shadow-[0_2px_8px_rgba(0,0,0,.06)]">
+                        좋아요 취소
+                    </button>
+                </div>
+            </div>
+
+            <button id="detail-close-button" class="absolute top-3 right-3 text-white bg-black/30 rounded-full p-1.5">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal"
+        class="hidden fixed inset-0 z-[60] bg-black/45 backdrop-blur-sm items-center justify-center p-4">
+        <div id="confirm-card" class="glass-card w-full max-w-sm rounded-[28px] pop-enter">
+            <div class="relative p-6 pt-8"> <!-- pt-8로 배지 공간 확보 -->
+                <div class="absolute -top-7 left-1/2 -translate-x-1/2">
+                    <div id="confirm-badge" class="cute-badge w-14 h-14 flex items-center justify-center">
+                        <span id="confirm-icon-positive" class="hidden"><i data-lucide="heart"
+                                class="w-7 h-7"></i></span>
+                        <span id="confirm-icon-danger"><i data-lucide="trash-2" class="w-7 h-7"></i></span>
+                    </div>
+                </div>
+
+                <div class="space-y-1 text-center">
+                    <p id="confirm-title" class="text-gray-900 text-[16px] leading-7 font-semibold"></p>
+                    <p id="confirm-sub" class="text-gray-500 text-[14px] leading-6"></p>
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 gap-3">
+                    <button id="confirm-cancel"
+                        class="btn-pill bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 shadow-[0_2px_8px_rgba(0,0,0,.06)]">취소</button>
+                    <button id="confirm-ok" class="btn-pill text-white shadow">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            const userCards = document.querySelectorAll('.user-card');
+            const detailModal = document.getElementById('profile-detail-modal');
+            const modalContent = detailModal.querySelector('.modal-content');
+            const closeButton = document.getElementById('detail-close-button');
+
+            let currentCard = null;
+
+            function showModal() {
+                modalContent.classList.remove('open-active');
+                const onOpened = (e) => {
+                    if (e.target !== modalContent) return;
+                    if (e.propertyName !== 'transform' && e.propertyName !== 'opacity') return;
+                    modalContent.classList.add('open-active');
+                    modalContent.removeEventListener('transitionend', onOpened);
+                };
+                modalContent.addEventListener('transitionend', onOpened);
+                detailModal.classList.remove('hidden');
+                requestAnimationFrame(() => { modalContent.classList.remove('scale-95', 'opacity-0'); });
+            }
+            function hideModal() {
+                modalContent.classList.remove('open-active');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => detailModal.classList.add('hidden'), 300);
+            }
+
+            function showConfirm({ title, sub, message, variant = 'positive' }) {
+                return new Promise(resolve => {
+                    const overlay = document.getElementById('confirm-modal');
+                    const card = document.getElementById('confirm-card');
+                    const titleEl = document.getElementById('confirm-title');
+                    const subEl = document.getElementById('confirm-sub');
+                    const okBtn = document.getElementById('confirm-ok');
+                    const cancelBtn = document.getElementById('confirm-cancel');
+                    const iconPos = document.getElementById('confirm-icon-positive');
+                    const iconDanger = document.getElementById('confirm-icon-danger');
+
+                    card.classList.remove('theme-positive', 'theme-danger');
+                    if (variant === 'danger') { card.classList.add('theme-danger'); iconPos.classList.add('hidden'); iconDanger.classList.remove('hidden'); }
+                    else { card.classList.add('theme-positive'); iconDanger.classList.add('hidden'); iconPos.classList.remove('hidden'); }
+
+                    if (title || sub) { titleEl.textContent = title || ''; subEl.textContent = sub || ''; }
+                    else if (message) { const [t, s] = String(message).split('\n'); titleEl.textContent = t || ''; subEl.textContent = s || ''; }
+                    else { titleEl.textContent = ''; subEl.textContent = ''; }
+
+                    overlay.classList.remove('hidden'); overlay.classList.add('flex');
+                    card.classList.remove('pop-enter'); void card.offsetWidth; card.classList.add('pop-enter-active');
+
+                    function cleanup(result) {
+                        card.classList.remove('pop-enter-active'); card.classList.add('pop-enter');
+                        overlay.classList.remove('flex'); overlay.classList.add('hidden');
+                        okBtn.removeEventListener('click', onOk); cancelBtn.removeEventListener('click', onCancel);
+                        overlay.removeEventListener('click', onBackdrop); document.removeEventListener('keydown', onKey);
+                        resolve(result);
+                    }
+                    function onOk() { cleanup(true); }
+                    function onCancel() { cleanup(false); }
+                    function onBackdrop(e) { if (e.target === overlay) cleanup(false); }
+                    function onKey(e) { if (e.key === 'Escape') cleanup(false); if (e.key === 'Enter') cleanup(true); }
+
+                    okBtn.addEventListener('click', onOk);
+                    cancelBtn.addEventListener('click', onCancel);
+                    overlay.addEventListener('click', onBackdrop);
+                    document.addEventListener('keydown', onKey);
+                });
+            }
+
+            // 카드 클릭 → 상세 열기
+            userCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    currentCard = card;
+                    document.getElementById('detail-image1').src = card.dataset.image1;
+                    document.getElementById('detail-image2').src = card.dataset.image2;
+                    document.getElementById('detail-name').textContent = card.dataset.name;
+                    document.getElementById('detail-dept').textContent = card.dataset.dept;
+                    document.getElementById('detail-age').textContent = `${card.dataset.age}세`;
+                    document.getElementById('detail-mbti').textContent = card.dataset.mbti;
+                    document.getElementById('detail-smoking').textContent = card.dataset.smoking;
+                    document.getElementById('detail-drinking').textContent = card.dataset.drinking;
+                    document.getElementById('detail-bio').textContent = card.dataset.bio;
+                    showModal();
+                });
+            });
+
+            // 닫기
+            closeButton.addEventListener('click', hideModal);
+            detailModal.addEventListener('click', (e) => { if (e.target === detailModal) hideModal(); });
+
+            // '좋아요 취소' 버튼
+            document.addEventListener('click', async (e) => {
+                if (e.target && e.target.id === 'unlike-btn') {
+                    const ok = await showConfirm({
+                        title: '좋아요를 취소하시겠어요?',
+                        sub: '취소하면 리스트에서 제거돼요.',
+                        variant: 'danger'
+                    });
+                    if (ok && currentCard) { currentCard.remove(); hideModal(); }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
