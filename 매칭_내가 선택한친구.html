@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>내가 선택한 친구들</title>
+    <title>나를 좋아요한 사람</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -53,37 +53,28 @@
             transition: transform .3s ease-in-out, opacity .3s ease-in-out;
         }
 
-        /* confirm 모달 공통 */
+        /* confirm 모달 애니메이션 (Springy) */
         .pop-enter {
-            transform: translateY(6px) scale(.96);
+            transform: translateY(10px) scale(.95);
             opacity: 0;
         }
 
         .pop-enter-active {
             transform: translateY(0) scale(1);
             opacity: 1;
-            transition: transform .2s ease, opacity .2s ease;
-        }
-
-        .glass-card {
-            background: radial-gradient(120% 80% at 50% -10%, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .88) 40%, rgba(255, 255, 255, .86) 100%),
-                linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .85));
-            border: 1px solid rgba(15, 23, 42, .06);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, .14), inset 0 1px 0 rgba(255, 255, 255, .7);
-            backdrop-filter: blur(8px);
+            transition: transform .3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity .2s ease;
         }
 
         .cute-badge {
             background: linear-gradient(180deg, #fff, #f1f5f9);
             border: 1px solid rgba(2, 6, 23, .08);
-            box-shadow: 0 8px 18px rgba(0, 0, 0, .10), inset 0 1px 0 rgba(255, 255, 255, .9);
-            animation: badge-pop .28s ease;
-            border-radius: 14px;
+            animation: badge-pop .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 16px;
         }
 
         @keyframes badge-pop {
             from {
-                transform: translateY(8px) scale(.9);
+                transform: translateY(10px) scale(.85);
                 opacity: 0
             }
 
@@ -93,61 +84,64 @@
             }
         }
 
+        /* 버튼 디자인 강화 */
+        .btn-pill {
+            border-radius: 9999px;
+            padding: .7rem 1.1rem;
+            font-weight: 700;
+            letter-spacing: -.01em;
+            transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-pill:active {
+            transform: translateY(2px) scale(0.98);
+        }
+
         #confirm-card.theme-positive #confirm-ok {
             background: linear-gradient(180deg, var(--accent-color), #1f6a43);
-            box-shadow: 0 8px 18px rgba(46, 139, 87, .25);
+            box-shadow: 0 10px 20px rgba(46, 139, 87, .3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         #confirm-card.theme-danger #confirm-ok {
-            background: linear-gradient(180deg, #ef4444, #dc2626);
-            box-shadow: 0 8px 18px rgba(239, 68, 68, .25);
+            background-color: #ef4444;
+            box-shadow: 0 10px 20px rgba(239, 68, 68, .25);
         }
 
         #confirm-card.theme-positive #confirm-badge {
             background: linear-gradient(180deg, #fff, #e9fbf2);
             border-color: #cdeedd;
             color: var(--accent-color);
-            box-shadow: 0 8px 18px rgba(46, 139, 87, .20), inset 0 1px 0 rgba(255, 255, 255, .9);
         }
 
         #confirm-card.theme-danger #confirm-badge {
             background: linear-gradient(180deg, #fff, #fee2e2);
             border-color: #fecaca;
             color: #ef4444;
-            box-shadow: 0 8px 18px rgba(239, 68, 68, .20), inset 0 1px 0 rgba(255, 255, 255, .9);
-        }
-
-        .btn-pill {
-            border-radius: 9999px;
-            padding: .8rem 1.1rem;
-            font-weight: 700;
-            letter-spacing: -.01em;
-            transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
-        }
-
-        .btn-pill:active {
-            transform: translateY(1px);
-        }
-
-        /* ✅ 여기! overflow를 visible로 바꿔 배지가 안 잘리게 */
-        #confirm-card {
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.12);
-            border-radius: 28px;
-            overflow: visible;
-            /* was hidden */
-            position: relative;
         }
 
         #confirm-modal {
             backdrop-filter: blur(4px);
-        }
-
-        #confirm-ok {
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+            background-color: rgba(0, 0, 0, 0.3);
         }
 
         #confirm-cancel {
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        #confirm-cancel:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        #confirm-card {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 20px;
+            overflow: visible;
+            position: relative;
         }
 
         /* ========= 상세 팝업 '완전 열린 뒤' 입체 효과 ========= */
@@ -192,7 +186,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="user-card relative aspect-[3/4] rounded-xl overflow-hidden shadow-lg card-enter cursor-pointer"
                     style="animation-delay:.1s;" data-name="에이든"
-                    data-image1="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&h=533&auto=format&fit=crop"
+                    data-image1="https://images.unsplash.com/photo-1534528741775-539Mdaeb?q=80&w=400&h=533&auto=format&fit=crop"
                     data-image2="https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?q=80&w=400&h=533&auto=format&fit=crop"
                     data-dept="시각디자인학과" data-age="23" data-mbti="ENFP" data-smoking="비흡연" data-drinking="가끔 마심"
                     data-bio="맛집 탐방과 영화 감상을 즐겨요!">
@@ -310,27 +304,26 @@
     </div>
 
     <!-- Confirm Modal -->
-    <div id="confirm-modal"
-        class="hidden fixed inset-0 z-[60] bg-black/45 backdrop-blur-sm items-center justify-center p-4">
-        <div id="confirm-card" class="glass-card w-full max-w-sm rounded-[28px] pop-enter">
-            <div class="relative p-6 pt-8"> <!-- pt-8로 배지 공간 확보 -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4">
+        <div id="confirm-card" class="bg-white w-full max-w-sm pop-enter">
+            <!-- ✅ 수정된 부분: pt-14로 간격 조정 -->
+            <div class="relative p-6 pt-14">
                 <div class="absolute -top-7 left-1/2 -translate-x-1/2">
-                    <div id="confirm-badge" class="cute-badge w-14 h-14 flex items-center justify-center">
+                    <div id="confirm-badge" class="cute-badge w-16 h-16 flex items-center justify-center">
                         <span id="confirm-icon-positive" class="hidden"><i data-lucide="heart"
-                                class="w-7 h-7"></i></span>
-                        <span id="confirm-icon-danger"><i data-lucide="trash-2" class="w-7 h-7"></i></span>
+                                class="w-8 h-8"></i></span>
+                        <span id="confirm-icon-danger"><i data-lucide="trash-2" class="w-8 h-8"></i></span>
                     </div>
                 </div>
 
                 <div class="space-y-1 text-center">
-                    <p id="confirm-title" class="text-gray-900 text-[16px] leading-7 font-semibold"></p>
-                    <p id="confirm-sub" class="text-gray-500 text-[14px] leading-6"></p>
+                    <p id="confirm-title" class="text-gray-900 text-xl leading-7 font-bold"></p>
+                    <p id="confirm-sub" class="text-gray-500 text-base leading-6"></p>
                 </div>
 
-                <div class="mt-6 grid grid-cols-2 gap-3">
-                    <button id="confirm-cancel"
-                        class="btn-pill bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 shadow-[0_2px_8px_rgba(0,0,0,.06)]">취소</button>
-                    <button id="confirm-ok" class="btn-pill text-white shadow">확인</button>
+                <div class="mt-5 grid grid-cols-2 gap-3">
+                    <button id="confirm-cancel" class="btn-pill text-gray-800">취소</button>
+                    <button id="confirm-ok" class="btn-pill text-white">확인</button>
                 </div>
             </div>
         </div>
@@ -389,7 +382,10 @@
 
                     function cleanup(result) {
                         card.classList.remove('pop-enter-active'); card.classList.add('pop-enter');
-                        overlay.classList.remove('flex'); overlay.classList.add('hidden');
+                        setTimeout(() => {
+                            overlay.classList.remove('flex'); overlay.classList.add('hidden');
+                        }, 300);
+
                         okBtn.removeEventListener('click', onOk); cancelBtn.removeEventListener('click', onCancel);
                         overlay.removeEventListener('click', onBackdrop); document.removeEventListener('keydown', onKey);
                         resolve(result);

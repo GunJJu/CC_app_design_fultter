@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>하단바 예제</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap');
+
+        :root {
+            --accent-color: #2E8B57;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: #ffffff;
+            /* Set a min-height to see the footer at the bottom */
+            min-height: 100vh;
+        }
+
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.05));
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="max-w-md mx-auto w-full h-screen relative">
+
+        <!-- Main content removed, only footer remains -->
+
+        <footer class="w-full max-w-md mx-auto bg-transparent fixed bottom-0 z-10 h-16">
+            <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none" fill="white"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z" />
+                </svg>
+            </div>
+            <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                <a href="#" class="flex items-center justify-center text-white rounded-full w-16 h-16 shadow-lg"
+                    style="background-color:var(--accent-color); box-shadow:0 5px 20px rgba(46,139,87,.4);">
+                    <i data-lucide="home" class="w-7 h-7"></i>
+                </a>
+            </div>
+            <nav class="relative grid grid-cols-5 z-10 h-full">
+                <a href="#" class="flex items-center justify-center h-full" style="color:var(--accent-color);">
+                    <i data-lucide="heart" class="w-7 h-7"></i>
+                </a>
+                <a href="#"
+                    class="flex items-center justify-center h-full text-gray-400 hover:text-[var(--accent-color)]">
+                    <i data-lucide="eye" class="w-7 h-7"></i>
+                </a>
+                <div class="h-full"></div>
+                <a href="#"
+                    class="flex items-center justify-center h-full text-gray-400 hover:text-[var(--accent-color)]">
+                    <i data-lucide="user-search" class="w-7 h-7"></i>
+                </a>
+                <a href="#"
+                    class="flex items-center justify-center h-full text-gray-400 hover:text-[var(--accent-color)]">
+                    <i data-lucide="message-circle" class="w-7 h-7"></i>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        // Renders all icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
