@@ -41,6 +41,7 @@
             color: #6B7280;
             /* text-gray-500 */
         }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
             height: 0;
@@ -56,20 +57,23 @@
             border-radius: 20px;
             border: transparent;
         }
-        
+
         /* Bottom Sheet Modal Styles */
         #bottom-sheet-overlay {
             transition: opacity 0.3s ease-in-out;
         }
+
         #bottom-sheet-modal {
             transition: transform 0.3s ease-in-out;
-            touch-action: none; /* Prevent default touch actions like scrolling */
+            touch-action: none;
+            /* Prevent default touch actions like scrolling */
         }
+
         .line-clamp-2 {
-           overflow: hidden;
-           display: -webkit-box;
-           -webkit-box-orient: vertical;
-           -webkit-line-clamp: 2;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
         }
     </style>
 </head>
@@ -88,7 +92,8 @@
                 <select id="role-selector" class="text-sm p-1 rounded-md border border-gray-300">
                     <option value="creator">개설자</option>
                     <option value="sub_manager">부방장</option>
-                    <option value="member" selected>사용자</option>
+                    <option value="member">사용자</option>
+                    <option value="non_member" selected>미가입자</option>
                 </select>
             </div>
         </header>
@@ -108,7 +113,7 @@
                 </div>
                 <!-- 게시판 탭 (내용 제거) -->
                 <div id="board-tab" class="tab-pane hidden p-4">
-                     <p>게시판 페이지입니다.</p>
+                    <p>게시판 페이지입니다.</p>
                 </div>
                 <!-- 정기모임 탭 (내용 제거) -->
                 <div id="free-time-tab" class="tab-pane hidden p-4">
@@ -155,17 +160,22 @@
                                 <li class="flex items-center justify-between p-2 bg-gray-50 rounded-md text-sm">
                                     <span>새로운 가입 요청 (홍길동)</span>
                                     <div>
-                                        <button class="bg-green-500 text-white px-3 py-1 rounded-full text-xs mr-2">수락</button>
+                                        <button
+                                            class="bg-green-500 text-white px-3 py-1 rounded-full text-xs mr-2">수락</button>
                                         <button class="bg-red-500 text-white px-3 py-1 rounded-full text-xs">거절</button>
                                     </div>
                                 </li>
                             </ul>
-                            <button class="w-full bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">모든 가입자 보기</button>
+                            <button
+                                class="w-full bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">모든
+                                가입자 보기</button>
                         </div>
 
                         <div>
                             <h3 class="text-lg font-semibold text-gray-800 mb-2">소모임 삭제</h3>
-                            <button class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors">소모임 삭제하기</button>
+                            <button
+                                class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors">소모임
+                                삭제하기</button>
                         </div>
                     </div>
                 </div>
@@ -203,7 +213,7 @@
             </nav>
         </footer>
     </div>
-    
+
     <!-- Bottom Sheet Modal -->
     <div id="bottom-sheet-overlay" class="fixed inset-0 bg-black bg-opacity-75 z-40 hidden opacity-0"></div>
     <div id="bottom-sheet-modal" class="fixed inset-0 max-w-md mx-auto z-50 transform translate-y-full flex flex-col">
@@ -231,16 +241,36 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
-                            <p id="modal-post-content" class="text-gray-300 text-sm leading-relaxed line-clamp-2 mr-4 flex-grow">
+                            <p id="modal-post-content"
+                                class="text-gray-300 text-sm leading-relaxed line-clamp-2 mr-4 flex-grow">
                                 게시글 내용의 일부가 여기에 표시됩니다...
                             </p>
-                            <button id="modal-post-link" class="flex-shrink-0 text-center text-sm font-semibold bg-white/10 text-white px-4 py-2 rounded-full hover:bg-white/20 transition-colors flex items-center space-x-2">
+                            <button id="modal-post-link"
+                                class="flex-shrink-0 text-center text-sm font-semibold bg-white/10 text-white px-4 py-2 rounded-full hover:bg-white/20 transition-colors flex items-center space-x-2">
                                 <span>게시글 보기</span>
                                 <i class="fas fa-arrow-right text-xs"></i>
                             </button>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Prompt Modal -->
+    <div id="join-prompt-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-40 hidden"></div>
+    <div id="join-prompt-modal"
+        class="hidden fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm">
+        <div class="bg-white rounded-2xl p-6 text-center shadow-xl">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">소모임 가입</h3>
+            <p class="text-gray-500 mb-6">소모임에 가입하고<br>모든 사진과 게시글을 확인해보세요!</p>
+            <div class="flex gap-3">
+                <button id="cancel-join-button"
+                    class="w-full py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">다음에
+                    할게요</button>
+                <button id="confirm-join-button"
+                    class="w-full py-3 text-white rounded-lg transition-opacity hover:opacity-90"
+                    style="background-color: var(--accent-color);">가입하기</button>
             </div>
         </div>
     </div>
@@ -255,7 +285,7 @@
             const managementTabButton = document.getElementById('management-tab-button');
             const galleryGrid = document.getElementById('gallery-grid');
             const uploadImageBtn = document.getElementById('upload-image-btn');
-            
+
             // Bottom Sheet Elements
             const bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
             const bottomSheetModal = document.getElementById('bottom-sheet-modal');
@@ -267,6 +297,12 @@
             const modalPostContent = document.getElementById('modal-post-content');
             const modalPostLink = document.getElementById('modal-post-link');
 
+            // Join Prompt Modal Elements
+            const joinPromptOverlay = document.getElementById('join-prompt-overlay');
+            const joinPromptModal = document.getElementById('join-prompt-modal');
+            const cancelJoinButton = document.getElementById('cancel-join-button');
+            const confirmJoinButton = document.getElementById('confirm-join-button');
+
             // --- State Variables ---
             let currentUserRole = roleSelector.value;
             let galleryImages = [];
@@ -275,6 +311,7 @@
 
             // --- Functions ---
             const updateUIForRole = () => {
+                currentUserRole = roleSelector.value;
                 if (currentUserRole === 'creator') {
                     managementTabButton.classList.remove('hidden');
                 } else {
@@ -308,7 +345,7 @@
                         alt: `갤러리 이미지 ${i + 1}`,
                         likes: Math.floor(Math.random() * 100),
                         comments: Math.floor(Math.random() * 20),
-                        title: `파이썬 프로젝트 ${i+1}번째 기록`,
+                        title: `파이썬 프로젝트 ${i + 1}번째 기록`,
                         content: `오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다. 오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다. 오늘은 팀원들과 함께 데이터 분석 프로젝트를 진행했습니다. 생각보다 어려운 점이 많았지만, 함께 해결해나가니 즐거웠습니다. 다음 주에는 시각화 작업을 할 예정입니다.`,
                         postId: `post-${i}`
                     });
@@ -341,11 +378,18 @@
                 }, 300);
             };
 
+            const showJoinPrompt = () => {
+                joinPromptOverlay.classList.remove('hidden');
+                joinPromptModal.classList.remove('hidden');
+            };
+
+            const hideJoinPrompt = () => {
+                joinPromptOverlay.classList.add('hidden');
+                joinPromptModal.classList.add('hidden');
+            };
+
             // --- Event Listeners ---
-            roleSelector.addEventListener('change', (e) => {
-                currentUserRole = e.target.value;
-                updateUIForRole();
-            });
+            roleSelector.addEventListener('change', updateUIForRole);
 
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -359,21 +403,32 @@
 
             galleryGrid.addEventListener('click', (e) => {
                 const imageContainer = e.target.closest('[data-image-id]');
-                if (imageContainer) {
+                if (!imageContainer) return;
+
+                if (currentUserRole === 'non_member') {
+                    showJoinPrompt();
+                } else {
                     openBottomSheet(imageContainer.dataset.imageId);
                 }
             });
-            
+
             bottomSheetOverlay.addEventListener('click', closeBottomSheet);
-            
+
             modalPostLink.addEventListener('click', (e) => {
                 alert(`원본 게시글 (ID: ${e.target.dataset.postId})로 이동합니다.`);
             });
-            
+
             uploadImageBtn.addEventListener('click', () => {
                 alert('이미지 업로드 기능이 여기에 연결됩니다.');
             });
-            
+
+            // Join Prompt Buttons
+            cancelJoinButton.addEventListener('click', hideJoinPrompt);
+            confirmJoinButton.addEventListener('click', () => {
+                alert('가입 절차를 시작합니다!');
+                hideJoinPrompt();
+            });
+
             // Drag to close logic
             const onDragStart = (e) => {
                 isDragging = true;
