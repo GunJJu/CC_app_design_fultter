@@ -175,121 +175,141 @@
             const stack = document.querySelector('.card-stack');
             let cards = Array.from(stack.querySelectorAll('.card'));
 
-            // 스와이프 로직 초기화
-            function initializeCards() {
-                let isDragging = false;
-                let startX = 0, startY = 0;
-                let currentX = 0, currentY = 0;
-                let deltaX = 0, deltaY = 0;
-                let activeCard = null;
+            // 스와이프 상태를 관리하는 변수들
+            let isDragging = false;
+            let startX = 0, startY = 0;
+            let deltaX = 0, deltaY = 0;
+            let activeCard = null;
 
-                const onPointerDown = (e) => {
-                    activeCard = cards[cards.length - 1];
-                    if (!activeCard || activeCard.isAnimating) return;
+            const onPointerDown = (e) => {
+                // e.currentTarget은 이벤트 리스너가 부착된 요소를 가리킵니다.
+                activeCard = e.currentTarget;
+                if (activeCard.isAnimating) return;
 
-                    // 이벤트가 발생한 타겟이 activeCard가 아니면 무시
-                    if (e.target.closest('.card') !== activeCard) return;
+                isDragging = true;
+                activeCard.classList.add('dragging');
 
-                    isDragging = true;
-                    activeCard.classList.add('dragging');
+                // 터치 또는 마우스 이벤트의 시작 좌표를 기록합니다.
+                const touch = e.touches ? e.touches[0] : e;
+                startX = touch.clientX;
+                startY = touch.clientY;
 
-                    const touch = e.touches ? e.touches[0] : e;
-                    startX = touch.clientX;
-                    startY = touch.clientY;
+                // 드래그 중에는 CSS transition을 비활성화하여 마우스를 부드럽게 따라오게 합니다.
+                activeCard.style.transition = 'none';
 
-                    activeCard.style.transition = 'none';
+                // 드래그 이동 및 종료 이벤트를 document에 등록합니다.
+                document.addEventListener('mousemove', onPointerMove);
+                document.addEventListener('touchmove', onPointerMove, { passive: false });
+                document.addEventListener('mouseup', onPointerUp);
+                document.addEventListener('touchend', onPointerUp);
+            };
 
-                    document.addEventListener('mousemove', onPointerMove);
-                    document.addEventListener('touchmove', onPointerMove, { passive: false });
-                    document.addEventListener('mouseup', onPointerUp);
-                    document.addEventListener('touchend', onPointerUp);
+            const onPointerMove = (e) => {
+                if (!isDragging || !activeCard) return;
+
+                // 모바일에서 스크롤을 방지합니다.
+                if (e.touches) e.preventDefault();
+
+                const touch = e.touches ? e.touches[0] : e;
+                const currentX = touch.clientX;
+                const currentY = touch.clientY;
+
+                // 시작점으로부터의 이동 거리를 계산합니다.
+                deltaX = currentX - startX;
+                deltaY = currentY - startY;
+
+                // 이동 거리에 따라 카드를 회전시킵니다.
+                const rotate = deltaX * 0.1;
+                activeCard.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
+            };
+
+            const onPointerUp = () => {
+                if (!isDragging || !activeCard) return;
+
+                // [오류 수정] activeCard가 null로 설정되기 전에 지역 변수에 참조를 저장합니다.
+                // setTimeout 콜백이 실행될 때 activeCard는 이미 null이므로, 지역 변수를 사용해야 합니다.
+                const cardToAnimate = activeCard;
+
+                isDragging = false;
+                // 등록했던 document 이벤트를 제거합니다.
+                document.removeEventListener('mousemove', onPointerMove);
+                document.removeEventListener('touchmove', onPointerMove);
+                document.removeEventListener('mouseup', onPointerUp);
+                document.removeEventListener('touchend', onPointerUp);
+
+                cardToAnimate.classList.remove('dragging');
+                cardToAnimate.style.transition = ''; // CSS transition을 다시 활성화합니다.
+
+                const cardWidth = cardToAnimate.offsetWidth;
+
+                // 카드를 충분히 많이 움직였는지 확인합니다.
+                if (Math.abs(deltaX) > cardWidth / 3) {
+                    // 스와이프 성공
+                    const direction = deltaX > 0 ? 1 : -1;
+                    const targetX = direction * (window.innerWidth / 2 + cardWidth);
+                    const rotate = deltaX * 0.1 + (direction * 15);
+
+                    cardToAnimate.style.transform = `translateX(${targetX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
+                    cardToAnimate.isAnimating = true;
+
+                    // 카드가 화면 밖으로 날아간 후 DOM 구조를 변경합니다.
+                    setTimeout(() => {
+                        // 지역 변수인 cardToAnimate를 사용합니다.
+                        stack.removeChild(cardToAnimate);
+                        stack.insertBefore(cardToAnimate, stack.firstElementChild);
+
+                        cardToAnimate.style.transform = '';
+                        cardToAnimate.isAnimating = false;
+
+                        // 카드 배열을 새로고침하고 스택의 시각적 상태를 업데이트합니다.
+                        cards = Array.from(stack.querySelectorAll('.card'));
+                        updateCardStack();
+                    }, 400);
+                } else {
+                    // 스와이프 실패 시 원래 위치로 되돌립니다.
+                    cardToAnimate.style.transform = '';
                 }
 
-                const onPointerMove = (e) => {
-                    if (!isDragging || !activeCard) return;
+                deltaX = 0;
+                deltaY = 0;
+                activeCard = null;
+            };
 
-                    if (e.touches) e.preventDefault();
-
-                    const touch = e.touches ? e.touches[0] : e;
-                    currentX = touch.clientX;
-                    currentY = touch.clientY;
-
-                    deltaX = currentX - startX;
-                    deltaY = currentY - startY;
-
-                    const rotate = deltaX * 0.1;
-
-                    activeCard.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
-                }
-
-                const onPointerUp = () => {
-                    if (!isDragging || !activeCard) return;
-
-                    isDragging = false;
-                    document.removeEventListener('mousemove', onPointerMove);
-                    document.removeEventListener('touchmove', onPointerMove);
-                    document.removeEventListener('mouseup', onPointerUp);
-                    document.removeEventListener('touchend', onPointerUp);
-
-                    activeCard.classList.remove('dragging');
-                    activeCard.style.transition = '';
-
-                    const cardWidth = activeCard.offsetWidth;
-
-                    if (Math.abs(deltaX) > cardWidth / 3) {
-                        const direction = deltaX > 0 ? 1 : -1;
-                        const targetX = direction * (window.innerWidth / 2 + cardWidth);
-                        const rotate = deltaX * 0.1 + (direction * 15);
-
-                        activeCard.style.transform = `translateX(${targetX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
-                        activeCard.isAnimating = true;
-
-                        setTimeout(() => {
-                            stack.removeChild(activeCard);
-                            stack.insertBefore(activeCard, stack.firstElementChild);
-
-                            activeCard.style.transform = '';
-                            activeCard.isAnimating = false;
-
-                            cards = Array.from(stack.querySelectorAll('.card'));
-                            updateCardStack();
-                        }, 400);
-
-                    } else {
-                        activeCard.style.transform = '';
-                    }
-
-                    deltaX = 0;
-                    deltaY = 0;
-                    activeCard = null;
-                }
-
-                stack.addEventListener('mousedown', onPointerDown);
-                stack.addEventListener('touchstart', onPointerDown, { passive: true });
-            }
-
-            // 카드 순서가 바뀔 때마다 CSS 스타일 업데이트
             function updateCardStack() {
                 cards.forEach((card, i) => {
                     card.style.zIndex = i;
 
                     const positionFromTop = cards.length - 1 - i;
+
+                    // 기존 이벤트 리스너를 모두 제거하여 중복 등록을 방지합니다.
+                    card.removeEventListener('mousedown', onPointerDown);
+                    card.removeEventListener('touchstart', onPointerDown);
+
+                    // 시각적으로 보이는 카드의 깊이를 설정합니다.
                     const visibleStackDepth = 4;
-                    const visualPosition = Math.min(positionFromTop, visibleStackDepth);
+                    if (positionFromTop < visibleStackDepth) {
+                        card.style.opacity = '1';
+                        const offset = positionFromTop * 15;
+                        const scale = 1 - (positionFromTop * 0.05);
+                        card.style.transform = `translateY(${offset}px) scale(${scale})`;
+                    } else {
+                        card.style.opacity = '0';
+                        card.style.transform = `translateY(60px) scale(0.80)`;
+                    }
 
-                    card.style.opacity = '1';
-
-                    const offset = visualPosition * 15;
-                    const scale = 1 - (visualPosition * 0.05);
-                    card.style.transform = `translateY(${offset}px) scale(${scale})`;
-
-                    // 맨 위 카드만 상호작용 가능하도록 설정
-                    card.style.pointerEvents = (positionFromTop === 0) ? 'auto' : 'none';
+                    // 가장 위에 있는 카드에만 이벤트 리스너를 추가하고 상호작용을 허용합니다.
+                    if (positionFromTop === 0) {
+                        card.addEventListener('mousedown', onPointerDown);
+                        card.addEventListener('touchstart', onPointerDown, { passive: true });
+                        card.style.pointerEvents = 'auto';
+                    } else {
+                        card.style.pointerEvents = 'none';
+                    }
                 });
             }
 
-            initializeCards();
-            updateCardStack(); // 초기 카드 z-index 및 스타일 설정
+            // 초기 카드 스택 상태를 설정합니다.
+            updateCardStack();
         });
     </script>
 

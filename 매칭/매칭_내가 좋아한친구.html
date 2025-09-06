@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>마음 전달 완료</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent-color: #00FFFF;
+            /* 헤더 포인트 */
+            --nav-primary: #2E8B57;
+            /* 하단 중앙 버튼 */
+            --nav-muted: #9CA3AF;
+            /* 비활성 아이콘 */
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #dcdde1;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+        }
+
+        .iphone-frame {
+            position: relative;
+            width: 393px;
+            height: 852px;
+            background: #1c1c1e;
+            border-radius: 54px;
+            padding: 14px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .3), inset 0 2px 4px rgba(255, 255, 255, .1);
+        }
+
+        .iphone-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 40px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 125px;
+            height: 36px;
+            background: #1c1c1e;
+            border-radius: 20px;
+            z-index: 9999;
+        }
+
+        /* 모달(카드 보기) 오버레이 */
+        #modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            display: grid;
+            place-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+            z-index: 10000;
+        }
+
+        #modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 확인/삭제 팝업 오버레이 */
+        #dialog-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+            z-index: 10001;
+        }
+
+        #dialog-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .card-stack {
+            position: relative;
+            width: 300px;
+            height: 400px;
+        }
+
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .1);
+            cursor: grab;
+            user-select: none;
+            transition: transform .4s cubic-bezier(.25, .8, .25, 1), box-shadow .4s, opacity .4s;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .id-card-photo {
+            width: 120px;
+            height: 155px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 15px;
+            border: 4px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+        }
+
+        .id-card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .id-card-body {
+            text-align: center;
+            margin-top: 15px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-info h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .profile-info p {
+            margin: 4px 0 12px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .profile-bio p {
+            margin: 0 0 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .profile-hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .profile-hashtags span {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #eef2f7;
+            color: #5c8dff;
+        }
+
+        .card-like-btn {
+            margin-top: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .card-like-btn svg {
+            width: 40px;
+            height: 40px;
+            transition: transform .2s;
+        }
+
+        .card-like-btn:hover svg {
+            transform: scale(1.1);
+        }
+
+        .card-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #e5e7eb;
+            color: #6b7280;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 1;
+            padding-bottom: 3px;
+            z-index: 10;
+        }
+
+        .card-close-btn:hover {
+            background: #d1d5db;
+        }
+
+        /* 팝업 박스 */
+        .confirm-dialog {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .1);
+            z-index: 10002;
+            width: 280px;
+        }
+
+        .confirm-dialog h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .confirm-dialog p {
+            font-size: 14px;
+            color: #666;
+            margin: 6px 0 12px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .confirm-buttons button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color .2s;
+        }
+
+        .no-btn {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .no-btn:hover {
+            background: #d1d5db;
+        }
+
+        .yes-btn {
+            color: #fff;
+            background: #ef4444;
+        }
+
+        .yes-btn:hover {
+            background: #dc2626;
+        }
+
+        /* 그리드 */
+        #grid-view-main {
+            flex-grow: 1;
+            overflow-y: auto;
+            background: #fff;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .profile-grid-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .1);
+        }
+
+        .profile-grid-item img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            transition: transform .3s;
+        }
+
+        .profile-grid-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .grid-item-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            z-index: 5;
+            font-size: 24px;
+            line-height: 1;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            transition: transform .2s;
+        }
+
+        .grid-item-remove-btn:hover {
+            transform: scale(1.15);
+        }
+
+        /* 배경 없는 하트 배지 */
+        .liked-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 6;
+        }
+
+        .liked-badge i {
+            color: #fff;
+            font-size: 15px;
+            text-shadow: 0 1px 1px rgba(80, 78, 78, .5);
+        }
+
+        .profile-grid-item .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, rgba(0, 0, 0, .7), transparent);
+            padding: .75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: #fff;
+        }
+
+        .profile-grid-item .overlay h3 {
+            font-weight: 700;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .profile-grid-item .overlay p {
+            font-size: .75rem;
+            margin: 0;
+            opacity: .9;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="iphone-frame">
+        <div class="iphone-screen">
+            <div class="dynamic-island"></div>
+
+            <!-- 상단바 -->
+            <header class="flex-shrink-0 flex items-center justify-between p-4 bg-white z-10">
+                <div>
+                    <div class="text-3xl font-black" style="color: var(--accent-color);">CC,</div>
+                    <div class="text-[10px] font-bold tracking-[0.2em] text-gray-500">CAMPUS CONNECT</div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                    <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+                </div>
+            </header>
+
+            <!-- 메인 -->
+            <main id="grid-view-main">
+                <div class="p-4">
+                    <h1 class="text-2xl font-bold text-gray-800">마음 전달 완료</h1>
+                    <p class="text-sm text-gray-500">상대의 하트를 기다리는 중이에요. 매칭되면 알려드릴게요.</p>
+                </div>
+                <div id="profile-grid-container" class="profile-grid px-4 pb-4"></div>
+            </main>
+
+            <!-- 하단바 -->
+            <footer class="relative flex-shrink-0 z-20">
+                <div class="h-20 bg-white/95 border-t border-gray-100 relative">
+                    <nav class="grid grid-cols-5 items-center h-full">
+                        <a href="#" class="flex justify-center">
+                            <i class="fa-regular fa-heart text-[26px]" style="color: var(--nav-primary);"></i>
+                        </a>
+                        <a href="#" class="flex justify-center">
+                            <i class="fa-regular fa-eye text-2xl" style="color: var(--nav-muted);"></i>
+                        </a>
+                        <div class="flex justify-center">
+                            <button class="flex items-center justify-center rounded-full w-16 h-16 text-white"
+                                style="background: var(--nav-primary); box-shadow: 0 10px 20px rgba(46,139,87,.28), 0 0 0 12px rgba(46,139,87,.10);">
+                                <i class="fa-solid fa-house text-2xl"></i>
+                            </button>
+                        </div>
+                        <a href="#" class="flex justify-center">
+                            <i class="fa-solid fa-user-group text-2xl" style="color: var(--nav-muted);"></i>
+                        </a>
+                        <a href="#" class="flex justify-center">
+                            <i class="fa-regular fa-comment text-2xl" style="color: var(--nav-muted);"></i>
+                        </a>
+                    </nav>
+                </div>
+            </footer>
+
+            <!-- 모달(카드) -->
+            <div id="modal-overlay">
+                <main>
+                    <div class="card-stack"></div>
+                </main>
+            </div>
+
+            <!-- 팝업 오버레이 -->
+            <div id="dialog-overlay"></div>
+
+            <!-- 좋아요 취소 팝업 -->
+            <div id="cancel-like-dialog" class="confirm-dialog hidden">
+                <h3>좋아요를 취소할까요?</h3>
+                <p>좋아요를 해제하면 목록에서 삭제됩니다.</p>
+                <div class="confirm-buttons">
+                    <button id="cancel-like-no-btn" class="no-btn">아니요</button>
+                    <button id="cancel-like-yes-btn" class="yes-btn">확인</button>
+                </div>
+            </div>
+
+            <!-- 목록 삭제 팝업 -->
+            <div id="remove-confirm-dialog" class="confirm-dialog hidden">
+                <h3>목록에서 삭제할까요 ?</h3>
+                <p>프로필 목록에서 삭제되고, 좋아요도 해제됩니다.</p>
+                <div class="confirm-buttons">
+                    <button id="remove-no-btn" class="no-btn">취소</button>
+                    <button id="remove-yes-btn" class="yes-btn">삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const profiles = [
+                { id: 1, name: "지민", major: "시각디자인과", bio: "새로운 사람들과 커피 한잔하는 걸 좋아해요. ☕️", tags: ["#비흡연", "#ENFP", "#두근두근썸"], img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2787&auto=format&fit=crop" },
+                { id: 2, name: "서준", major: "체육교육과", bio: "주말엔 주로 운동해요! 같이 운동할 분 찾아요. 💪", tags: ["#비흡연", "#ISTJ", "#두근두근썸"], img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2787&auto=format&fit=crop" },
+                { id: 3, name: "하은", major: "수의예과", bio: "귀여운 강아지랑 매일 산책하는게 행복이에요. 🐶", tags: ["#비흡연", "#INFP", "#두근두근썸"], img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2788&auto=format&fit=crop" },
+                { id: 4, name: "도윤", major: "컴퓨터공학과", bio: "코딩과 게임을 사랑하는 개발자입니다. 💻", tags: ["#흡연", "#ENTJ", "#두근두근썸"], img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=2787&auto=format&fit=crop" },
+                { id: 5, name: "시아", major: "식품영양학과", bio: "직접 만든 디저트 나눠먹는 걸 좋아해요! 🍰", tags: ["#비흡연", "#ISFP", "#두근두근썸"], img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2787&auto=format&fit=crop" },
+                { id: 6, name: "유진", major: "실용무용과", bio: "춤추는 것과 예쁜 옷 입는 걸 좋아해요! 💃", tags: ["#비흡연", "#ESFP", "#두근두근썸"], img: "https://images.unsplash.com/photo-1599577181262-29170b05e194?q=80&w=2787&auto=format&fit=crop" },
+                { id: 7, name: "은우", major: "산림자원학과", bio: "자연 속에서 힐링하는 캠핑을 즐깁니다. 🏕️", tags: ["#비흡연", "#ISTP", "#두근두근썸"], img: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?q=80&w=2874&auto=format&fit=crop" },
+                { id: 8, name: "채원", major: "미술학과", bio: "조용히 그림 그리고 책 읽는 집순이에요. 🎨", tags: ["#비흡연", "#INFJ", "#두근두근썸"], img: "https://images.unsplash.com/photo-1618151313441-37c0121123e8?q=80&w=2787&auto=format&fit=crop" }
+            ];
+
+            // '내가 좋아요한 목록' → 처음엔 전부 좋아요 상태
+            const likedIds = new Set(profiles.map(p => String(p.id)));
+
+            const iphoneScreen = document.querySelector('.iphone-screen');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const dialogOverlay = document.getElementById('dialog-overlay');
+            const gridContainer = document.getElementById('profile-grid-container');
+            const cardStack = document.querySelector('#modal-overlay .card-stack');
+
+            const removeDialog = document.getElementById('remove-confirm-dialog');
+            const removeYesBtn = document.getElementById('remove-yes-btn');
+            const removeNoBtn = document.getElementById('remove-no-btn');
+
+            const cancelDialog = document.getElementById('cancel-like-dialog');
+            const cancelYesBtn = document.getElementById('cancel-like-yes-btn');
+            const cancelNoBtn = document.getElementById('cancel-like-no-btn');
+
+            const anyDialogOpen = () => !removeDialog.classList.contains('hidden') || !cancelDialog.classList.contains('hidden');
+            const openDialog = (el) => { el.classList.remove('hidden'); dialogOverlay.classList.add('visible'); };
+            const closeDialog = (el) => { el.classList.add('hidden'); if (!anyDialogOpen()) dialogOverlay.classList.remove('visible'); };
+
+            let activeCard = null;
+            let pendingRemoveItem = null;
+
+            function render() {
+                gridContainer.innerHTML = ''; cardStack.innerHTML = '';
+                profiles.forEach(p => {
+                    if (!likedIds.has(String(p.id))) return;
+
+                    const grid = document.createElement('div');
+                    grid.className = 'profile-grid-item';
+                    grid.dataset.id = p.id;
+                    grid.innerHTML = `
+            <div class="liked-badge"><i class="fa-solid fa-heart"></i></div>
+            <button class="grid-item-remove-btn">&times;</button>
+            <img src="${p.img}" alt="${p.name}">
+            <div class="overlay"><h3>${p.name}</h3><p>${p.major}</p></div>`;
+                    gridContainer.appendChild(grid);
+
+                    const card = document.createElement('div');
+                    card.className = 'card'; card.dataset.id = p.id;
+                    card.innerHTML = `
+            <button class="card-close-btn">&times;</button>
+            <div class="id-card-photo"><img src="${p.img}" alt="${p.name}"></div>
+            <div class="id-card-body">
+              <div>
+                <div class="profile-info"><h2>${p.name}</h2><p>${p.major}</p></div>
+                <div class="profile-bio"><p>${p.bio}</p></div>
+                <div class="profile-hashtags">${p.tags.map(t => `<span>${t}</span>`).join('')}</div>
+              </div>
+              <div class="card-like-btn">
+                <svg class="heart-filled" viewBox="0 0 24 24" fill="#FF4D6D" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.0001 5.50002C10.0001 2.50002 6.00006 3.00002 4.00006 6.50002C2.00006 10 6.00006 13.5 12.0001 19.5C18.0001 13.5 22.0001 10 20.0001 6.50002C18.0001 3.00002 14.0001 2.50002 12.0001 5.50002Z"/>
+                </svg>
+              </div>
+            </div>`;
+                    cardStack.appendChild(card);
+                });
+
+                [removeDialog, cancelDialog].forEach(d => iphoneScreen.appendChild(d));
+            }
+            render();
+
+            function openCardModal(id) {
+                [...cardStack.querySelectorAll('.card')].forEach(c => {
+                    c.style.display = (c.dataset.id == id) ? 'flex' : 'none';
+                    if (c.dataset.id == id) {
+                        activeCard = c;
+                        c.querySelector('.card-close-btn').onclick = closeCardModal;
+                        c.querySelector('.card-like-btn').onclick = () => openDialog(cancelDialog);
+                    }
+                });
+                modalOverlay.classList.add('visible');
+            }
+            function closeCardModal() {
+                modalOverlay.classList.remove('visible');
+                [removeDialog, cancelDialog].forEach(d => d.classList.add('hidden'));
+                dialogOverlay.classList.remove('visible');
+                activeCard = null;
+            }
+            function removeFromLiked(id) {
+                likedIds.delete(String(id));
+                render();
+                closeCardModal();
+            }
+
+            gridContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.grid-item-remove-btn');
+                const item = e.target.closest('.profile-grid-item');
+                if (!item) return;
+
+                if (removeBtn) {
+                    e.stopPropagation();
+                    pendingRemoveItem = item;
+                    openDialog(removeDialog);
+                } else {
+                    openCardModal(item.dataset.id);
+                }
+            });
+
+            removeNoBtn.addEventListener('click', () => closeDialog(removeDialog));
+            removeYesBtn.addEventListener('click', () => {
+                if (pendingRemoveItem) { removeFromLiked(pendingRemoveItem.dataset.id); pendingRemoveItem = null; }
+                closeDialog(removeDialog);
+            });
+
+            cancelNoBtn.addEventListener('click', () => closeDialog(cancelDialog));
+            cancelYesBtn.addEventListener('click', () => {
+                if (activeCard) { removeFromLiked(activeCard.dataset.id); }
+                closeDialog(cancelDialog);
+            });
+
+            modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeCardModal(); });
+            dialogOverlay.addEventListener('click', () => { [removeDialog, cancelDialog].forEach(d => d.classList.add('hidden')); dialogOverlay.classList.remove('visible'); });
+
+            // 모달 카드 드래그 스냅백
+            let dragging = false, startX = 0, dx = 0, dragCard = null;
+            function bindSwipe() {
+                const current = cardStack.querySelector(".card[style*='display: flex']");
+                if (current) {
+                    current.addEventListener('mousedown', onDown);
+                    current.addEventListener('touchstart', onDown, { passive: true });
+                }
+            }
+            function onDown(e) {
+                if (e.currentTarget.style.display === 'none') return;
+                dragCard = e.currentTarget; dragging = true; dragCard.style.transition = 'none';
+                const t = e.touches ? e.touches[0] : e; startX = t.clientX;
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('mouseup', onUp);
+                document.addEventListener('touchend', onUp);
+            }
+            function onMove(e) {
+                if (!dragging || !dragCard) return;
+                if (e.touches) e.preventDefault();
+                const t = e.touches ? e.touches[0] : e; dx = t.clientX - startX;
+                dragCard.style.transform = `translateX(${dx}px) rotate(${dx * 0.1}deg)`;
+            }
+            function onUp() {
+                if (!dragging || !dragCard) return;
+                dragging = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                document.removeEventListener('touchend', onUp);
+                dragCard.style.transition = ''; dragCard.style.transform = '';
+                dragCard = null; dx = 0;
+            }
+            const mo = new MutationObserver(bindSwipe);
+            mo.observe(cardStack, { childList: true, subtree: true });
+        });
+    </script>
+</body>
+
+</html>

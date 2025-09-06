@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카드 스와이프 UI</title>
+    <style>
+        /* 기본 스타일 초기화 및 배경 설정 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+            /* 스와이프 시 스크롤 방지 */
+        }
+
+        /* 카드 스택을 담는 컨테이너 */
+        .card-stack {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            perspective: 1000px;
+            /* 3D 효과를 위한 원근감 */
+        }
+
+        /* 개별 카드 스타일 */
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* 내부 콘텐츠 정렬 */
+            padding: 25px;
+            box-sizing: border-box;
+
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            background-color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+            cursor: grab;
+            /* 마우스 커서를 잡는 모양으로 변경 */
+            user-select: none;
+            /* 텍스트 드래그 방지 */
+
+            /* 부드러운 애니메이션 효과 */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease, opacity 0.4s ease;
+        }
+
+        /* 드래그 중인 카드 스타일 */
+        .card.dragging {
+            cursor: grabbing;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 카드 내부 콘텐츠 스타일 */
+        .card-header {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .card-subtitle {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .card-logo {
+            align-self: flex-start;
+            /* 로고를 좌측 하단에 배치 */
+            background-color: #03c75a;
+            /* 네이버 색상 */
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 20px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .card-logo span {
+            display: block;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* 스와이프 방향 표시 텍스트 */
+        .swipe-indicator {
+            position: absolute;
+            top: 40px;
+            padding: 10px 20px;
+            border: 4px solid;
+            border-radius: 15px;
+            font-size: 32px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        .swipe-indicator.right {
+            left: 25px;
+            color: #4CAF50;
+            border-color: #4CAF50;
+            transform: rotate(-20deg);
+        }
+
+        .swipe-indicator.left {
+            right: 25px;
+            color: #F44336;
+            border-color: #F44336;
+            transform: rotate(20deg);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card-stack">
+        <!-- 카드 데이터 -->
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">NAVER PLUS MEMBERSHIP</div>
+                <h2 class="card-title">연말 특집 멤버십데이</h2>
+                <p class="card-subtitle">연말특집 멤버십데이,<br>올해 마지막 특가 찬스!</p>
+            </div>
+            <div class="card-logo">N+<span>멤버십</span></div>
+        </div>
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">EVENT #2</div>
+                <h2 class="card-title">새해 맞이 쿠폰 증정</h2>
+                <p class="card-subtitle">멤버십 회원이라면 누구나<br>10% 할인 쿠폰 받기</p>
+            </div>
+            <div class="card-logo" style="background-color: #ff5c5c;">🎁<span>쿠폰</span></div>
+        </div>
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">EVENT #3</div>
+                <h2 class="card-title">친구 초대 이벤트</h2>
+                <p class="card-subtitle">친구 초대하고<br>함께 5,000 포인트 받으세요!</p>
+            </div>
+            <div class="card-logo" style="background-color: #5c8dff;">💌<span>초대</span></div>
+        </div>
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">CONTENT</div>
+                <h2 class="card-title">이번 주 추천 웹툰</h2>
+                <p class="card-subtitle">인기 TOP 10 웹툰을<br>지금 바로 만나보세요!</p>
+            </div>
+            <div class="card-logo" style="background-color: #ffab5c;">🎬<span>웹툰</span></div>
+        </div>
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">SHOPPING</div>
+                <h2 class="card-title">오늘의 쇼핑 특가</h2>
+                <p class="card-subtitle">매일 자정, 새로운 특가 상품이<br>여러분들을 찾아갑니다!</p>
+            </div>
+            <div class="card-logo" style="background-color: #9f73e8;">🛍️<span>쇼핑</span></div>
+        </div>
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">NAVER PAY</div>
+                <h2 class="card-title">네이버페이 혜택</h2>
+                <p class="card-subtitle">결제할 때마다 쌓이는<br>놀라운 포인트 혜택!</p>
+            </div>
+            <div class="card-logo" style="background-color: #00c73c;">💰<span>페이</span></div>
+        </div>
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">SERIES ON</div>
+                <h2 class="card-title">새로운 시리즈 공개</h2>
+                <p class="card-subtitle">화제의 신작 드라마,<br>지금 바로 정주행하세요!</p>
+            </div>
+            <div class="card-logo" style="background-color: #333;">📺<span>시리즈</span></div>
+        </div>
+        <div class="card">
+            <div class="swipe-indicator right">좋아요</div>
+            <div class="swipe-indicator left">별로예요</div>
+            <div class="card-content">
+                <div class="card-header">LAST CARD</div>
+                <h2 class="card-title">마지막 카드입니다</h2>
+                <p class="card-subtitle">스와이프하면<br>첫 번째 카드로 돌아갑니다.</p>
+            </div>
+            <div class="card-logo" style="background-color: #777;">🔄<span>처음</span></div>
+        </div>
+        <!-- 필요하면 카드를 더 추가할 수 있습니다 -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stack = document.querySelector('.card-stack');
+            let cards = Array.from(stack.querySelectorAll('.card'));
+
+            // 스와이프 상태를 관리하는 변수들
+            let isDragging = false;
+            let startX = 0, startY = 0;
+            let deltaX = 0, deltaY = 0;
+            let activeCard = null;
+
+            const onPointerDown = (e) => {
+                activeCard = e.currentTarget;
+                if (activeCard.isAnimating) return;
+
+                isDragging = true;
+                activeCard.classList.add('dragging');
+
+                const touch = e.touches ? e.touches[0] : e;
+                startX = touch.clientX;
+                startY = touch.clientY;
+
+                activeCard.style.transition = 'none';
+
+                document.addEventListener('mousemove', onPointerMove);
+                document.addEventListener('touchmove', onPointerMove, { passive: false });
+                document.addEventListener('mouseup', onPointerUp);
+                document.addEventListener('touchend', onPointerUp);
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDragging || !activeCard) return;
+
+                if (e.touches) e.preventDefault();
+
+                const touch = e.touches ? e.touches[0] : e;
+                const currentX = touch.clientX;
+                const currentY = touch.clientY;
+
+                deltaX = currentX - startX;
+                deltaY = currentY - startY;
+
+                const rotate = deltaX * 0.1;
+                activeCard.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
+
+                // 스와이프 방향 표시
+                const likeIndicator = activeCard.querySelector('.swipe-indicator.right');
+                const nopeIndicator = activeCard.querySelector('.swipe-indicator.left');
+                const opacity = Math.min(Math.abs(deltaX) / (activeCard.offsetWidth / 2.5), 1);
+
+                if (deltaX > 0) { // 오른쪽으로 스와이프
+                    likeIndicator.style.opacity = opacity;
+                    nopeIndicator.style.opacity = 0;
+                } else if (deltaX < 0) { // 왼쪽으로 스와이프
+                    nopeIndicator.style.opacity = opacity;
+                    likeIndicator.style.opacity = 0;
+                } else {
+                    likeIndicator.style.opacity = 0;
+                    nopeIndicator.style.opacity = 0;
+                }
+            };
+
+            const onPointerUp = () => {
+                if (!isDragging || !activeCard) return;
+
+                const cardToAnimate = activeCard;
+                isDragging = false;
+
+                document.removeEventListener('mousemove', onPointerMove);
+                document.removeEventListener('touchmove', onPointerMove);
+                document.removeEventListener('mouseup', onPointerUp);
+                document.removeEventListener('touchend', onPointerUp);
+
+                cardToAnimate.classList.remove('dragging');
+                cardToAnimate.style.transition = '';
+
+                // 스와이프 방향 표시 숨기기
+                const likeIndicator = cardToAnimate.querySelector('.swipe-indicator.right');
+                const nopeIndicator = cardToAnimate.querySelector('.swipe-indicator.left');
+
+                if (Math.abs(deltaX) > cardToAnimate.offsetWidth / 3) {
+                    const direction = deltaX > 0 ? 1 : -1;
+                    const targetX = direction * (window.innerWidth / 2 + cardToAnimate.offsetWidth);
+                    const rotate = deltaX * 0.1 + (direction * 15);
+
+                    cardToAnimate.style.transform = `translateX(${targetX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
+                    cardToAnimate.isAnimating = true;
+
+                    setTimeout(() => {
+                        stack.removeChild(cardToAnimate);
+                        stack.insertBefore(cardToAnimate, stack.firstElementChild);
+
+                        cardToAnimate.style.transform = '';
+                        likeIndicator.style.opacity = 0;
+                        nopeIndicator.style.opacity = 0;
+                        cardToAnimate.isAnimating = false;
+
+                        cards = Array.from(stack.querySelectorAll('.card'));
+                        updateCardStack();
+                    }, 400);
+                } else {
+                    cardToAnimate.style.transform = '';
+                    likeIndicator.style.opacity = 0;
+                    nopeIndicator.style.opacity = 0;
+                }
+
+                deltaX = 0;
+                deltaY = 0;
+                activeCard = null;
+            };
+
+            function updateCardStack() {
+                cards.forEach((card, i) => {
+                    card.style.zIndex = i;
+
+                    const positionFromTop = cards.length - 1 - i;
+
+                    card.removeEventListener('mousedown', onPointerDown);
+                    card.removeEventListener('touchstart', onPointerDown);
+
+                    const visibleStackDepth = 4;
+                    if (positionFromTop < visibleStackDepth) {
+                        card.style.opacity = '1';
+                        const offset = positionFromTop * 15;
+                        const scale = 1 - (positionFromTop * 0.05);
+                        card.style.transform = `translateY(${offset}px) scale(${scale})`;
+                    } else {
+                        card.style.opacity = '0';
+                        card.style.transform = `translateY(60px) scale(0.80)`;
+                    }
+
+                    if (positionFromTop === 0) {
+                        card.addEventListener('mousedown', onPointerDown);
+                        card.addEventListener('touchstart', onPointerDown, { passive: true });
+                        card.style.pointerEvents = 'auto';
+                    } else {
+                        card.style.pointerEvents = 'none';
+                    }
+                });
+            }
+
+            updateCardStack();
+        });
+    </script>
+
+</body>
+
+</html>

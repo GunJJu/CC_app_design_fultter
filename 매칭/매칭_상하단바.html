@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카드 스와이프 UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 기본 스타일 초기화 및 배경 설정 */
+        :root {
+            --accent-color: #5Dade2;
+            /* Main neon color */
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #dcdde1;
+            /* 에뮬레이터 배경색 */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+            /* 스와이프 시 스크롤 방지 */
+        }
+
+        /* --- 아이폰 프레임 스타일 시작 --- */
+        .iphone-frame {
+            position: relative;
+            width: 393px;
+            height: 852px;
+            background-color: #1c1c1e;
+            border-radius: 54px;
+            padding: 14px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+        }
+
+        .iphone-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            /* 앱 화면 배경색 */
+            border-radius: 40px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            /* 세로 레이아웃으로 변경 */
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 125px;
+            height: 36px;
+            background-color: #1c1c1e;
+            border-radius: 20px;
+            z-index: 999;
+        }
+
+        /* --- 아이폰 프레임 스타일 끝 --- */
+
+        /* 메인 콘텐츠 영역 (헤더, 푸터 제외) */
+        main {
+            flex-grow: 1;
+            /* 남은 공간을 모두 차지 */
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-color: #f5f7fa
+        }
+
+        /* 카드 스택을 담는 컨테이너 */
+        .card-stack {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            perspective: 1000px;
+            /* 3D 효과를 위한 원근감 */
+        }
+
+        /* 개별 카드 스타일 */
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            cursor: grab;
+            /* 마우스 커서를 잡는 모양으로 변경 */
+            user-select: none;
+            /* 텍스트 드래그 방지 */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease, opacity 0.4s ease;
+            overflow: hidden;
+            /* 이미지 오버플로우 방지 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 드래그 중인 카드 스타일 */
+        .card.dragging {
+            cursor: grabbing;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- 사원증 카드 콘텐츠 스타일 시작 --- */
+        .id-card-photo {
+            width: 120px;
+            /* 사진 크기 조정 */
+            height: 155px;
+            /* 사진 크기 조정 */
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 15px;
+            border: 4px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .id-card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .id-card-body {
+            text-align: center;
+            margin-top: 15px;
+            color: #333;
+        }
+
+        .profile-info h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .profile-info p {
+            margin: 4px 0 12px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .profile-bio p {
+            margin: 0 0 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .profile-hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .profile-hashtags span {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: #eef2f7;
+            color: #5c8dff;
+        }
+
+        /* --- 사원증 카드 콘텐츠 스타일 끝 --- */
+
+        /* 스와이프 피드백 아이콘 */
+        .swipe-icon-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 50;
+            /* 카드 스택 위에 위치 */
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .swipe-icon-feedback svg {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        /* 푸터 그림자 효과 */
+        .footer-shadow {
+            filter: drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.05));
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="iphone-frame">
+        <div class="iphone-screen">
+            <div class="dynamic-island"></div>
+
+            <!-- Header -->
+            <header class="flex-shrink-0 flex items-center justify-between p-4 bg-white z-10">
+                <div>
+                    <div class="text-3xl font-black" style="color: var(--accent-color);">CC,</div>
+                    <div class="text-[10px] font-bold tracking-[0.2em] text-gray-500">CAMPUS CONNECT</div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 text-xl"><i class="far fa-comment-dots"></i></button>
+                    <button class="text-gray-500 text-xl"><i class="far fa-bell"></i></button>
+                </div>
+            </header>
+
+            <!-- Main Content (Card Stack) -->
+            <main>
+                <div class="card-stack">
+                    <!-- 피드백 아이콘 -->
+                    <div id="like-icon" class="swipe-icon-feedback">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12.0001 5.50002C10.0001 2.50002 6.00006 3.00002 4.00006 6.50002C2.00006 10 6.00006 13.5 12.0001 19.5C18.0001 13.5 22.0001 10 20.0001 6.50002C18.0001 3.00002 14.0001 2.50002 12.0001 5.50002Z"
+                                stroke="#FF4D6D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div id="nope-icon" class="swipe-icon-feedback">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 8L8 16M8 8L16 16" stroke="#555" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+                                stroke="#555" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+
+                    <!-- 카드 데이터 -->
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2787&auto=format&fit=crop"
+                                alt="프로필 사진 1">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>지민</h2>
+                                <p>시각디자인과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>새로운 사람들과 커피 한잔하는 걸 좋아해요. ☕️</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#비흡연</span>
+                                <span>#ENFP</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2787&auto=format&fit=crop"
+                                alt="프로필 사진 2">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>서준</h2>
+                                <p>체육교육과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>주말엔 주로 운동해요! 같이 운동할 분 찾아요. 💪</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#비흡연</span>
+                                <span>#ISTJ</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2788&auto=format&fit=crop"
+                                alt="프로필 사진 3">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>하은</h2>
+                                <p>수의예과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>귀여운 강아지랑 매일 산책하는게 행복이에요. 🐶</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#비흡연</span>
+                                <span>#INFP</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=2787&auto=format&fit=crop"
+                                alt="프로필 사진 4">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>도윤</h2>
+                                <p>컴퓨터공학과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>코딩과 게임을 사랑하는 개발자입니다. 💻</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#흡연</span>
+                                <span>#ENTJ</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2787&auto=format&fit=crop"
+                                alt="프로필 사진 5">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>시아</h2>
+                                <p>식품영양학과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>직접 만든 디저트 나눠먹는 걸 좋아해요! 🍰</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#비흡연</span>
+                                <span>#ISFP</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1599577181262-29170b05e194?q=80&w=2787&auto=format&fit=crop"
+                                alt="프로필 사진 6">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>유진</h2>
+                                <p>실용무용과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>춤추는 것과 예쁜 옷 입는 걸 좋아해요! 💃</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#비흡연</span>
+                                <span>#ESFP</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?q=80&w=2874&auto=format&fit=crop"
+                                alt="프로필 사진 7">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>은우</h2>
+                                <p>산림자원학과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>자연 속에서 힐링하는 캠핑을 즐깁니다. 🏕️</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#비흡연</span>
+                                <span>#ISTP</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="id-card-photo">
+                            <img src="https://images.unsplash.com/photo-1618151313441-37c0121123e8?q=80&w=2787&auto=format&fit=crop"
+                                alt="프로필 사진 8">
+                        </div>
+                        <div class="id-card-body">
+                            <div class="profile-info">
+                                <h2>채원</h2>
+                                <p>미술학과</p>
+                            </div>
+                            <div class="profile-bio">
+                                <p>조용히 그림 그리고 책 읽는 집순이에요. 🎨</p>
+                            </div>
+                            <div class="profile-hashtags">
+                                <span>#비흡연</span>
+                                <span>#INFJ</span>
+                                <span>#두근두근썸</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Bottom Navigation Bar -->
+            <footer class="relative flex-shrink-0 h-14 z-10">
+                <!-- Background SVG -->
+                <div class="absolute bottom-0 left-0 w-full h-full z-0">
+                    <svg class="w-full h-full footer-shadow" viewBox="0 0 375 56" preserveAspectRatio="none"
+                        fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M0 15C0 6.71573 6.71573 0 15 0H140C155 0 165 15 175 22C185 29 190 29 200 22C210 15 220 0 235 0H360C368.284 0 375 6.71573 375 15V56H0V15Z" />
+                    </svg>
+                </div>
+
+                <!-- Center Floating Button -->
+                <div class="absolute left-1/2 bottom-4 transform -translate-x-1/2 z-20">
+                    <button
+                        class="flex items-center justify-center text-black rounded-full w-16 h-16 shadow-lg shadow-cyan-500/50"
+                        style="background-color: var(--accent-color);">
+                        <i class="fa-solid fa-tower-broadcast text-2xl text-white"></i>
+                    </button>
+
+                </div>
+
+                <!-- 5-column navigation grid -->
+                <nav class="relative grid grid-cols-5 z-10 h-full">
+                    <!-- 1. Home -->
+                    <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                        <i class="fas fa-home text-2xl"></i>
+                    </a>
+                    <!-- 2. Meetings -->
+                    <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1436/1436701.png" class="w-7 h-7" alt="모임 아이콘">
+                    </a>
+                    <!-- 3. Placeholder for center button -->
+                    <div class="h-full"></div>
+                    <!-- 4. Timetable -->
+                    <a href="#" class="flex items-center justify-center h-full text-gray-400 hover:text-gray-800">
+                        <i class="fa-regular fa-calendar-days text-2xl"></i>
+                    </a>
+                    <!-- 5. My Page -->
+                    <a href="#" class="flex items-center justify-center h-full text-gray-800">
+                        <i class="fas fa-user text-2xl"></i>
+                    </a>
+                </nav>
+            </footer>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stack = document.querySelector('.card-stack');
+            const likeIcon = document.getElementById('like-icon');
+            const nopeIcon = document.getElementById('nope-icon');
+            let cards = Array.from(stack.querySelectorAll('.card'));
+
+            let isDragging = false;
+            let startX = 0, startY = 0;
+            let deltaX = 0, deltaY = 0;
+            let activeCard = null;
+
+            const onPointerDown = (e) => {
+                activeCard = e.currentTarget;
+                if (activeCard.isAnimating) return;
+
+                isDragging = true;
+                activeCard.classList.add('dragging');
+                activeCard.style.zIndex = 100; // 드래그하는 카드를 아이콘 위로 올림
+
+                const touch = e.touches ? e.touches[0] : e;
+                startX = touch.clientX;
+                startY = touch.clientY;
+
+                activeCard.style.transition = 'none';
+
+                document.addEventListener('mousemove', onPointerMove);
+                document.addEventListener('touchmove', onPointerMove, { passive: false });
+                document.addEventListener('mouseup', onPointerUp);
+                document.addEventListener('touchend', onPointerUp);
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDragging || !activeCard) return;
+
+                if (e.touches) e.preventDefault();
+
+                const touch = e.touches ? e.touches[0] : e;
+                const currentX = touch.clientX;
+                const currentY = touch.clientY;
+
+                deltaX = currentX - startX;
+                deltaY = currentY - startY;
+
+                const rotate = deltaX * 0.1;
+                activeCard.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
+
+                // 스와이프 방향에 따라 아이콘 표시 (밀려나는 효과)
+                const opacity = Math.min(Math.abs(deltaX) / (activeCard.offsetWidth / 2), 1);
+                const scale = 0.5 + (opacity * 0.5); // 0.5에서 1까지 커짐
+                const pushOffset = activeCard.offsetWidth / 2;
+
+                if (deltaX > 10) { // 오른쪽으로 스와이프
+                    const iconTranslateX = deltaX - pushOffset;
+                    likeIcon.style.opacity = opacity;
+                    likeIcon.style.transform = `translate(-50%, -50%) translateX(${iconTranslateX}px) scale(${scale})`;
+                    nopeIcon.style.opacity = 0;
+                } else if (deltaX < -10) { // 왼쪽으로 스와이프
+                    const iconTranslateX = deltaX + pushOffset;
+                    nopeIcon.style.opacity = opacity;
+                    nopeIcon.style.transform = `translate(-50%, -50%) translateX(${iconTranslateX}px) scale(${scale})`;
+                    likeIcon.style.opacity = 0;
+                } else {
+                    likeIcon.style.opacity = 0;
+                    nopeIcon.style.opacity = 0;
+                }
+            };
+
+            const onPointerUp = () => {
+                if (!isDragging || !activeCard) return;
+
+                const cardToAnimate = activeCard;
+                isDragging = false;
+
+                document.removeEventListener('mousemove', onPointerMove);
+                document.removeEventListener('touchmove', onPointerMove);
+                document.removeEventListener('mouseup', onPointerUp);
+                document.removeEventListener('touchend', onPointerUp);
+
+                cardToAnimate.classList.remove('dragging');
+                cardToAnimate.style.transition = '';
+
+                if (Math.abs(deltaX) > cardToAnimate.offsetWidth / 3) {
+                    // 스와이프 성공
+                    const direction = deltaX > 0 ? 1 : -1;
+                    const targetX = direction * (window.innerWidth / 2 + cardToAnimate.offsetWidth);
+                    const rotate = deltaX * 0.1 + (direction * 15);
+
+                    // 카드를 화면 밖으로 날리는 애니메이션
+                    cardToAnimate.style.transform = `translateX(${targetX}px) translateY(${deltaY}px) rotate(${rotate}deg)`;
+                    cardToAnimate.isAnimating = true;
+
+                    // 아이콘이 카드를 따라가는 애니메이션
+                    const iconToAnimate = direction > 0 ? likeIcon : nopeIcon;
+                    const iconTargetX = direction * (cardToAnimate.offsetWidth * 0.8);
+                    iconToAnimate.style.transform = `translate(-50%, -50%) translateX(${iconTargetX}px) scale(0.7)`;
+                    iconToAnimate.style.opacity = 0;
+
+                    setTimeout(() => {
+                        stack.removeChild(cardToAnimate);
+                        stack.insertBefore(cardToAnimate, stack.firstElementChild);
+                        cardToAnimate.style.transform = '';
+                        cardToAnimate.isAnimating = false;
+
+                        // 아이콘 위치 즉시 리셋
+                        iconToAnimate.style.transition = 'none';
+                        iconToAnimate.style.transform = 'translate(-50%, -50%) scale(0.5)';
+
+                        // 잠시 후 transition을 다시 활성화
+                        setTimeout(() => {
+                            iconToAnimate.style.transition = '';
+                        }, 50);
+
+                        cards = Array.from(stack.querySelectorAll('.card'));
+                        updateCardStack();
+                    }, 400);
+
+                } else {
+                    // 스와이프 실패: 카드를 원래 위치로
+                    cardToAnimate.style.transform = '';
+                    // 아이콘도 원래 위치로
+                    likeIcon.style.opacity = 0;
+                    likeIcon.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                    nopeIcon.style.opacity = 0;
+                    nopeIcon.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                    updateCardStack();
+                }
+
+                deltaX = 0;
+                deltaY = 0;
+                activeCard = null;
+            };
+
+            function updateCardStack() {
+                cards.forEach((card, i) => {
+                    const isTopCard = i === cards.length - 1;
+                    const positionFromTop = cards.length - 1 - i;
+
+                    card.style.zIndex = i;
+
+                    card.removeEventListener('mousedown', onPointerDown);
+                    card.removeEventListener('touchstart', onPointerDown);
+
+                    const visibleStackDepth = 4;
+                    if (positionFromTop < visibleStackDepth) {
+                        card.style.opacity = '1';
+                        if (!isTopCard) {
+                            const offset = positionFromTop * 15;
+                            const scale = 1 - (positionFromTop * 0.05);
+                            card.style.transform = `translateY(${offset}px) scale(${scale})`;
+                        } else {
+                            card.style.transform = '';
+                        }
+                        card.style.pointerEvents = 'none';
+                    } else {
+                        card.style.opacity = '0';
+                        card.style.transform = `translateY(60px) scale(0.80)`;
+                    }
+
+                    if (isTopCard) {
+                        card.addEventListener('mousedown', onPointerDown);
+                        card.addEventListener('touchstart', onPointerDown, { passive: true });
+                        card.style.pointerEvents = 'auto';
+                    }
+                });
+            }
+
+            updateCardStack();
+        });
+    </script>
+
+</body>
+
+</html>
